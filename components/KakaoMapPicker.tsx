@@ -245,7 +245,7 @@ export default function KakaoMapPicker({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[210] flex flex-col bg-white lg:left-56">
+    <div className="fixed inset-0 z-[210] flex flex-col bg-white">
         <div className="flex h-12 shrink-0 items-center justify-between border-b bg-[#0B1B3A] px-4">
           <span className="text-sm font-bold text-white sm:text-base">{headerTitle}</span>
           <div className="flex items-center gap-3">

@@ -1,10 +1,8 @@
 "use client";
 
 import AddressMapSection from "@/components/AddressMapSection";
-import Heart from "@/components/Heart";
 import { resolveMediaUrl, type Post } from "@/lib/api";
 import Image from "next/image";
-import Link from "next/link";
 
 const sectionClass = "rounded-lg border border-black bg-[#f9f9f9] p-4";
 
@@ -46,7 +44,7 @@ function wonOrBlank(v?: string | null) {
   return String(v ?? "").trim();
 }
 
-export default function JobPostDetail({ post, backHref }: { post: Post; backHref: string }) {
+export default function JobPostDetail({ post }: { post: Post }) {
   const imageUri = resolveMediaUrl(post.image_url);
   const highlightColor =
     post.highlight_color === "white" || post.highlight_color === "black"
@@ -85,13 +83,6 @@ export default function JobPostDetail({ post, backHref }: { post: Post; backHref
 
   return (
     <article className="flex flex-col gap-1 bg-white">
-      <div className="mb-2 flex items-center justify-between">
-        <Link href={backHref} className="text-sm text-[#4A6CF7]">
-          ← 목록으로
-        </Link>
-        <Heart postId={post.id} postLiked={post.liked} size={26} />
-      </div>
-
       <div className={`${sectionClass} flex items-center justify-between`}>
         <span className="font-semibold">{post.author?.username}</span>
         <span className="text-sm text-gray-600">

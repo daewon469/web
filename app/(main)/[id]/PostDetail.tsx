@@ -73,7 +73,7 @@ export default function PostDetail({ id }: { id: number }) {
   if (post.post_type === 1) {
     return (
       <div className="flex flex-col gap-4">
-        <JobPostDetail post={post} backHref={backHref} />
+        <JobPostDetail post={post} />
         {showComments && <CommentsSection postId={post.id} />}
       </div>
     );
