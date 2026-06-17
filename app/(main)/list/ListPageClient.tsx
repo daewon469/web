@@ -4,10 +4,11 @@ import { FeedBannerCard, TopBannerStrip } from "@/components/FeedBanner";
 import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
 import PostCard from "@/components/PostCard";
-import { Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
+import ReferralModal from "@/components/ReferralModal";
+import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type FeedItem =
   | { kind: "post"; post: Post }
@@ -43,6 +44,7 @@ export default function ListPageClient() {
   const [cursor, setCursor] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
   const [topBanners, setTopBanners] = useState<UIConfigBannerItem[]>([]);
@@ -51,6 +53,9 @@ export default function ListPageClient() {
     interval: number;
     items: UIConfigBannerItem[];
   }>({ enabled: false, interval: 10, items: [] });
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     UIConfig.get().then((res) => {
@@ -65,27 +70,55 @@ export default function ListPageClient() {
     });
   }, []);
 
-  const load = useCallback(async (reset: boolean) => {
-    if (reset) setLoading(true);
-    else setLoadingMore(true);
+  const load = useCallback(
+    async (reset: boolean) => {
+      if (reset) {
+        if (refreshing) setRefreshing(true);
+        else setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+      setError(null);
+      try {
+        const { username } = getSession();
+        const { items, next_cursor } = await Posts.list({
+          username: username ?? undefined,
+          limit: 20,
+          cursor: reset ? undefined : cursor,
+          status: "published",
+        });
+        setPosts((prev) => (reset ? items : [...prev, ...items]));
+        setCursor(items.length >= 20 ? next_cursor : undefined);
+      } catch {
+        setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+        setRefreshing(false);
+      }
+    },
+    [cursor, refreshing],
+  );
+
+  const refresh = useCallback(async () => {
+    setCursor(undefined);
+    setRefreshing(true);
     setError(null);
     try {
       const { username } = getSession();
       const { items, next_cursor } = await Posts.list({
         username: username ?? undefined,
         limit: 20,
-        cursor: reset ? undefined : cursor,
         status: "published",
       });
-      setPosts((prev) => (reset ? items : [...prev, ...items]));
+      setPosts(items);
       setCursor(items.length >= 20 ? next_cursor : undefined);
     } catch {
       setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
-      setLoading(false);
-      setLoadingMore(false);
+      setRefreshing(false);
     }
-  }, [cursor]);
+  }, []);
 
   useEffect(() => {
     load(true);
@@ -103,6 +136,35 @@ export default function ListPageClient() {
     }
   }, [searchParams, router]);
 
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el || !cursor || loading || loadingMore || error) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) load(false);
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [cursor, loading, loadingMore, error, load]);
+
+  const openReferralModal = useCallback(async () => {
+    const session = getSession();
+    if (!session.isLogin || !session.username) {
+      router.push("/login");
+      return;
+    }
+    try {
+      const res = await Auth.getMyPageSummary(session.username);
+      setReferralCode(res.referral_code ?? null);
+    } catch {
+      setReferralCode(null);
+    }
+    setReferralModalOpen(true);
+  }, [router]);
+
   const feed = useMemo(
     () => buildFeed(posts, feedBanner.enabled, feedBanner.interval, feedBanner.items),
     [posts, feedBanner],
@@ -118,30 +180,49 @@ export default function ListPageClient() {
   return (
     <>
       <HomePopup />
+      <ReferralModal
+        open={referralModalOpen}
+        onClose={() => setReferralModalOpen(false)}
+        referralCode={referralCode}
+      />
       <div className="flex flex-col gap-3">
-        {topBanners.length > 0 && <TopBannerStrip items={topBanners} />}
+        {topBanners.length > 0 && (
+          <TopBannerStrip items={topBanners} onReferralClick={openReferralModal} />
+        )}
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h1 className="text-xl font-bold text-[#0B1B3A]">구인 현장</h1>
-          {getSession().isLogin && (
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setMapOpen(true)}
-              className="rounded-lg bg-[#1A2B5F] px-3 py-1.5 text-sm font-bold text-white"
+              onClick={refresh}
+              disabled={refreshing || loading}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-bold disabled:opacity-50"
             >
-              지도검색
+              {refreshing ? "새로고침 중..." : "새로고침"}
             </button>
-          )}
+            {getSession().isLogin && (
+              <button
+                type="button"
+                onClick={() => setMapOpen(true)}
+                className="rounded-lg bg-[#1A2B5F] px-3 py-1.5 text-sm font-bold text-white"
+              >
+                지도검색
+              </button>
+            )}
+          </div>
         </div>
 
-        {loading && <p className="py-12 text-center text-gray-500">불러오는 중...</p>}
+        {loading && !refreshing && (
+          <p className="py-12 text-center text-gray-500">불러오는 중...</p>
+        )}
 
         {!loading && error && (
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-red-700">
             {error}
             <button
               type="button"
-              onClick={() => load(true)}
+              onClick={() => refresh()}
               className="mt-2 block w-full text-sm font-medium text-[#4A6CF7] underline"
             >
               다시 시도
@@ -153,26 +234,24 @@ export default function ListPageClient() {
           <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
         )}
 
-        {!loading &&
-          !error &&
+        {!error &&
           feed.map((row) =>
             row.kind === "post" ? (
               <PostCard key={row.post.id} post={row.post} />
             ) : (
-              <FeedBannerCard key={row.key} item={row.item} />
+              <FeedBannerCard
+                key={row.key}
+                item={row.item}
+                onReferralClick={openReferralModal}
+              />
             ),
           )}
 
-        {cursor && !loading && !error && (
-          <button
-            type="button"
-            onClick={() => load(false)}
-            disabled={loadingMore}
-            className="rounded-xl border border-gray-300 bg-white py-3 font-bold disabled:opacity-50"
-          >
-            {loadingMore ? "불러오는 중..." : "더 보기"}
-          </button>
+        {loadingMore && (
+          <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>
         )}
+
+        {cursor && !loading && !error && <div ref={loadMoreRef} className="h-4" aria-hidden />}
       </div>
 
       <KakaoMapPanel open={mapOpen} onClose={closeMap} posts={posts} />

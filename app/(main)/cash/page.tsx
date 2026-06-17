@@ -48,6 +48,13 @@ export default function CashPage() {
         </div>
       </div>
 
+      <Link
+        href="/payment/toss"
+        className="block rounded-xl bg-[#4A6CF7] py-3 text-center font-bold text-white"
+      >
+        캐시 충전하기
+      </Link>
+
       {loading && <p className="py-8 text-center text-gray-500">불러오는 중...</p>}
       {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 

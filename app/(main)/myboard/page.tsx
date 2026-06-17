@@ -1,5 +1,6 @@
 "use client";
 
+import ReferralModal from "@/components/ReferralModal";
 import { Auth, Referral } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession, setLoggedOut } from "@/lib/session";
@@ -15,24 +16,6 @@ const GRADE_LABELS: Record<number, string> = {
   3: "마스터",
   4: "레전드",
 };
-
-const WEB_URL = "https://daewon469.com";
-
-function buildReferralMessage(referralCode: string) {
-  return `분양프로 설치 링크
-${WEB_URL}
-
-내 추천인코드: ${referralCode}
-
-안녕하세요! (__) (^.^)
-
-<분양프로>는 분양상담사 구인구직에 최적화된 어플입니다.
-
-무료로 구인등록 하시고, 다양한 포인트 혜택도 누려보세요!
-
-지금 웹에서 <분양프로>를 이용해 보세요^^
-`;
-}
 
 export default function MyBoardPage() {
   const router = useRouter();
@@ -51,6 +34,7 @@ export default function MyBoardPage() {
   const [referralNetworkCount, setReferralNetworkCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
 
   useEffect(() => {
     const session = getSession();
@@ -101,20 +85,6 @@ export default function MyBoardPage() {
     router.replace("/login");
   };
 
-  const handleCopyReferral = async () => {
-    const code = summary?.referral_code?.trim();
-    if (!code) {
-      alert("추천인코드가 없습니다.");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(buildReferralMessage(code));
-      alert("추천 문구가 클립보드에 복사되었습니다.");
-    } catch {
-      alert("추천 문구 복사에 실패했습니다.");
-    }
-  };
-
   if (loading) {
     return <p className="py-12 text-center text-gray-500">불러오는 중...</p>;
   }
@@ -144,7 +114,7 @@ export default function MyBoardPage() {
     {
       label: "추천하기",
       sub: summary.referral_code ? `추천인코드 ${summary.referral_code}` : "추천인코드 없음",
-      action: "copy" as const,
+      action: "modal" as const,
     },
     {
       label: "내가 추천한 회원",
@@ -164,13 +134,20 @@ export default function MyBoardPage() {
     { label: "문의/건의 확인", href: "/list6", show: isAdmin },
     { label: "분양대행 문의 확인", href: "/list7", show: isAdmin },
     { label: "회원 관리", href: "/adminusers", show: isAdmin || isOwner },
+    { label: "제목검색 추천현장 관리", href: "/titlesearchadmin", show: isAdmin },
     { label: "오늘의 현황", href: "/todaystatus", show: isAdmin || isOwner },
     { label: "상단 배너 관리", href: "/topbanneradmin", show: isOwner },
     { label: "피드 배너 관리", href: "/banneradmin", show: isOwner },
+    { label: "팝업 관리", href: "/popupadmin", show: isOwner },
   ].filter((item) => item.show);
 
   return (
     <div className="flex flex-col gap-4">
+      <ReferralModal
+        open={referralModalOpen}
+        onClose={() => setReferralModalOpen(false)}
+        referralCode={summary.referral_code}
+      />
       <div className="rounded-xl bg-white p-5 shadow-sm">
         <h1 className="text-xl font-bold text-[#0B1B3A]">마이메뉴</h1>
         <p className="mt-2 text-sm text-gray-600">
@@ -212,14 +189,34 @@ export default function MyBoardPage() {
 
       <div className="overflow-hidden rounded-xl bg-white shadow-sm">
         <p className="border-b border-gray-100 px-5 py-3 text-sm font-bold text-[#4A6CF7]">
+          캐시
+        </p>
+        <Link
+          href="/payment/toss"
+          className="flex items-center justify-between border-b border-gray-100 px-5 py-4 hover:bg-gray-50"
+        >
+          <span className="font-medium">캐시 충전</span>
+          <span className="text-sm text-gray-500">토스페이먼츠</span>
+        </Link>
+        <Link
+          href="/cash"
+          className="flex items-center justify-between px-5 py-4 hover:bg-gray-50"
+        >
+          <span className="font-medium">충전/사용 내역</span>
+          <span className="text-sm text-gray-500">{summary.cash_balance.toLocaleString()}원</span>
+        </Link>
+      </div>
+
+      <div className="overflow-hidden rounded-xl bg-white shadow-sm">
+        <p className="border-b border-gray-100 px-5 py-3 text-sm font-bold text-[#4A6CF7]">
           추천
         </p>
         {referralItems.map((item) =>
-          item.action === "copy" ? (
+          item.action === "modal" ? (
             <button
               key={item.label}
               type="button"
-              onClick={handleCopyReferral}
+              onClick={() => setReferralModalOpen(true)}
               className="flex w-full items-center justify-between border-b border-gray-100 px-5 py-4 text-left last:border-b-0 hover:bg-gray-50"
             >
               <span className="font-medium">{item.label}</span>

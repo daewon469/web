@@ -1,26 +1,53 @@
 "use client";
 
 import { resolveMediaUrl, type UIConfigBannerItem } from "@/lib/api";
+import { isBannerReferralTarget } from "@/lib/ui_banner_actions";
 import Image from "next/image";
-import Link from "next/link";
 
-export function TopBannerStrip({ items }: { items: UIConfigBannerItem[] }) {
-  const item = items.find((it) => String(it.image_url ?? "").trim());
-  if (!item) return null;
+type BannerProps = {
+  item: UIConfigBannerItem;
+  onReferralClick?: () => void;
+};
+
+function BannerImage({ item }: { item: UIConfigBannerItem }) {
   const src = resolveMediaUrl(item.image_url);
   if (!src) return null;
-
-  const inner = (
+  return (
     <Image
       src={src}
       alt=""
       width={800}
-      height={70}
+      height={item.height ?? 110}
       className="w-full object-contain"
-      style={{ height: item.height ?? 70 }}
+      style={{ height: item.height ?? 110 }}
       unoptimized
     />
   );
+}
+
+export function TopBannerStrip({
+  items,
+  onReferralClick,
+}: {
+  items: UIConfigBannerItem[];
+  onReferralClick?: () => void;
+}) {
+  const item = items.find((it) => String(it.image_url ?? "").trim());
+  if (!item || !resolveMediaUrl(item.image_url)) return null;
+
+  const inner = <BannerImage item={{ ...item, height: item.height ?? 70 }} />;
+
+  if (isBannerReferralTarget(item)) {
+    return (
+      <button
+        type="button"
+        onClick={onReferralClick}
+        className="block w-full overflow-hidden rounded-xl"
+      >
+        {inner}
+      </button>
+    );
+  }
 
   const link = String(item.link_url ?? "").trim();
   if (link) {
@@ -33,7 +60,7 @@ export function TopBannerStrip({ items }: { items: UIConfigBannerItem[] }) {
   return <div className="overflow-hidden rounded-xl">{inner}</div>;
 }
 
-export function FeedBannerCard({ item }: { item: UIConfigBannerItem }) {
+export function FeedBannerCard({ item, onReferralClick }: BannerProps) {
   const src = resolveMediaUrl(item.image_url);
   if (!src) return null;
 
@@ -43,11 +70,19 @@ export function FeedBannerCard({ item }: { item: UIConfigBannerItem }) {
       alt=""
       width={600}
       height={item.height ?? 110}
-      className="w-full rounded-xl object-contain bg-gray-100"
+      className="w-full rounded-xl bg-gray-100 object-contain"
       style={{ height: item.height ?? 110 }}
       unoptimized
     />
   );
+
+  if (isBannerReferralTarget(item)) {
+    return (
+      <button type="button" onClick={onReferralClick} className="block w-full">
+        {inner}
+      </button>
+    );
+  }
 
   const link = String(item.link_url ?? "").trim();
   if (link) {
@@ -55,13 +90,6 @@ export function FeedBannerCard({ item }: { item: UIConfigBannerItem }) {
       <a href={link} target="_blank" rel="noopener noreferrer" className="block">
         {inner}
       </a>
-    );
-  }
-  if (item.click_action === "referral_modal") {
-    return (
-      <Link href="/myboard" className="block">
-        {inner}
-      </Link>
     );
   }
   return inner;

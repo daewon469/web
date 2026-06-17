@@ -1,11 +1,13 @@
 "use client";
 
 import RegionSelectModal from "@/components/RegionSelectModal";
+import MapLocationField from "@/components/MapLocationField";
 import TableGrid from "@/components/TableGrid";
 import { Posts, resolveMediaUrl, type Post, type PostInput } from "@/lib/api";
 import { WRITE_INDUSTRY_OPTIONS, WRITE_ROLE_OPTIONS } from "@/lib/customSiteOptions";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
+import type { MapLocation } from "@/lib/map";
 import { uploadImageFile } from "@/lib/upload";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -63,6 +65,8 @@ export default function WritePageClient() {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [regionModalOpen, setRegionModalOpen] = useState(false);
+  const [workplace, setWorkplace] = useState<MapLocation | null>(null);
+  const [business, setBusiness] = useState<MapLocation | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -93,6 +97,22 @@ export default function WritePageClient() {
         setHighlightContent(post.highlight_content ?? "");
         setImageUrl(post.image_url ?? null);
         setImagePreview(resolveMediaUrl(post.image_url));
+        if (post.workplace_lat != null && post.workplace_lng != null) {
+          setWorkplace({
+            lat: post.workplace_lat,
+            lng: post.workplace_lng,
+            address: post.workplace_address,
+            mapUrl: post.workplace_map_url,
+          });
+        }
+        if (post.business_lat != null && post.business_lng != null) {
+          setBusiness({
+            lat: post.business_lat,
+            lng: post.business_lng,
+            address: post.business_address,
+            mapUrl: post.business_map_url,
+          });
+        }
       } catch {
         setError("글을 불러오지 못했습니다.");
       } finally {
@@ -115,6 +135,14 @@ export default function WritePageClient() {
       status,
       card_type: 1,
       image_url: imageUrl ?? undefined,
+      workplace_lat: workplace?.lat,
+      workplace_lng: workplace?.lng,
+      workplace_address: workplace?.address,
+      workplace_map_url: workplace?.mapUrl,
+      business_lat: business?.lat,
+      business_lng: business?.lng,
+      business_address: business?.address,
+      business_map_url: business?.mapUrl,
     };
 
     for (const role of roles) {
@@ -233,6 +261,13 @@ export default function WritePageClient() {
             {regionLabel || "지역 선택"}
           </button>
         </div>
+
+        <MapLocationField label="현장 위치 (지도)" value={workplace} onChange={setWorkplace} />
+        <MapLocationField
+          label="모델하우스/분양관 (지도)"
+          value={business}
+          onChange={setBusiness}
+        />
 
         <div>
           <label className="mb-2 block text-[15px] font-bold">업종</label>

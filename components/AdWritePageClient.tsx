@@ -1,7 +1,9 @@
 "use client";
 
+import MapLocationField from "@/components/MapLocationField";
 import { Posts, resolveMediaUrl } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
+import type { MapLocation } from "@/lib/map";
 import { getSession } from "@/lib/session";
 import { uploadImageFile } from "@/lib/upload";
 import Image from "next/image";
@@ -29,6 +31,7 @@ export default function AdWritePageClient() {
   const [highlight, setHighlight] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [business, setBusiness] = useState<MapLocation | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +58,14 @@ export default function AdWritePageClient() {
         setHighlight(post.highlight_content ?? "");
         setImageUrl(post.image_url ?? null);
         setImagePreview(resolveMediaUrl(post.image_url));
+        if (post.business_lat != null && post.business_lng != null) {
+          setBusiness({
+            lat: post.business_lat,
+            lng: post.business_lng,
+            address: post.business_address,
+            mapUrl: post.business_map_url,
+          });
+        }
       } catch {
         setError("글을 불러오지 못했습니다.");
       } finally {
@@ -97,6 +108,10 @@ export default function AdWritePageClient() {
         agent: agent.trim() || undefined,
         agency_call: agencyCall.trim() || undefined,
         highlight_content: highlight.trim() || undefined,
+        business_lat: business?.lat,
+        business_lng: business?.lng,
+        business_address: business?.address,
+        business_map_url: business?.mapUrl,
       };
 
       if (isEdit) {
@@ -183,6 +198,8 @@ export default function AdWritePageClient() {
         강조 문구
         <input className={inputClass} value={highlight} onChange={(e) => setHighlight(e.target.value)} />
       </label>
+
+      <MapLocationField label="업체/현장 위치 (지도)" value={business} onChange={setBusiness} />
 
       <div>
         <p className="mb-2 text-sm font-bold">이미지</p>

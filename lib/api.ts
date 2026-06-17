@@ -105,8 +105,12 @@ export type PostInput = {
   other_role_fee?: string | null;
   card_type?: number;
   post_type?: number;
+  workplace_address?: string;
+  workplace_map_url?: string;
   workplace_lat?: number;
   workplace_lng?: number;
+  business_address?: string;
+  business_map_url?: string;
   business_lat?: number;
   business_lng?: number;
 };
@@ -165,8 +169,12 @@ export type Post = {
   other_role_name?: string | null;
   other_role_fee?: string | null;
   agency_call?: string;
+  workplace_address?: string;
+  workplace_map_url?: string;
   workplace_lat?: number;
   workplace_lng?: number;
+  business_address?: string;
+  business_map_url?: string;
   business_lat?: number;
   business_lng?: number;
   post_type?: number;
@@ -974,5 +982,44 @@ export const OwnerUsers = {
       { actor_nickname: actorNickname, admin_acknowledged },
     );
     return data ?? { status: 8, admin_acknowledged: false };
+  },
+};
+
+// -------------------- TossPayments --------------------
+export const CASH_CHARGE_AMOUNTS = [10000, 30000, 50000, 80000, 100000] as const;
+
+export type TossOrderCreateResponse = {
+  status: number;
+  orderId: string;
+  amount: number;
+  orderName: string;
+  customerName: string;
+};
+
+export const Orders = {
+  createTossCashOrder: async (username: string, amount: number): Promise<TossOrderCreateResponse> => {
+    const { data } = await api.post<TossOrderCreateResponse>("/orders/create", { username, amount });
+    return data;
+  },
+};
+
+export type TossConfirmResponse = {
+  status: number;
+  alreadyPaid?: boolean;
+  orderId: string;
+  amount: number;
+  paymentKey?: string;
+  approvedAt?: string | null;
+  toss?: { method?: string; status?: string };
+};
+
+export const Payments = {
+  confirmToss: async (payload: {
+    paymentKey: string;
+    orderId: string;
+    amount: number;
+  }): Promise<TossConfirmResponse> => {
+    const { data } = await api.post<TossConfirmResponse>("/payments/toss/confirm", payload);
+    return data;
   },
 };

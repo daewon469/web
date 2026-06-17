@@ -83,15 +83,15 @@
 
 ## 현재 진행 단계
 
-**종합 판단: Phase 3·5 관리자 핵심 완료, Phase 4 지도·Phase 6 잔여**  
-(운영·피드 UX 대부분 사용 가능)
+**종합 판단: Phase 1~5 완료, Phase 6 잔여**  
+(핵심 기능·결제·피드 UX 모두 사용 가능)
 
 ```
 Phase 1  ████████████████████  100%
 Phase 2  ████████████████████  100%
-Phase 3  ██████████████████░░   90%
-Phase 4  ██████████████████░░   90%
-Phase 5  █████████████████░░░   85%
+Phase 3  ████████████████████  100%
+Phase 4  ████████████████████  100%
+Phase 5  ████████████████████  100%
 Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 ```
 
@@ -121,7 +121,7 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 | 회원가입 | `/signup` | ✅ | 휴대폰 인증·지역·추천코드 |
 | 로그인 | `/login` | ✅ | |
 | 하단 네비 | `BottomBar` | ✅ | 5탭 |
-| 제목 검색 | `/textsearch` | ✅ | |
+| 제목 검색 | `/textsearch` | ✅ | 추천현장 UIConfig 연동 |
 | 관심현장 | `/like` | ✅ | |
 | 마이메뉴 (기초) | `/myboard` | ✅ | 로그아웃, 요약 |
 | 아이디 찾기 | `/findid` | ✅ | 휴대폰 인증 |
@@ -130,7 +130,7 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 
 ---
 
-### Phase 3 — 메인 피드 확장 🟡 대부분 완료
+### Phase 3 — 메인 피드 확장 ✅ 완료
 
 | 기능 | 경로 | 상태 | 비고 |
 |------|------|------|------|
@@ -142,14 +142,15 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 | 구인글 작성 (기초) | `/write` | ✅ | Phase 4에서 확장 |
 | 포인트 | `/points` | ✅ | 출석체크 포함 |
 | 캐시 | `/cash` | ✅ | |
-| 무한 스크롤 | `/list` | ✅ | cursor 페이지네이션 |
-| 피드/상단 배너 | `/list` | ✅ | `UIConfig` 연동 |
+| 무한 스크롤 | `/list` | ✅ | cursor + IntersectionObserver |
+| 새로고침 | `/list` | ✅ | 새로고침 버튼 |
+| 피드/상단 배너 | `/list` | ✅ | `UIConfig` 연동, 추천 모달 클릭 |
 | 홈 팝업 | `/list` | ✅ | `HomePopup`, 오늘 숨김 |
-| 배너/팝업 관리 UI | `/banneradmin` 등 | ✅ | 오너 전용 |
+| 배너/팝업 관리 UI | `/banneradmin`, `/popupadmin` 등 | ✅ | 오너 전용 |
 
 ---
 
-### Phase 4 — 게시판 유형별 🟡 대부분 완료
+### Phase 4 — 게시판 유형별 ✅ 완료
 
 | 기능 | 경로 | 상태 | 비고 |
 |------|------|------|------|
@@ -164,15 +165,15 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 | 문의/건의 | `/list6` | ✅ | |
 | 분양대행 문의 | `/list7` | ✅ | |
 | 커뮤니티 작성 | `/write3` | ✅ | |
-| 광고 작성 | `/write4` | ✅ | 지도·업무항목 제외(간소화) |
+| 광고 작성 | `/write4` | ✅ | 지도·업무항목 포함 |
 | 공지/문의 작성 | `/write5`~`/write7` | ✅ | write5 관리자 전용 |
 | 내 커뮤니티/광고 관리 | `/mypage3`, `/mypage4` | ✅ | |
 | 댓글 | `CommentsSection` | ✅ | post_type 3,5,6,7 상세 |
-| 지도 주소 입력 (작성) | — | ❌ | 구인·광고 지도 미포팅 |
+| 지도 주소 입력 (작성) | `/write`, `/write4` | ✅ | `MapLocationField`, Kakao Map |
 
 ---
 
-### Phase 5 — 마이페이지·부가 기능 🟡 진행 중
+### Phase 5 — 마이페이지·부가 기능 ✅ 완료
 
 | 기능 | 모바일 경로 | 웹 | 상태 |
 |------|-------------|-----|------|
@@ -182,12 +183,13 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 | 알림 목록 | `/noti` | `/noti` | ✅ |
 | 상단바 알림 뱃지 | `Topbar` | `TopBar` | ✅ |
 | 마이메뉴 추천 섹션 | `myboard` | `/myboard` | ✅ |
-| 추천 문구 복사 | `ReferralModal` | `/myboard` | ✅ (클립보드) |
+| 추천 문구 복사 | `ReferralModal` | `/myboard`, `/list` | ✅ |
+| 추천 공유 | `ReferralModal` | Web Share API + 문자 링크 | ✅ |
 | 회원 관리 | `/adminusers` | `/adminusers` | ✅ |
 | 오늘의 현황 | `/todaystatus` | `/todaystatus` | ✅ |
-| 배너/팝업 관리 | `/banneradmin`, `/topbanneradmin` | ✅ | 팝업 설정 UI는 미포팅 |
-| 토스 결제/충전 | `/payment/toss`, `/cash` | — | ❌ |
-| 추천하기 카톡/문자 공유 | `ReferralModal` | — | ❌ (웹은 복사만) |
+| 배너/팝업 관리 | `/banneradmin`, `/topbanneradmin`, `/popupadmin` | ✅ | |
+| 제목검색 추천현장 관리 | `/titlesearchadmin` | ✅ | 관리자 전용 |
+| 토스 결제/충전 | `/payment/toss` | ✅ | success/fail 콜백 |
 
 ---
 
@@ -202,7 +204,7 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 
 ---
 
-## 구현된 웹 라우트 목록 (41개)
+## 구현된 웹 라우트 목록 (46개)
 
 | 경로 | 설명 |
 |------|------|
@@ -236,7 +238,10 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 | `/mypage3` | 내 커뮤니티글 관리 |
 | `/mypage4` | 내 광고글 관리 |
 | `/points` | 포인트 내역 |
-| `/cash` | 캐시 내역 |
+| `/cash` | 캐시 내역 · 충전 링크 |
+| `/payment/toss` | 토스 캐시 충전 |
+| `/payment/toss/success` | 결제 성공 콜백 |
+| `/payment/toss/fail` | 결제 실패 콜백 |
 | `/referrals` | 내 추천 회원 목록 |
 | `/referralranking` | 추천인 랭킹 |
 | `/referralnetwork` | 추천 인맥 네트워크 |
@@ -245,6 +250,8 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 | `/adminusers` | 회원 관리 |
 | `/banneradmin` | 피드 배너 관리 (오너) |
 | `/topbanneradmin` | 상단 배너 관리 (오너) |
+| `/popupadmin` | 홈 팝업 관리 (오너) |
+| `/titlesearchadmin` | 제목검색 추천현장 관리 (관리자) |
 
 ---
 
@@ -260,6 +267,10 @@ lib/
   customSiteOptions.ts
   ledgerFormat.ts     # 포인트/캐시 표시
   upload.ts           # 이미지 base64 업로드
+  map.ts              # 카카오맵 URL·좌표 타입
+  site.ts             # SITE_URL
+  referral.ts         # 추천 문구
+  ui_banner_actions.ts
 
 components/
   TopBar.tsx          # 상단 네비 (알림 탭·미읽음 뱃지)
@@ -267,13 +278,19 @@ components/
   PostCard.tsx        # 구인 카드
   Heart.tsx           # 관심 등록
   CommentsSection.tsx # 댓글·답글
+  ReferralModal.tsx   # 추천 공유 모달
   KakaoMapPanel.tsx   # 지도 검색
+  KakaoMapPicker.tsx  # 작성 시 지도 클릭·역지오코딩
+  MapLocationField.tsx
   TypePostList.tsx    # 유형별 목록 (페이지네이션)
   MyTypePostsClient.tsx
   SimpleTypeWriteClient.tsx
   FeedBanner.tsx      # 피드·상단 배너
   HomePopup.tsx       # 홈 팝업
   BannerAdminClient.tsx
+  PopupAdminClient.tsx
+  TitleSearchAdminClient.tsx
+  TossPaymentClient.tsx
   AdWritePageClient.tsx
   RegionSelectModal.tsx
   CustomRegionMultiSelect.tsx
@@ -295,22 +312,48 @@ components/
 | `OwnerUsers` | grantPoints, setAdminAcknowledged | — |
 | `Points` | list, attendanceStatus, attendanceClaim | — |
 | `Cash` | list | — |
+| `Orders` | createTossCashOrder | — |
+| `Payments` | confirmToss | — |
 | `Referral` | listByReferrer, ranking, network | — |
 | `Notify` | getAllNotifications, getUnreadCount, markNotificationRead, markAllNotificationsReadByUser, getAdminSentNotifications | — |
-| `AdminUsers` / `OwnerUsers` | — | 전체 |
-| `UIConfig` | — | 배너/팝업 |
 
 ---
 
 ## 권장 다음 작업 순서
 
-1. **Phase 4 잔여** — 구인·광고 작성 시 지도 주소 입력
-2. **Phase 5 잔여** — 팝업 관리 UI, 토스 결제/충전, 제목검색 추천현장 관리
-3. **Phase 6** — SEO 메타태그, 반응형 데스크톱 레이아웃, PWA
+1. **Phase 6** — SEO 메타태그, 반응형 데스크톱 레이아웃, PWA
 
 ---
 
 ## 작업 이력
+
+### 2026-06-17 — Phase 3·5 마무리
+
+| 임무 | 산출물 | 상태 |
+|------|--------|------|
+| A. 피드 UX | `/list` 새로고침, 자동 무한스크롤, 배너 추천모달 | ✅ |
+| B. 추천 공유 | `ReferralModal`, Web Share + 문자 | ✅ |
+| C. 토스 결제 | `/payment/toss`, success/fail, API `Orders`/`Payments` | ✅ |
+| D. 백엔드 | `pay/toss?platform=web` 웹 리다이렉트 | ✅ |
+| E. 빌드 | `npm run build` 46 라우트 통과 | ✅ |
+
+### 2026-06-17 — Phase 5 제목검색 추천현장
+
+| 임무 | 산출물 | 상태 |
+|------|--------|------|
+| A. 관리 화면 | `/titlesearchadmin`, `TitleSearchAdminClient` | ✅ |
+| B. 제목검색 UX | `/textsearch` 추천현장 노출 | ✅ |
+| C. 마이메뉴 | 관리자 메뉴 링크 | ✅ |
+| D. 빌드 | `npm run build` 43 라우트 통과 | ✅ |
+
+### 2026-06-17 — Phase 4 지도·Phase 5 팝업 관리
+
+| 임무 | 산출물 | 상태 |
+|------|--------|------|
+| A. 지도 주소 | `lib/map.ts`, `KakaoMapPicker`, `MapLocationField` | ✅ |
+| B. 작성 연동 | `/write`, `/write4` 지도 필드·payload | ✅ |
+| C. 팝업 관리 | `/popupadmin`, `PopupAdminClient`, `/myboard` 링크 | ✅ |
+| D. 빌드 | `npm run build` 42 라우트 통과 | ✅ |
 
 ### 2026-06-17 — Phase 5 관리자·Phase 3 피드 UX
 
@@ -347,7 +390,7 @@ components/
 ## 참고 — 모바일 앱 규모
 
 - 화면(라우트): **50개 이상** (`daewonapp_b/app/`)
-- 웹 구현 완료: **약 38개 화면** (전체의 ~60%)
+- 웹 구현 완료: **약 44개 화면** (전체의 ~70%)
 - 비즈니스 핵심 경로(구인 조회·등록·로그인·필터): **대체로 사용 가능**
 
 ---
@@ -365,4 +408,5 @@ npm run dev
 ```
 NEXT_PUBLIC_API_URL=https://api.daewon469.com
 NEXT_PUBLIC_KAKAO_MAP_JS_KEY=...
+NEXT_PUBLIC_SITE_URL=https://daewon469.com
 ```
