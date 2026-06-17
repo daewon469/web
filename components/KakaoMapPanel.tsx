@@ -37,14 +37,14 @@ type KakaoMapsLite = {
     setLevel: (n: number) => void;
     relayout: () => void;
   };
-  Marker: new (opts: { position: unknown; map?: unknown }) => { setMap: (v: null) => void };
+  Marker: new (opts: { position: unknown; map?: unknown }) => { setMap: (v: unknown) => void };
   CustomOverlay: new (opts: {
     position: unknown;
     content: string;
     xAnchor: number;
     yAnchor: number;
     zIndex: number;
-  }) => { setMap: (v: null) => void };
+  }) => { setMap: (v: unknown) => void };
   LatLngBounds: new () => { extend: (ll: unknown) => void };
   event: {
     addListener: (target: unknown, type: string, cb: () => void) => void;
