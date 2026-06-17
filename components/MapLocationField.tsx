@@ -1,52 +1,72 @@
 "use client";
 
+import KakaoMapMini from "@/components/KakaoMapMini";
+import KakaoMapPicker from "@/components/KakaoMapPicker";
 import type { MapLocation } from "@/lib/map";
 import { useState } from "react";
-import KakaoMapPicker from "./KakaoMapPicker";
+
+const inputClass =
+  "w-full rounded-xl border border-black bg-white px-3 py-3 text-left text-[15px] text-gray-900 outline-none";
 
 export default function MapLocationField({
   label,
+  placeholder = "주소 입력 또는 지도를 터치하세요",
   value,
   onChange,
+  pickerHint,
+  showSameAsWork = false,
+  sameAsWork,
 }: {
   label: string;
+  placeholder?: string;
   value: MapLocation | null;
   onChange: (loc: MapLocation | null) => void;
+  pickerHint?: string;
+  showSameAsWork?: boolean;
+  sameAsWork?: MapLocation | null;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <div>
-      <label className="mb-2 block text-[15px] font-bold">{label}</label>
-      <div className="flex flex-col gap-2">
-        <p className="min-h-[40px] rounded-xl border border-black bg-[#f9f9f9] px-3 py-2 text-sm text-gray-700">
-          {value?.address || value
-            ? `${value.address || "좌표 선택됨"} (${value.lat.toFixed(5)}, ${value.lng.toFixed(5)})`
-            : "미설정"}
-        </p>
-        <div className="flex gap-2">
-          <button
-            type="button"
+      <p className="mb-2 text-[15px] font-bold">{label}</p>
+      <button type="button" onClick={() => setOpen(true)} className="w-full">
+        <input
+          readOnly
+          tabIndex={-1}
+          value={value?.address ?? ""}
+          placeholder={placeholder}
+          className={`${inputClass} pointer-events-none placeholder:text-gray-500`}
+        />
+      </button>
+
+      {value?.lat != null && value?.lng != null && (
+        <div className="mt-2">
+          <KakaoMapMini
+            lat={value.lat}
+            lng={value.lng}
             onClick={() => setOpen(true)}
-            className="flex-1 rounded-xl border border-[#4A6CF7] py-2 text-sm font-bold text-[#4A6CF7]"
-          >
-            지도에서 선택
-          </button>
-          {value && (
-            <button
-              type="button"
-              onClick={() => onChange(null)}
-              className="rounded-xl border border-gray-300 px-4 py-2 text-sm"
-            >
-              지우기
-            </button>
-          )}
+          />
         </div>
-      </div>
+      )}
+
+      {value && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="mt-2 text-sm font-medium text-gray-500 underline"
+        >
+          주소 지우기
+        </button>
+      )}
+
       <KakaoMapPicker
         open={open}
         title={label}
         initial={value}
+        hint={pickerHint}
+        showSameAsWork={showSameAsWork}
+        sameAsWork={sameAsWork}
         onClose={() => setOpen(false)}
         onConfirm={(loc) => {
           onChange(loc);

@@ -262,11 +262,20 @@ export default function WritePageClient() {
           </button>
         </div>
 
-        <MapLocationField label="현장 위치 (지도)" value={workplace} onChange={setWorkplace} />
         <MapLocationField
-          label="모델하우스/분양관 (지도)"
+          label="모델하우스 주소"
+          placeholder="주소 입력 또는 지도를 터치하세요"
+          value={workplace}
+          onChange={setWorkplace}
+        />
+        <MapLocationField
+          label="현장사업지 주소"
+          placeholder="주소 입력 또는 지도를 터치하세요"
           value={business}
           onChange={setBusiness}
+          showSameAsWork
+          sameAsWork={workplace}
+          pickerHint="화면 터치 시 자동 입력됩니다."
         />
 
         <div>

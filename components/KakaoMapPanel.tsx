@@ -7,8 +7,7 @@ import Link from "next/link";
 import Script from "next/script";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const KAKAO_KEY =
-  process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY ?? "6b463e22639b1f1c21a652838d95a99f";
+import { KAKAO_MAP_SDK_URL } from "@/lib/kakaoMaps";
 const MAP_PAGE_SIZE = 500;
 const MAP_CHUNK_SIZE = 100;
 
@@ -192,7 +191,7 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
   return (
     <>
       <Script
-        src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false`}
+        src={KAKAO_MAP_SDK_URL}
         strategy="afterInteractive"
         onLoad={() => setSdkReady(true)}
       />

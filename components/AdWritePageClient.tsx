@@ -199,7 +199,12 @@ export default function AdWritePageClient() {
         <input className={inputClass} value={highlight} onChange={(e) => setHighlight(e.target.value)} />
       </label>
 
-      <MapLocationField label="업체/현장 위치 (지도)" value={business} onChange={setBusiness} />
+      <MapLocationField
+        label="업체/현장 위치"
+        placeholder="주소 입력 또는 지도를 터치하세요"
+        value={business}
+        onChange={setBusiness}
+      />
 
       <div>
         <p className="mb-2 text-sm font-bold">이미지</p>

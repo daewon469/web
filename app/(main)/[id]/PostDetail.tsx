@@ -2,6 +2,7 @@
 
 import Heart from "@/components/Heart";
 import CommentsSection from "@/components/CommentsSection";
+import PostAddressMaps from "@/components/PostAddressMaps";
 import { Posts, resolveMediaUrl, type Post } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
@@ -91,6 +92,17 @@ export default function PostDetail({ id }: { id: number }) {
         className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+
+      {post.post_type === 1 && (
+        <PostAddressMaps
+          workplaceAddress={post.workplace_address}
+          workplaceLat={post.workplace_lat}
+          workplaceLng={post.workplace_lng}
+          businessAddress={post.business_address}
+          businessLat={post.business_lat}
+          businessLng={post.business_lng}
+        />
+      )}
 
       {showComments && <CommentsSection postId={post.id} />}
     </article>
