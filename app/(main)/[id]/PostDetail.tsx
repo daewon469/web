@@ -1,5 +1,6 @@
 "use client";
 
+import AdPostDetail from "@/components/AdPostDetail";
 import CommentsSection from "@/components/CommentsSection";
 import Heart from "@/components/Heart";
 import JobPostDetail from "@/components/JobPostDetail";
@@ -74,6 +75,14 @@ export default function PostDetail({ id }: { id: number }) {
       <div className="flex flex-col gap-4">
         <JobPostDetail post={post} backHref={backHref} />
         {showComments && <CommentsSection postId={post.id} />}
+      </div>
+    );
+  }
+
+  if (post.post_type === 4) {
+    return (
+      <div className="flex flex-col gap-4">
+        <AdPostDetail post={post} backHref={backHref} />
       </div>
     );
   }

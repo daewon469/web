@@ -249,6 +249,7 @@ export default function JobPostDetail({ post, backHref }: { post: Post; backHref
         address={post.workplace_address}
         lat={post.workplace_lat}
         lng={post.workplace_lng}
+        pickerKind="work"
       />
 
       <AddressMapSection
@@ -257,6 +258,7 @@ export default function JobPostDetail({ post, backHref }: { post: Post; backHref
         address={post.business_address}
         lat={post.business_lat}
         lng={post.business_lng}
+        pickerKind="business"
       />
     </article>
   );

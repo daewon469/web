@@ -1,7 +1,8 @@
 "use client";
 
+import BusinessMapPicker from "@/components/BusinessMapPicker";
 import KakaoMapMini from "@/components/KakaoMapMini";
-import KakaoMapPicker from "@/components/KakaoMapPicker";
+import WorkMapPicker from "@/components/WorkMapPicker";
 import type { MapLocation } from "@/lib/map";
 import { useState } from "react";
 
@@ -13,19 +14,25 @@ export default function MapLocationField({
   placeholder = "주소 입력 또는 지도를 터치하세요",
   value,
   onChange,
-  pickerHint,
-  showSameAsWork = false,
-  sameAsWork,
+  pickerKind,
+  peerLocation,
+  showSameAsPeer = false,
 }: {
   label: string;
   placeholder?: string;
   value: MapLocation | null;
   onChange: (loc: MapLocation | null) => void;
-  pickerHint?: string;
-  showSameAsWork?: boolean;
-  sameAsWork?: MapLocation | null;
+  pickerKind: "work" | "business";
+  peerLocation?: MapLocation | null;
+  showSameAsPeer?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+
+  const initial = value;
+  const handleConfirm = (loc: MapLocation) => {
+    onChange(loc);
+    setOpen(false);
+  };
 
   return (
     <div>
@@ -42,11 +49,7 @@ export default function MapLocationField({
 
       {value?.lat != null && value?.lng != null && (
         <div className="mt-2">
-          <KakaoMapMini
-            lat={value.lat}
-            lng={value.lng}
-            onClick={() => setOpen(true)}
-          />
+          <KakaoMapMini lat={value.lat} lng={value.lng} onClick={() => setOpen(true)} />
         </div>
       )}
 
@@ -60,19 +63,24 @@ export default function MapLocationField({
         </button>
       )}
 
-      <KakaoMapPicker
-        open={open}
-        title={label}
-        initial={value}
-        hint={pickerHint}
-        showSameAsWork={showSameAsWork}
-        sameAsWork={sameAsWork}
-        onClose={() => setOpen(false)}
-        onConfirm={(loc) => {
-          onChange(loc);
-          setOpen(false);
-        }}
-      />
+      {pickerKind === "work" ? (
+        <WorkMapPicker
+          open={open}
+          initial={initial}
+          business={peerLocation}
+          onClose={() => setOpen(false)}
+          onConfirm={handleConfirm}
+        />
+      ) : (
+        <BusinessMapPicker
+          open={open}
+          initial={initial}
+          work={peerLocation}
+          showSameAsWorkButton={showSameAsPeer}
+          onClose={() => setOpen(false)}
+          onConfirm={handleConfirm}
+        />
+      )}
     </div>
   );
 }

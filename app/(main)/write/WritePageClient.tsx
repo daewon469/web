@@ -267,15 +267,17 @@ export default function WritePageClient() {
           placeholder="주소 입력 또는 지도를 터치하세요"
           value={workplace}
           onChange={setWorkplace}
+          pickerKind="work"
+          peerLocation={business}
         />
         <MapLocationField
           label="현장사업지 주소"
           placeholder="주소 입력 또는 지도를 터치하세요"
           value={business}
           onChange={setBusiness}
-          showSameAsWork
-          sameAsWork={workplace}
-          pickerHint="화면 터치 시 자동 입력됩니다."
+          pickerKind="business"
+          peerLocation={workplace}
+          showSameAsPeer
         />
 
         <div>

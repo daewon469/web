@@ -5,24 +5,32 @@ import { KAKAO_MAP_SDK_URL, levelFromZoom, loadKakaoMaps } from "@/lib/kakaoMaps
 import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+export type KakaoMapPickerVariant = "write" | "detail";
+
+type SameAsOption = {
+  label: string;
+  location?: MapLocation | null;
+  missingMessage: string;
+};
+
 type Props = {
   open: boolean;
+  variant?: KakaoMapPickerVariant;
   title: string;
   initial?: MapLocation | null;
   hint?: string;
-  showSameAsWork?: boolean;
-  sameAsWork?: MapLocation | null;
+  sameAs?: SameAsOption | null;
   onClose: () => void;
-  onConfirm: (loc: MapLocation) => void;
+  onConfirm?: (loc: MapLocation) => void;
 };
 
 export default function KakaoMapPicker({
   open,
+  variant = "write",
   title,
   initial,
-  hint = "주소를 검색하거나 지도를 터치해 위치를 선택하세요.",
-  showSameAsWork = false,
-  sameAsWork,
+  hint,
+  sameAs,
   onClose,
   onConfirm,
 }: Props) {
@@ -39,12 +47,23 @@ export default function KakaoMapPicker({
   const geocoderRef = useRef<InstanceType<
     import("@/lib/kakaoMaps").KakaoMapsApi["services"]["Geocoder"]
   > | null>(null);
+  const onConfirmRef = useRef(onConfirm);
+  const onCloseRef = useRef(onClose);
 
   const [sdkReady, setSdkReady] = useState(false);
+  const [mapKey, setMapKey] = useState(0);
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<MapLocation | null>(initial ?? null);
   const [resolving, setResolving] = useState(false);
   const [searching, setSearching] = useState(false);
+
+  const isWrite = variant === "write";
+  const headerTitle = isWrite ? "화면 터치시 자동 입력." : "주소 검색 & 위치 선택";
+
+  useEffect(() => {
+    onConfirmRef.current = onConfirm;
+    onCloseRef.current = onClose;
+  }, [onConfirm, onClose]);
 
   const toLocation = useCallback((lat: number, lng: number, address?: string): MapLocation => {
     const addr = address?.trim() || "";
@@ -55,6 +74,17 @@ export default function KakaoMapPicker({
       mapUrl: buildKakaoMapUrl(lat, lng, addr || "위치"),
     };
   }, []);
+
+  const commitPick = useCallback(
+    (loc: MapLocation | undefined, autoClose: boolean) => {
+      if (!loc) return;
+      if (isWrite && autoClose) {
+        onConfirmRef.current?.(loc);
+        onCloseRef.current();
+      }
+    },
+    [isWrite],
+  );
 
   const moveMarker = useCallback(
     (lat: number, lng: number, address?: string, zoom = 17) => {
@@ -74,33 +104,34 @@ export default function KakaoMapPicker({
   );
 
   const reverseGeocode = useCallback(
-    (lat: number, lng: number, fallback = "") => {
+    (lat: number, lng: number, fallback = "", autoClose = false) => {
       const geocoder = geocoderRef.current;
       const maps = mapsApiRef.current;
       if (!geocoder || !maps) {
-        moveMarker(lat, lng, fallback);
+        commitPick(moveMarker(lat, lng, fallback), autoClose);
         return;
       }
       setResolving(true);
       geocoder.coord2Address(lng, lat, (result, status) => {
         setResolving(false);
         if (status !== maps.services.Status.OK || !result?.length) {
-          moveMarker(lat, lng, fallback);
+          commitPick(moveMarker(lat, lng, fallback), autoClose);
           return;
         }
         const r0 = result[0];
         const addr =
           r0.road_address?.address_name || r0.address?.address_name || fallback || "";
-        moveMarker(lat, lng, addr);
+        commitPick(moveMarker(lat, lng, addr), autoClose);
       });
     },
-    [moveMarker],
+    [commitPick, moveMarker],
   );
 
   useEffect(() => {
     if (!open) return;
     setPicked(initial ?? null);
     setQuery(initial?.address ?? "");
+    setMapKey((k) => k + 1);
   }, [open, initial]);
 
   useEffect(() => {
@@ -124,30 +155,31 @@ export default function KakaoMapPicker({
       const startLng = initial?.lng ?? 126.978;
       const center = new maps.LatLng(startLat, startLng);
 
-      if (!mapInstanceRef.current) {
-        const map = new maps.Map(mapRef.current, {
-          center,
-          level: levelFromZoom(initial ? 16 : 8),
-        });
-        mapInstanceRef.current = map;
-        markerRef.current = new maps.Marker({ position: center, map });
-        placesRef.current = new maps.services.Places();
+      const map = new maps.Map(mapRef.current, {
+        center,
+        level: levelFromZoom(initial?.lat != null ? 15 : 8),
+      });
+      mapInstanceRef.current = map;
+      markerRef.current = new maps.Marker({ position: center, map });
+      placesRef.current = new maps.services.Places();
+      if (isWrite) {
         geocoderRef.current = new maps.services.Geocoder();
+      }
 
+      if (isWrite) {
         maps.event.addListener(map, "click", (mouseEvent) => {
           const lat = mouseEvent.latLng.getLat();
           const lng = mouseEvent.latLng.getLng();
           if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
-          moveMarker(lat, lng);
-          reverseGeocode(lat, lng);
+          reverseGeocode(lat, lng, "", true);
         });
       }
 
-      if (initial) {
-        moveMarker(initial.lat, initial.lng, initial.address, 16);
+      if (initial?.lat != null && initial?.lng != null) {
+        moveMarker(initial.lat, initial.lng, initial.address, 15);
       }
     });
-  }, [open, sdkReady, initial, moveMarker, reverseGeocode]);
+  }, [open, sdkReady, mapKey, initial, isWrite, moveMarker, reverseGeocode]);
 
   const runSearch = () => {
     const q = query.trim();
@@ -174,23 +206,23 @@ export default function KakaoMapPicker({
         return;
       }
       const addr = p.road_address_name || p.address_name || q;
+      if (isWrite) {
+        reverseGeocode(lat, lng, addr, true);
+        return;
+      }
       moveMarker(lat, lng, addr, 17);
-      reverseGeocode(lat, lng, addr);
+      onCloseRef.current();
     });
   };
 
-  const applySameAsWork = () => {
-    if (!sameAsWork?.lat || !sameAsWork?.lng) {
-      alert("모델하우스 주소를 먼저 입력해주세요.");
+  const applySameAs = () => {
+    const src = sameAs?.location;
+    if (!src?.lat || !src?.lng || !src.address) {
+      alert(sameAs?.missingMessage ?? "주소를 먼저 입력해주세요.");
       return;
     }
-    const loc = moveMarker(
-      sameAsWork.lat,
-      sameAsWork.lng,
-      sameAsWork.address,
-      15,
-    );
-    if (loc) onConfirm(loc);
+    const loc = moveMarker(src.lat, src.lng, src.address, 15);
+    commitPick(loc, true);
   };
 
   if (!open) return null;
@@ -204,15 +236,15 @@ export default function KakaoMapPicker({
       />
       <div className="fixed inset-0 z-[210] flex flex-col bg-white lg:left-56">
         <div className="flex h-12 shrink-0 items-center justify-between border-b bg-[#0B1B3A] px-4">
-          <span className="font-bold text-white">{title}</span>
+          <span className="text-sm font-bold text-white sm:text-base">{headerTitle}</span>
           <div className="flex items-center gap-3">
-            {showSameAsWork && (
+            {isWrite && sameAs && (
               <button
                 type="button"
-                onClick={applySameAsWork}
+                onClick={applySameAs}
                 className="text-sm font-bold text-[#7eb8ff]"
               >
-                모델하우스와 동일
+                {sameAs.label}
               </button>
             )}
             <button type="button" onClick={onClose} className="font-bold text-white">
@@ -239,29 +271,17 @@ export default function KakaoMapPicker({
           </button>
         </div>
 
-        <p className="border-b px-4 py-2 text-sm text-gray-600">
-          {hint}
-          {resolving && " 주소 조회 중..."}
-        </p>
+        {isWrite && (
+          <p className="border-b px-4 py-2 text-sm text-gray-600">
+            {hint ?? title}
+            {resolving && " 주소 조회 중..."}
+          </p>
+        )}
         {picked?.address && (
           <p className="truncate border-b px-4 py-2 text-sm font-medium">{picked.address}</p>
         )}
 
-        <div ref={mapRef} className="min-h-0 flex-1" />
-
-        <div className="flex gap-2 border-t p-3">
-          <button type="button" onClick={onClose} className="flex-1 rounded-xl border py-3 font-bold">
-            취소
-          </button>
-          <button
-            type="button"
-            disabled={!picked}
-            onClick={() => picked && onConfirm(picked)}
-            className="flex-1 rounded-xl bg-[#4A6CF7] py-3 font-bold text-white disabled:opacity-50"
-          >
-            확인
-          </button>
-        </div>
+        <div key={mapKey} ref={mapRef} className="min-h-0 flex-1" />
       </div>
     </>
   );

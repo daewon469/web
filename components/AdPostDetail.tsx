@@ -1,0 +1,125 @@
+"use client";
+
+import AddressMapSection from "@/components/AddressMapSection";
+import Heart from "@/components/Heart";
+import { resolveMediaUrl, type Post } from "@/lib/api";
+import Image from "next/image";
+import Link from "next/link";
+
+const sectionClass = "rounded-lg border border-black bg-[#f9f9f9] p-4";
+
+function formatPhone(num?: string | null) {
+  if (!num) return "-";
+  const digits = num.replace(/[^0-9]/g, "");
+  if (/^1(?:5|6|8)\d{2}\d{4}$/.test(digits)) {
+    return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  }
+  if (digits.startsWith("02")) {
+    if (digits.length === 9) return digits.replace(/^(02)(\d{3})(\d{4})$/, "$1-$2-$3");
+    if (digits.length === 10) return digits.replace(/^(02)(\d{4})(\d{4})$/, "$1-$2-$3");
+    return digits;
+  }
+  if (digits.startsWith("01")) {
+    if (digits.length === 10) return digits.replace(/^(\d{3})(\d{3})(\d{4})$/, "$1-$2-$3");
+    if (digits.length === 11) return digits.replace(/^(\d{3})(\d{4})(\d{4})$/, "$1-$2-$3");
+    return digits;
+  }
+  if (digits.startsWith("0")) {
+    if (digits.length === 10) return digits.replace(/^(\d{3})(\d{3})(\d{4})$/, "$1-$2-$3");
+    if (digits.length === 11) return digits.replace(/^(\d{3})(\d{4})(\d{4})$/, "$1-$2-$3");
+    return digits;
+  }
+  return digits;
+}
+
+export default function AdPostDetail({ post, backHref }: { post: Post; backHref: string }) {
+  const imageUri = resolveMediaUrl(post.image_url);
+  const highlightColor =
+    post.highlight_color === "white" || post.highlight_color === "black"
+      ? "#000"
+      : post.highlight_color || "#000";
+  const contactDigits = (post.agency_call ?? "").replace(/[^0-9]/g, "");
+
+  return (
+    <article className="flex flex-col gap-1 bg-white">
+      <div className="mb-2 flex items-center justify-between">
+        <Link href={backHref} className="text-sm text-[#4A6CF7]">
+          ← 목록으로
+        </Link>
+        <Heart postId={post.id} postLiked={post.liked} size={26} />
+      </div>
+
+      <div className={`${sectionClass} flex items-center justify-between`}>
+        <span className="font-semibold">{post.author?.username}</span>
+        <span className="text-sm text-gray-600">
+          {new Date(post.created_at).toLocaleString("ko-KR")}
+        </span>
+      </div>
+
+      {imageUri && (
+        <Image
+          src={imageUri}
+          alt=""
+          width={800}
+          height={500}
+          className="w-full object-cover"
+          unoptimized
+        />
+      )}
+
+      <div className={sectionClass}>
+        <h1 className="text-2xl font-bold text-[#0B1B3A]">{post.title}</h1>
+      </div>
+
+      {post.highlight_content && (
+        <div className={sectionClass}>
+          <p className="text-base font-bold" style={{ color: highlightColor }}>
+            {post.highlight_content}
+          </p>
+        </div>
+      )}
+
+      {(post.agent || post.agency_call) && (
+        <div className={sectionClass}>
+          <p className="text-base">
+            {post.agent ?? "연락처"} :{" "}
+            <span className="font-semibold">{formatPhone(post.agency_call)}</span>
+          </p>
+          {contactDigits && (
+            <div className="mt-3 flex gap-2">
+              <a
+                href={`tel:${contactDigits}`}
+                className="flex-1 rounded-xl bg-[#4A6CF7] py-2.5 text-center text-sm font-bold text-white"
+              >
+                전화
+              </a>
+              <a
+                href={`sms:${contactDigits}`}
+                className="flex-1 rounded-xl border border-black py-2.5 text-center text-sm font-bold"
+              >
+                문자
+              </a>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className={sectionClass}>
+        <h2 className="mb-3 text-lg font-bold text-[#0B1B3A]">상세 내용</h2>
+        <div
+          className="whitespace-pre-wrap text-base leading-8 text-gray-900"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
+      </div>
+
+      <AddressMapSection
+        title="사업지 주소"
+        placeholder="사업지 주소"
+        address={post.business_address}
+        lat={post.business_lat}
+        lng={post.business_lng}
+        pickerKind="business"
+      />
+    </article>
+  );
+}

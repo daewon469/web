@@ -204,6 +204,8 @@ export default function AdWritePageClient() {
         placeholder="주소 입력 또는 지도를 터치하세요"
         value={business}
         onChange={setBusiness}
+        pickerKind="business"
+        showSameAsPeer={false}
       />
 
       <div>
