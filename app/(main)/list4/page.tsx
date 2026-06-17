@@ -51,7 +51,7 @@ export default function AdListPage() {
         <h1 className="text-xl font-bold text-[#0B1B3A]">광고</h1>
         {getSession().isLogin && (
           <Link href="/write4" className="text-sm font-bold text-[#4A6CF7]">
-            광고 등록 (준비 중)
+            광고 등록
           </Link>
         )}
       </div>

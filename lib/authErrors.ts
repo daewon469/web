@@ -23,9 +23,20 @@ export const PHONE_VERIFY_STATUS_MESSAGES: Record<number, string> = {
   4: "인증번호가 올바르지 않습니다.",
 };
 
+export const USER_UPDATE_STATUS_MESSAGES: Record<number, string> = {
+  3: "비밀번호 확인이 필요합니다.",
+  4: "비밀번호와 비밀번호 확인이 일치하지 않습니다.",
+  9: "휴대폰 인증이 필요합니다.",
+};
+
 export function resolveSignupMessage(status: number, detail?: string | null): string {
   if (detail?.trim()) return detail.trim();
   return SIGNUP_STATUS_MESSAGES[status] ?? "알 수 없는 오류가 발생했습니다. 다시 시도해주세요.";
+}
+
+export function resolveUserUpdateMessage(status: number, detail?: string | null): string {
+  if (detail?.trim()) return detail.trim();
+  return USER_UPDATE_STATUS_MESSAGES[status] ?? "알 수 없는 오류가 발생했습니다. 다시 시도해주세요.";
 }
 
 export function resolvePhoneVerifyMessage(status: number): string | null {

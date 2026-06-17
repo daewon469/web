@@ -2,12 +2,12 @@
 
 import TypePostList from "@/components/TypePostList";
 
-export default function CommunityListPage() {
+export default function NoticeListPage() {
   return (
     <TypePostList
-      postType={3}
-      title="커뮤니티"
-      writeHref="/write3"
+      postType={5}
+      title="공지사항"
+      adminWriteHref="/write5"
       writeLabel="글 작성"
     />
   );

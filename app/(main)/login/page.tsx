@@ -88,10 +88,18 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <div className="mt-4 flex items-center justify-center gap-2 text-sm">
+      <div className="mt-4 flex flex-col items-center gap-2 text-sm">
         <Link href="/signup" className="text-blue-600 hover:underline">
           회원가입
         </Link>
+        <div className="flex gap-3">
+          <Link href="/findid" className="text-gray-600 hover:underline">
+            아이디 찾기
+          </Link>
+          <Link href="/resetpassword" className="text-gray-600 hover:underline">
+            비밀번호 찾기
+          </Link>
+        </div>
       </div>
     </div>
   );

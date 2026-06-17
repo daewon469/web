@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import SignupPageClient from "./SignupPageClient";
+import AdWritePageClient from "@/components/AdWritePageClient";
 
-export default function SignupPage() {
+export default function Write4Page() {
   return (
     <Suspense fallback={<p className="py-12 text-center text-gray-500">불러오는 중...</p>}>
-      <SignupPageClient />
+      <AdWritePageClient />
     </Suspense>
   );
 }

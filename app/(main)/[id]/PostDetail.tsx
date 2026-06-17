@@ -1,6 +1,7 @@
 "use client";
 
 import Heart from "@/components/Heart";
+import CommentsSection from "@/components/CommentsSection";
 import { Posts, resolveMediaUrl, type Post } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
@@ -46,14 +47,29 @@ export default function PostDetail({ id }: { id: number }) {
   }
 
   const imageUri = resolveMediaUrl(post.image_url);
+  const showComments = [3, 5, 6, 7].includes(Number(post.post_type ?? 1));
+  const backHref =
+    post.post_type === 3
+      ? "/list3"
+      : post.post_type === 4
+        ? "/list4"
+        : post.post_type === 5
+          ? "/list5"
+          : post.post_type === 6
+            ? "/list6"
+            : post.post_type === 7
+              ? "/list7"
+              : post.post_type === 2
+                ? "/list2"
+                : "/list";
 
   return (
     <article className="rounded-xl bg-white p-4 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
-        <Link href="/list" className="text-sm text-[#4A6CF7]">
+        <Link href={backHref} className="text-sm text-[#4A6CF7]">
           ← 목록으로
         </Link>
-        <Heart postId={post.id} postLiked={post.liked} size={26} />
+        {post.post_type === 1 && <Heart postId={post.id} postLiked={post.liked} size={26} />}
       </div>
       <h1 className="text-2xl font-bold text-[#0B1B3A]">{post.title}</h1>
       <p className="mt-2 text-sm text-gray-500">
@@ -75,6 +91,8 @@ export default function PostDetail({ id }: { id: number }) {
         className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
+
+      {showComments && <CommentsSection postId={post.id} />}
     </article>
   );
 }

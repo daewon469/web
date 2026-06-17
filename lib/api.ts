@@ -28,6 +28,10 @@ export type SignupResponse = {
   referral_bonus_referred_amount?: number;
 };
 
+export type FindUsernameResponse = { status: number; items: string[] };
+export type ResetPasswordResponse = { status: number; detail?: string | null };
+export type UserUpdateResponse = { status: number; username?: string; detail?: string | null };
+
 export type User = {
   username: string;
   name: string | null;
@@ -80,6 +84,7 @@ export type PostInput = {
   status?: StatusType;
   agency_call?: string;
   agent?: string;
+  company_agency?: string;
   highlight_color?: string;
   highlight_content?: string;
   total_use?: boolean;
@@ -99,6 +104,7 @@ export type PostInput = {
   other_role_name?: string | null;
   other_role_fee?: string | null;
   card_type?: number;
+  post_type?: number;
   workplace_lat?: number;
   workplace_lng?: number;
   business_lat?: number;
@@ -164,6 +170,7 @@ export type Post = {
   business_lat?: number;
   business_lng?: number;
   post_type?: number;
+  company_agency?: string;
   is_owner?: boolean;
   community?: { is_owner?: boolean } | null;
   agent?: string;
@@ -172,6 +179,54 @@ export type Post = {
 export type PostPatch = Partial<PostInput>;
 
 export type PostListCursor = string;
+
+export type ReferralListItem = {
+  id: number;
+  referred_username: string;
+  created_at: string | null;
+};
+
+export type ReferralListResponse = {
+  status: number;
+  items: ReferralListItem[];
+};
+
+export type ReferralRankingItem = {
+  rank: number;
+  nickname: string;
+  referral_count: number;
+};
+
+export type ReferralRankingResponse = {
+  status: number;
+  items: ReferralRankingItem[];
+};
+
+export type ReferralNetworkItem = {
+  nickname: string;
+  depth: number;
+  signup_date?: string | null;
+  created_at?: string | null;
+};
+
+export type ReferralNetworkResponse = {
+  status: number;
+  total_count: number;
+  items: ReferralNetworkItem[];
+  next_cursor: string | null;
+  reward?: { granted: boolean } | null;
+};
+
+export type NotificationItem = {
+  id: number;
+  title: string;
+  body: string;
+  type?: string;
+  created_at?: string | null;
+  data?: { post_id?: number; post_type?: number };
+  is_read?: boolean;
+  target_username?: string | null;
+};
 
 export const api: AxiosInstance = axios.create({
   baseURL: API_URL,
@@ -215,6 +270,34 @@ export const Auth = {
       code,
     });
     return data;
+  },
+
+  findUsernameByPhone: async (
+    phone_number: string,
+    phone_verification_id: string,
+  ): Promise<FindUsernameResponse> => {
+    const { data } = await api.post<FindUsernameResponse>("/community/account/find-username", {
+      phone_number: normalizePhoneDigits(phone_number),
+      phone_verification_id,
+    });
+    return data ?? { status: 1, items: [] };
+  },
+
+  resetPasswordByPhone: async (
+    username: string,
+    phone_number: string,
+    phone_verification_id: string,
+    new_password: string,
+    new_password_confirm: string,
+  ): Promise<ResetPasswordResponse> => {
+    const { data } = await api.post<ResetPasswordResponse>("/community/account/reset-password", {
+      username,
+      phone_number: normalizePhoneDigits(phone_number),
+      phone_verification_id,
+      new_password,
+      new_password_confirm,
+    });
+    return data ?? { status: 1 };
   },
 
   signUp: async (
@@ -268,14 +351,27 @@ export const Auth = {
   updateUser: async (
     username: string,
     payload: {
+      username?: string;
+      password?: string;
+      password_confirm?: string;
+      name?: string;
+      phone_number?: string;
+      phone_verification_id?: string;
+      region?: string;
       area_region_codes?: string[];
       custom_industry_codes?: string[];
       custom_region_codes?: string[];
       custom_role_codes?: string[];
     },
-  ) => {
-    const { data } = await api.put(`/community/user/${encodeURIComponent(username)}`, payload);
-    return data;
+  ): Promise<UserUpdateResponse> => {
+    const { data } = await api.put(`/community/user/${encodeURIComponent(username)}`, {
+      ...payload,
+      phone_number: payload.phone_number
+        ? normalizePhoneDigits(payload.phone_number)
+        : undefined,
+      phone_verification_id: payload.phone_verification_id || undefined,
+    });
+    return data ?? { status: 1 };
   },
 };
 
@@ -399,6 +495,18 @@ export const Posts = {
     return data;
   },
 
+  createByType: async (
+    payload: PostInput,
+    username: string,
+    postType: number,
+  ): Promise<Post> => {
+    const { data } = await api.post(
+      `/community/posts/${encodeURIComponent(username)}/type/${postType}`,
+      payload,
+    );
+    return data;
+  },
+
   update: async (id: number, patch: PostPatch): Promise<Post> => {
     const { data } = await api.put(`/community/posts/${id}`, patch);
     return data;
@@ -483,5 +591,388 @@ export const Posts = {
       { params: query },
     );
     return data ?? { items: [], next_cursor: undefined };
+  },
+};
+
+export const Referral = {
+  listByReferrer: async (username: string): Promise<ReferralListResponse> => {
+    const { data } = await api.get(
+      `/community/referrals/by-referrer/${encodeURIComponent(username)}`,
+    );
+    return data ?? { status: 1, items: [] };
+  },
+
+  ranking: async (): Promise<ReferralRankingResponse> => {
+    const { data } = await api.get("/community/referrals/ranking");
+    return data ?? { status: 1, items: [] };
+  },
+
+  network: async (
+    username: string,
+    opts?: { limit?: number; cursor?: string | null; max_depth?: number },
+  ): Promise<ReferralNetworkResponse> => {
+    const { data } = await api.get(
+      `/community/referrals/network/${encodeURIComponent(username)}`,
+      {
+        params: {
+          limit: opts?.limit ?? 50,
+          cursor: opts?.cursor ?? undefined,
+          max_depth: opts?.max_depth ?? 20,
+        },
+      },
+    );
+    return (
+      data ?? {
+        status: 1,
+        total_count: 0,
+        items: [],
+        next_cursor: null,
+        reward: null,
+      }
+    );
+  },
+};
+
+export const Notify = {
+  getAllNotifications: async (username: string): Promise<NotificationItem[]> => {
+    const { data } = await api.get(`/notify/my/${encodeURIComponent(username)}`);
+    return Array.isArray(data) ? data : [];
+  },
+
+  getUnreadCount: async (username: string): Promise<number> => {
+    const { data } = await api.get(
+      `/notify/my/${encodeURIComponent(username)}/unread/count`,
+    );
+    return Number(data?.unread_count ?? 0);
+  },
+
+  markNotificationRead: async (notificationId: number) => {
+    const { data } = await api.post(`/notify/read/${notificationId}`);
+    return data;
+  },
+
+  markAllNotificationsReadByUser: async (username: string) => {
+    const { data } = await api.post(`/notify/my/${encodeURIComponent(username)}/read-all`);
+    return data;
+  },
+
+  getAdminSentNotifications: async (
+    actorNickname: string,
+    opts?: { limit?: number },
+  ): Promise<{ items?: NotificationItem[] }> => {
+    const { data } = await api.get(`/notify/sent/${encodeURIComponent(actorNickname)}`, {
+      params: { limit: opts?.limit ?? 300 },
+    });
+    return data ?? { items: [] };
+  },
+};
+
+export type Comment = {
+  id: number;
+  post_id: number;
+  user_id: number;
+  username: string;
+  content: string;
+  created_at: string;
+  parent_id?: number | null;
+  is_deleted?: boolean;
+};
+
+export const Comments = {
+  list: async (
+    postId: number,
+    cursor?: string,
+    limit = 20,
+  ): Promise<{ items: Comment[]; next_cursor?: string }> => {
+    const { data } = await api.get(`/community/posts/${postId}/comments`, {
+      params: { cursor, limit },
+    });
+    return data ?? { items: [] };
+  },
+
+  create: async (postId: number, username: string, content: string) => {
+    try {
+      const { data } = await api.post(
+        `/community/posts/${postId}/comments/${encodeURIComponent(username)}`,
+        { content },
+      );
+      return { ok: true as const, comment: data as Comment };
+    } catch (e) {
+      return { ok: false as const, error: (e as Error).message };
+    }
+  },
+
+  reply: async (
+    postId: number,
+    parentCommentId: number,
+    username: string,
+    content: string,
+  ) => {
+    try {
+      const { data } = await api.post(
+        `/community/posts/${postId}/comments/${encodeURIComponent(username)}`,
+        { content, parent_id: parentCommentId },
+      );
+      return { ok: true as const, comment: data as Comment };
+    } catch (e) {
+      return { ok: false as const, error: (e as Error).message };
+    }
+  },
+
+  update: async (commentId: number, username: string, content: string) => {
+    try {
+      const { data } = await api.put(
+        `/community/comments/${commentId}/${encodeURIComponent(username)}`,
+        { content },
+      );
+      return { ok: true as const, comment: data as Comment };
+    } catch (e) {
+      return { ok: false as const, error: (e as Error).message };
+    }
+  },
+
+  remove: async (commentId: number, username: string) => {
+    try {
+      await api.delete(`/community/comments/${commentId}/${encodeURIComponent(username)}`);
+      return { ok: true as const };
+    } catch (e) {
+      return { ok: false as const, error: (e as Error).message };
+    }
+  },
+};
+
+export type UIConfigBannerItem = {
+  image_url: string;
+  link_url?: string | null;
+  click_action?: "link" | "referral_modal" | null;
+  width_px?: number | null;
+  width_percent?: number;
+  height?: number;
+  resize_mode?: "contain" | "cover" | "stretch";
+};
+
+export type UIConfigResponse = {
+  status: 0 | 1 | 3 | 8;
+  config: {
+    banner: {
+      enabled: boolean;
+      interval_posts: number;
+      items: UIConfigBannerItem[];
+      height?: number;
+      resize_mode?: "contain" | "cover" | "stretch";
+    };
+    top_banner?: {
+      enabled: boolean;
+      items: UIConfigBannerItem[];
+      height?: number;
+      resize_mode?: "contain" | "cover" | "stretch";
+    };
+    popup: {
+      enabled: boolean;
+      image_url: string | null;
+      link_url: string | null;
+      width_percent?: number;
+      height?: number;
+      resize_mode?: "contain" | "cover" | "stretch";
+    };
+    title_search?: {
+      enabled: boolean;
+      recommended_post_ids: number[];
+    };
+  };
+};
+
+const defaultUIConfig = (): UIConfigResponse["config"] => ({
+  banner: { enabled: true, interval_posts: 10, items: [], height: 110, resize_mode: "contain" },
+  top_banner: { enabled: true, items: [], height: 70, resize_mode: "contain" },
+  popup: {
+    enabled: true,
+    image_url: null,
+    link_url: null,
+    width_percent: 92,
+    height: 360,
+    resize_mode: "contain",
+  },
+  title_search: { enabled: true, recommended_post_ids: [] },
+});
+
+export const UIConfig = {
+  get: async (): Promise<UIConfigResponse> => {
+    try {
+      const { data } = await api.get("/community/ui-config");
+      return data ?? { status: 8, config: defaultUIConfig() };
+    } catch {
+      return { status: 8, config: defaultUIConfig() };
+    }
+  },
+
+  update: async (payload: UIConfigResponse["config"]): Promise<UIConfigResponse> => {
+    const { data } = await api.put("/community/admin/ui-config", payload);
+    return data ?? { status: 8, config: payload };
+  },
+};
+
+export type TodayStatusResponse = {
+  status: 0 | 1 | 3 | 8;
+  date: string | null;
+  new_users: number;
+  total_users: number;
+  total_visitors?: number;
+  today_visitors?: number;
+  total_job_posts?: number;
+  today_job_posts?: number;
+  total_ad_posts?: number;
+  today_ad_posts?: number;
+  total_chat_posts?: number;
+  today_chat_posts?: number;
+};
+
+export const Stats = {
+  today: async (): Promise<TodayStatusResponse> => {
+    try {
+      const { data } = await api.get("/community/stats/today");
+      const raw = data ?? {};
+      return {
+        status: (raw.status ?? 8) as TodayStatusResponse["status"],
+        date: raw.date ?? null,
+        total_users: Number(raw.total_users ?? 0) || 0,
+        new_users: Number(raw.new_users ?? 0) || 0,
+        total_visitors: Number(raw.total_visitors ?? 0) || 0,
+        today_visitors: Number(raw.today_visitors ?? raw.realtime_visitors ?? 0) || 0,
+        total_job_posts: Number(raw.total_job_posts ?? 0) || 0,
+        today_job_posts: Number(raw.today_job_posts ?? raw.new_sites ?? 0) || 0,
+        total_ad_posts: Number(raw.total_ad_posts ?? 0) || 0,
+        today_ad_posts: Number(raw.today_ad_posts ?? 0) || 0,
+        total_chat_posts: Number(raw.total_chat_posts ?? 0) || 0,
+        today_chat_posts: Number(raw.today_chat_posts ?? 0) || 0,
+      };
+    } catch {
+      return {
+        status: 8,
+        date: null,
+        total_users: 0,
+        new_users: 0,
+      };
+    }
+  },
+};
+
+export type AdminUserListItem = {
+  id?: number | null;
+  nickname: string;
+  name?: string | null;
+  signup_date?: string | null;
+  admin_acknowledged?: boolean;
+};
+
+export type AdminUserListResponse = {
+  status: 0 | 1 | 3 | 8;
+  items: AdminUserListItem[];
+  next_cursor: string | null;
+};
+
+export type AdminUserDetailResponse = {
+  status: 0 | 1 | 3 | 8;
+  user?: {
+    nickname: string;
+    name?: string | null;
+    phone_number?: string | null;
+    signup_date?: string | null;
+    point_balance?: number;
+    cash_balance?: number;
+    user_grade?: number;
+    is_owner?: boolean;
+    admin_acknowledged?: boolean;
+    referral_code?: string | null;
+    referral_count?: number;
+    posts?: { type1: number; type3: number; type4: number };
+  };
+  restrictions?: Array<{ post_type: number; restricted_until: string | null }>;
+};
+
+export const AdminUsers = {
+  list: async (
+    actorNickname: string,
+    cursor?: string | null,
+    limit?: number,
+    q?: string | null,
+  ): Promise<AdminUserListResponse> => {
+    const { data } = await api.get("/community/admin/users", {
+      params: {
+        actor_nickname: actorNickname,
+        cursor: cursor ?? undefined,
+        limit: limit ?? 50,
+        q: q?.trim() || undefined,
+      },
+    });
+    return data ?? { status: 8, items: [], next_cursor: null };
+  },
+
+  getDetail: async (
+    targetNickname: string,
+    actorNickname: string,
+  ): Promise<AdminUserDetailResponse> => {
+    const { data } = await api.get(
+      `/community/admin/users/${encodeURIComponent(targetNickname)}`,
+      { params: { actor_nickname: actorNickname } },
+    );
+    return data ?? { status: 8 };
+  },
+
+  notifyUser: async (
+    targetNickname: string,
+    actorNickname: string,
+    title: string,
+    body: string,
+  ) => {
+    const { data } = await api.post(
+      `/community/admin/users/${encodeURIComponent(targetNickname)}/notify`,
+      { actor_nickname: actorNickname, title: title.trim(), body: body.trim() },
+    );
+    return data ?? { status: 8 };
+  },
+
+  setRestrictions: async (
+    targetNickname: string,
+    actorNickname: string,
+    changes: Array<{ post_type: number; days: number }>,
+    reason?: string,
+  ) => {
+    const { data } = await api.post(
+      `/community/admin/users/${encodeURIComponent(targetNickname)}/restrictions`,
+      {
+        actor_nickname: actorNickname,
+        changes,
+        reason: reason?.trim() || undefined,
+      },
+    );
+    return data ?? { status: 8 };
+  },
+};
+
+export const OwnerUsers = {
+  grantPoints: async (
+    targetNickname: string,
+    actorNickname: string,
+    amount: number,
+    reason: string,
+  ) => {
+    const { data } = await api.post(
+      `/community/owner/users/${encodeURIComponent(targetNickname)}/points`,
+      { actor_nickname: actorNickname, amount, reason: reason.trim() },
+    );
+    return data ?? { status: 8 };
+  },
+
+  setAdminAcknowledged: async (
+    targetNickname: string,
+    actorNickname: string,
+    admin_acknowledged: boolean,
+  ) => {
+    const { data } = await api.post(
+      `/community/owner/users/${encodeURIComponent(targetNickname)}/admin-acknowledged`,
+      { actor_nickname: actorNickname, admin_acknowledged },
+    );
+    return data ?? { status: 8, admin_acknowledged: false };
   },
 };
