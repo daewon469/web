@@ -1,5 +1,6 @@
 "use client";
 
+import NavIcon, { type NavIconName } from "@/components/NavIcon";
 import { Auth } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import { useRouter } from "next/navigation";
@@ -7,13 +8,14 @@ import { useCallback, useEffect, useState } from "react";
 
 const BAR_BG = "#EEF3FF";
 const BAR_FG = "#1A2B5F";
+const TAB_ICON_SIZE = 23;
 
 const tabs = [
-  { href: "/list?openMap=1", label: "지도검색", icon: "🗺️", requiresLogin: true, isMap: true },
-  { href: "/textsearch", label: "제목검색", icon: "🔍", requiresLogin: true },
-  { href: "/areasite", label: "지역저장", icon: "📍", requiresLogin: true, dynamic: "area" as const },
-  { href: "/customsite", label: "맞춤저장", icon: "⚙️", requiresLogin: true, dynamic: "custom" as const },
-  { href: "/like", label: "관심현장", icon: "❤️", requiresLogin: true },
+  { href: "/list?openMap=1", label: "지도검색", icon: "map" as const, requiresLogin: true, isMap: true },
+  { href: "/textsearch", label: "제목검색", icon: "search" as const, requiresLogin: true },
+  { href: "/areasite", label: "지역저장", icon: "location" as const, requiresLogin: true, dynamic: "area" as const },
+  { href: "/customsite", label: "맞춤저장", icon: "options-outline" as const, requiresLogin: true, dynamic: "custom" as const },
+  { href: "/like", label: "관심현장", icon: "heart" as const, requiresLogin: true },
 ] as const;
 
 export default function BottomBar() {
@@ -80,27 +82,32 @@ export default function BottomBar() {
     return tab.href;
   };
 
+  const renderButton = (icon: NavIconName, label: string, onClick: () => void) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5"
+      style={{ color: BAR_FG }}
+    >
+      <span className="flex h-[26px] items-center justify-center">
+        <NavIcon name={icon} size={TAB_ICON_SIZE} />
+      </span>
+      <span className="text-[13px] font-bold leading-none">{label}</span>
+    </button>
+  );
+
   return (
     <nav
       className="sticky bottom-0 z-50 border-t border-[#d8e2ff]"
       style={{ backgroundColor: BAR_BG }}
     >
       <div className="mx-auto flex h-14 w-full max-w-7xl items-stretch lg:hidden">
-        {tabs.map((tab) => (
-          <button
-            key={tab.label}
-            type="button"
-            onClick={async () => {
-              const href = await resolveHref(tab);
-              if (href) router.push(href);
-            }}
-            className="flex flex-1 flex-col items-center justify-center gap-0.5"
-            style={{ color: BAR_FG }}
-          >
-            <span className="text-lg leading-none">{tab.icon}</span>
-            <span className="text-[13px] font-bold">{tab.label}</span>
-          </button>
-        ))}
+        {tabs.map((tab) =>
+          renderButton(tab.icon, tab.label, async () => {
+            const href = await resolveHref(tab);
+            if (href) router.push(href);
+          }),
+        )}
       </div>
     </nav>
   );

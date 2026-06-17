@@ -1,5 +1,6 @@
 "use client";
 
+import NavIcon, { type NavIconName } from "@/components/NavIcon";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -7,13 +8,14 @@ import { Notify } from "@/lib/api";
 import { getSession } from "@/lib/session";
 
 const HEADER_BG = "#0B1B3A";
+const TAB_ICON_SIZE = 23;
 
 const tabs = [
-  { href: "/write", label: "구인등록", requiresLogin: true },
-  { href: "/list4", label: "광고" },
-  { href: "/list", label: "첫화면" },
-  { href: "/noti", label: "알림", requiresLogin: true },
-  { href: "/myboard", label: "마이메뉴", requiresLogin: true },
+  { href: "/write", label: "구인등록", icon: "create" as const, requiresLogin: true },
+  { href: "/list4", label: "광고", icon: "megaphone" as const },
+  { href: "/list", label: "첫화면", icon: "home" as const },
+  { href: "/noti", label: "알림", icon: "notifications" as const, requiresLogin: true },
+  { href: "/myboard", label: "마이메뉴", icon: "person" as const, requiresLogin: true },
 ] as const;
 
 export default function TopBar() {
@@ -77,39 +79,42 @@ export default function TopBar() {
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
+  const renderTab = (icon: NavIconName, label: string, href: string, active: boolean, badge?: number) => (
+    <Link
+      href={href}
+      className="relative flex flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 text-white transition-opacity hover:opacity-90"
+    >
+      <span className="flex h-[26px] items-center justify-center">
+        <NavIcon name={icon} size={TAB_ICON_SIZE} className={active ? "text-white" : "text-white/75"} />
+      </span>
+      <span className={`text-[13px] font-bold leading-none ${active ? "text-white" : "text-white/75"}`}>
+        {label}
+      </span>
+      {badge != null && badge > 0 && (
+        <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-[#0B1B3A] bg-red-500 px-1 text-[10px] font-bold text-white">
+          {badge > 99 ? "99+" : badge}
+        </span>
+      )}
+    </Link>
+  );
+
   return (
     <header className="sticky top-0 z-50" style={{ backgroundColor: HEADER_BG }}>
-      <div className="mx-auto flex h-12 w-full max-w-7xl items-stretch px-1 sm:px-2">
+      <div className="mx-auto flex h-14 w-full max-w-7xl items-stretch px-1 sm:px-2">
         {tabs.map((tab) => {
           const href = resolveHref(tab);
           const active = isActive(tab.href);
           const showBadge = tab.href === "/noti" && unreadCount > 0;
           return (
-            <Link
-              key={tab.href}
-              href={href}
-              className="relative flex flex-1 flex-col items-center justify-center px-1 text-white transition-opacity hover:opacity-90"
-            >
-              <span
-                className={`text-sm font-bold ${active ? "text-white" : "text-white/75"}`}
-              >
-                {tab.label}
-              </span>
-              {showBadge && (
-                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </Link>
+            <div key={tab.href} className="flex flex-1">
+              {renderTab(tab.icon, tab.label, href, active, showBadge ? unreadCount : undefined)}
+            </div>
           );
         })}
         {!isLogin && (
-          <Link
-            href="/login"
-            className="flex flex-1 flex-col items-center justify-center px-1 text-sm font-bold text-[#4A6CF7]"
-          >
-            로그인
-          </Link>
+          <div className="flex flex-1">
+            {renderTab("log-in", "로그인", "/login", pathname === "/login")}
+          </div>
         )}
       </div>
     </header>

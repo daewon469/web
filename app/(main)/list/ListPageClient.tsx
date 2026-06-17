@@ -205,7 +205,7 @@ export default function ListPageClient() {
               <button
                 type="button"
                 onClick={() => setMapOpen(true)}
-                className="rounded-lg bg-[#1A2B5F] px-3 py-1.5 text-sm font-bold text-white"
+                className="rounded-lg bg-[#1A2B5F] px-3 py-1.5 text-sm font-bold text-white lg:hidden"
               >
                 지도검색
               </button>
@@ -254,7 +254,7 @@ export default function ListPageClient() {
         {cursor && !loading && !error && <div ref={loadMoreRef} className="h-4" aria-hidden />}
       </div>
 
-      <KakaoMapPanel open={mapOpen} onClose={closeMap} posts={posts} />
+      <KakaoMapPanel open={mapOpen} onClose={closeMap} />
     </>
   );
 }

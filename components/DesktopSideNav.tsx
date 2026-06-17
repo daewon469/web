@@ -146,7 +146,7 @@ export default function DesktopSideNav() {
 
   return (
     <aside className="hidden w-56 shrink-0 lg:block">
-      <div className="sticky top-16 rounded-2xl bg-[#0B1B3A] p-3 shadow-sm">
+      <div className="sticky top-4 rounded-2xl bg-[#0B1B3A] p-3 shadow-sm lg:top-4">
         <p className="px-3 py-2 text-xs font-bold uppercase tracking-wide text-white/50">메뉴</p>
         <nav className="flex flex-col gap-1">{primaryLinks.map(renderLink)}</nav>
         <p className="mt-4 px-3 py-2 text-xs font-bold uppercase tracking-wide text-white/50">

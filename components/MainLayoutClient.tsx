@@ -17,7 +17,11 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-[#f5f5f5]">
-      {showTopBar && <TopBar />}
+      {showTopBar && (
+        <div className="lg:hidden">
+          <TopBar />
+        </div>
+      )}
       <div className="mx-auto flex w-full max-w-7xl flex-1 gap-6 px-3 py-4 lg:px-6">
         {showSideNav && <DesktopSideNav />}
         <main className="min-w-0 flex-1 lg:max-w-3xl xl:max-w-4xl">{children}</main>
