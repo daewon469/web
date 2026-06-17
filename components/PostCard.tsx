@@ -1,3 +1,6 @@
+"use client";
+
+import Heart from "@/components/Heart";
 import Image from "next/image";
 import Link from "next/link";
 import { resolveMediaUrl, type Post } from "@/lib/api";
@@ -53,15 +56,22 @@ function formatRoles(post: Post) {
   return roleText + feeText;
 }
 
-export default function PostCard({ post }: { post: Post }) {
+export default function PostCard({ post, showHeart = true }: { post: Post; showHeart?: boolean }) {
   const imageUri = resolveMediaUrl(post.image_url);
   const industryProvinceCity = `${post.job_industry ?? ""}/${formatProvinceCity(post.province, post.city)}`;
 
   return (
     <Link
       href={`/${post.id}`}
-      className="block rounded-lg border border-gray-200 bg-white shadow-md transition-shadow hover:shadow-lg"
+      className="relative block rounded-lg border border-gray-200 bg-white shadow-md transition-shadow hover:shadow-lg"
     >
+      {showHeart && (
+        <Heart
+          postId={post.id}
+          postLiked={post.liked}
+          className="absolute right-2 top-12 z-10"
+        />
+      )}
       <div className="flex gap-2 p-2">
         {imageUri && (
           <Image
@@ -73,7 +83,7 @@ export default function PostCard({ post }: { post: Post }) {
             unoptimized
           />
         )}
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 pr-6">
           <h2 className="line-clamp-2 min-h-[52px] text-lg font-bold text-black">
             {post.title}
           </h2>

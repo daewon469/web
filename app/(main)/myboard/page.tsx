@@ -83,11 +83,13 @@ export default function MyBoardPage() {
   }
 
   const menuItems = [
-    { label: "내 구인글", count: summary.posts.type1, href: "/mypage", soon: true },
+    { label: "내 구인글", count: summary.posts.type1, href: "/mypage", soon: false },
     { label: "내 커뮤니티글", count: summary.posts.type3, href: "/mypage3", soon: true },
     { label: "내 광고글", count: summary.posts.type4, href: "/mypage4", soon: true },
     { label: "포인트", count: summary.point_balance, href: "/points", soon: false },
     { label: "캐시", count: summary.cash_balance, href: "/cash", soon: false },
+    { label: "분양 뉴스", count: null, href: "/list2", soon: false },
+    { label: "커뮤니티", count: null, href: "/list3", soon: false },
   ];
 
   return (
@@ -118,7 +120,7 @@ export default function MyBoardPage() {
           >
             <span className="font-medium">{item.label}</span>
             <span className="text-sm text-gray-500">
-              {item.count.toLocaleString()}
+              {item.count != null ? item.count.toLocaleString() : ""}
               {item.soon && <span className="ml-2 text-xs text-gray-400">(준비 중)</span>}
             </span>
           </Link>

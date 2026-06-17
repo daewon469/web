@@ -158,12 +158,18 @@ export type Post = {
   each_fee?: string;
   other_role_name?: string | null;
   other_role_fee?: string | null;
+  agency_call?: string;
   workplace_lat?: number;
   workplace_lng?: number;
   business_lat?: number;
   business_lng?: number;
   post_type?: number;
+  is_owner?: boolean;
+  community?: { is_owner?: boolean } | null;
+  agent?: string;
 };
+
+export type PostPatch = Partial<PostInput>;
 
 export type PostListCursor = string;
 
@@ -391,5 +397,91 @@ export const Posts = {
   create: async (payload: PostInput, username: string): Promise<Post> => {
     const { data } = await api.post(`/community/posts/${encodeURIComponent(username)}`, payload);
     return data;
+  },
+
+  update: async (id: number, patch: PostPatch): Promise<Post> => {
+    const { data } = await api.put(`/community/posts/${id}`, patch);
+    return data;
+  },
+
+  changeStatus: async (id: number, status: StatusType): Promise<Post> => {
+    const { data } = await api.put(`/community/posts/${id}`, { status });
+    return data;
+  },
+
+  remove: async (id: number): Promise<{ ok: boolean; message: string }> => {
+    const { data } = await api.delete(`/community/posts/${id}`);
+    return data;
+  },
+
+  recreate: async (postId: number, username: string): Promise<Post> => {
+    const { data } = await api.post(
+      `/community/posts/${postId}/recreate/${encodeURIComponent(username)}`,
+    );
+    return data;
+  },
+
+  like: async (postId: number, username: string) => {
+    try {
+      const { data } = await api.post(
+        `/community/posts/${postId}/like/${encodeURIComponent(username)}`,
+      );
+      return data ?? { ok: true };
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
+    }
+  },
+
+  unlike: async (postId: number, username: string) => {
+    try {
+      const { data } = await api.delete(
+        `/community/posts/${postId}/like/${encodeURIComponent(username)}`,
+      );
+      return data ?? { ok: true };
+    } catch (e) {
+      return { ok: false, error: (e as Error).message };
+    }
+  },
+
+  listByType: async (
+    postType: number,
+    opts?: {
+      username?: string;
+      cursor?: PostListCursor;
+      status?: "published" | "closed";
+      limit?: number;
+    },
+  ): Promise<{ items: Post[]; next_cursor?: PostListCursor }> => {
+    const params: Record<string, string | number> = { limit: opts?.limit ?? 50 };
+    if (opts?.username) params.username = opts.username;
+    if (opts?.cursor) params.cursor = opts.cursor;
+    if (opts?.status) params.status = opts.status;
+    try {
+      const { data } = await api.get(`/community/posts/type/${postType}`, { params });
+      return data ?? { items: [], next_cursor: undefined };
+    } catch (e: unknown) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      if (status === 401) throw e;
+      return { items: [], next_cursor: undefined };
+    }
+  },
+
+  mylist: async (
+    postType: number,
+    username: string,
+    params?: {
+      cursor?: PostListCursor;
+      limit?: number;
+      status?: string;
+    },
+  ): Promise<{ items: Post[]; next_cursor?: PostListCursor }> => {
+    const query: Record<string, string | number> = { limit: params?.limit ?? 20 };
+    if (params?.cursor) query.cursor = params.cursor;
+    if (params?.status) query.status = params.status;
+    const { data } = await api.get(
+      `/community/posts/type/${postType}/my/${encodeURIComponent(username)}`,
+      { params: query },
+    );
+    return data ?? { items: [], next_cursor: undefined };
   },
 };

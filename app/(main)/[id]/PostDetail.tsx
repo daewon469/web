@@ -1,5 +1,6 @@
 "use client";
 
+import Heart from "@/components/Heart";
 import { Posts, resolveMediaUrl, type Post } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
@@ -48,9 +49,12 @@ export default function PostDetail({ id }: { id: number }) {
 
   return (
     <article className="rounded-xl bg-white p-4 shadow-sm">
-      <Link href="/list" className="mb-4 inline-block text-sm text-[#4A6CF7]">
-        ← 목록으로
-      </Link>
+      <div className="mb-4 flex items-center justify-between">
+        <Link href="/list" className="text-sm text-[#4A6CF7]">
+          ← 목록으로
+        </Link>
+        <Heart postId={post.id} postLiked={post.liked} size={26} />
+      </div>
       <h1 className="text-2xl font-bold text-[#0B1B3A]">{post.title}</h1>
       <p className="mt-2 text-sm text-gray-500">
         {post.author?.username} · {new Date(post.created_at).toLocaleDateString("ko-KR")}
