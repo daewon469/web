@@ -1,8 +1,7 @@
 "use client";
 
 import { buildKakaoMapUrl, type MapLocation } from "@/lib/map";
-import { KAKAO_MAP_SDK_URL, levelFromZoom, loadKakaoMaps } from "@/lib/kakaoMaps";
-import Script from "next/script";
+import { ensureKakaoMapsSdk, levelFromZoom, loadKakaoMaps } from "@/lib/kakaoMaps";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type KakaoMapPickerVariant = "write" | "detail";
@@ -135,7 +134,23 @@ export default function KakaoMapPicker({
   }, [open, initial]);
 
   useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    ensureKakaoMapsSdk()
+      .then(() => {
+        if (!cancelled) setSdkReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setSdkReady(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (!open) {
+      setSdkReady(false);
       mapInstanceRef.current = null;
       markerRef.current = null;
       mapsApiRef.current = null;
@@ -178,6 +193,8 @@ export default function KakaoMapPicker({
       if (initial?.lat != null && initial?.lng != null) {
         moveMarker(initial.lat, initial.lng, initial.address, 15);
       }
+
+      requestAnimationFrame(() => map.relayout());
     });
   }, [open, sdkReady, mapKey, initial, isWrite, moveMarker, reverseGeocode]);
 
@@ -228,13 +245,7 @@ export default function KakaoMapPicker({
   if (!open) return null;
 
   return (
-    <>
-      <Script
-        src={KAKAO_MAP_SDK_URL}
-        strategy="afterInteractive"
-        onLoad={() => setSdkReady(true)}
-      />
-      <div className="fixed inset-0 z-[210] flex flex-col bg-white lg:left-56">
+    <div className="fixed inset-0 z-[210] flex flex-col bg-white lg:left-56">
         <div className="flex h-12 shrink-0 items-center justify-between border-b bg-[#0B1B3A] px-4">
           <span className="text-sm font-bold text-white sm:text-base">{headerTitle}</span>
           <div className="flex items-center gap-3">
@@ -283,6 +294,5 @@ export default function KakaoMapPicker({
 
         <div key={mapKey} ref={mapRef} className="min-h-0 flex-1" />
       </div>
-    </>
   );
 }
