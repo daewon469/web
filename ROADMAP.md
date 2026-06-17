@@ -83,8 +83,8 @@
 
 ## 현재 진행 단계
 
-**종합 판단: Phase 1~5 완료, Phase 6 잔여**  
-(핵심 기능·결제·피드 UX 모두 사용 가능)
+**종합 판단: Phase 1~6 완료**  
+(웹 포팅 핵심·최적화까지 완료)
 
 ```
 Phase 1  ████████████████████  100%
@@ -92,7 +92,7 @@ Phase 2  ████████████████████  100%
 Phase 3  ████████████████████  100%
 Phase 4  ████████████████████  100%
 Phase 5  ████████████████████  100%
-Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
+Phase 6  ████████████████████  100%
 ```
 
 ---
@@ -193,14 +193,15 @@ Phase 6  ░░░░░░░░░░░░░░░░░░░░    0%
 
 ---
 
-### Phase 6 — 웹 전용 최적화 ⬜ 미착수
+### Phase 6 — 웹 전용 최적화 ✅ 완료
 
-| 항목 | 상태 |
-|------|------|
-| 데스크톱 반응형 레이아웃 | ❌ |
-| 게시글 SEO (`generateMetadata`) | ❌ |
-| PWA (`manifest`, service worker) | ❌ |
-| sitemap / robots.txt | ❌ |
+| 항목 | 상태 | 비고 |
+|------|------|------|
+| 데스크톱 반응형 레이아웃 | ✅ | `DesktopSideNav`, `max-w-7xl`, lg+ 하단바 숨김 |
+| 게시글 SEO (`generateMetadata`) | ✅ | `/[id]` OG·canonical |
+| 목록 SEO | ✅ | `/list` 메타, 루트 `defaultMetadata` |
+| PWA | ✅ | `manifest.ts`, `sw.js`, 홈 화면 추가 |
+| sitemap / robots.txt | ✅ | `sitemap.ts`, `robots.ts` |
 
 ---
 
@@ -271,8 +272,13 @@ lib/
   site.ts             # SITE_URL
   referral.ts         # 추천 문구
   ui_banner_actions.ts
+  serverApi.ts        # 서버 fetch (SEO·sitemap)
+  seo.ts              # 메타태그 헬퍼
 
 components/
+  MainLayoutClient.tsx
+  DesktopSideNav.tsx
+  ServiceWorkerRegister.tsx
   TopBar.tsx          # 상단 네비 (알림 탭·미읽음 뱃지)
   BottomBar.tsx       # 하단 5탭
   PostCard.tsx        # 구인 카드
@@ -321,11 +327,22 @@ components/
 
 ## 권장 다음 작업 순서
 
-1. **Phase 6** — SEO 메타태그, 반응형 데스크톱 레이아웃, PWA
+1. **운영 배포** — `NEXT_PUBLIC_SITE_URL`, 토스 키, API `platform=web` 배포 확인
+2. **품질** — E2E 테스트, Lighthouse 점검, PWA 아이콘 PNG 교체(선택)
 
 ---
 
 ## 작업 이력
+
+### 2026-06-17 — Phase 6 웹 최적화
+
+| 임무 | 산출물 | 상태 |
+|------|--------|------|
+| A. 반응형 | `DesktopSideNav`, `MainLayoutClient`, lg+ 레이아웃 | ✅ |
+| B. SEO | `lib/seo.ts`, `/[id]` generateMetadata, `/list` 메타 | ✅ |
+| C. PWA | `manifest.ts`, `public/sw.js`, `ServiceWorkerRegister` | ✅ |
+| D. 크롤링 | `sitemap.ts`, `robots.ts` | ✅ |
+| E. 빌드 | `npm run build` 49 라우트 통과 | ✅ |
 
 ### 2026-06-17 — Phase 3·5 마무리
 
@@ -390,7 +407,7 @@ components/
 ## 참고 — 모바일 앱 규모
 
 - 화면(라우트): **50개 이상** (`daewonapp_b/app/`)
-- 웹 구현 완료: **약 44개 화면** (전체의 ~70%)
+- 웹 구현 완료: **전체 Phase 1~6** (모바일 대비 ~70% 화면, 핵심 경로 100%)
 - 비즈니스 핵심 경로(구인 조회·등록·로그인·필터): **대체로 사용 가능**
 
 ---

@@ -1,5 +1,12 @@
+import { pageMetadata } from "@/lib/seo";
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import ListPageClient from "./ListPageClient";
+
+export const metadata: Metadata = pageMetadata(
+  "구인 현장",
+  "전국 분양 구인 현장을 조회하고 관심 현장을 저장하세요.",
+);
 
 export default function ListPage() {
   return (

@@ -85,7 +85,7 @@ export default function BottomBar() {
       className="sticky bottom-0 z-50 border-t border-[#d8e2ff]"
       style={{ backgroundColor: BAR_BG }}
     >
-      <div className="mx-auto flex h-14 max-w-3xl items-stretch">
+      <div className="mx-auto flex h-14 w-full max-w-7xl items-stretch lg:hidden">
         {tabs.map((tab) => (
           <button
             key={tab.label}

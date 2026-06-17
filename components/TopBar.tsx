@@ -79,7 +79,7 @@ export default function TopBar() {
 
   return (
     <header className="sticky top-0 z-50" style={{ backgroundColor: HEADER_BG }}>
-      <div className="mx-auto flex h-12 max-w-3xl items-stretch px-1 sm:px-2">
+      <div className="mx-auto flex h-12 w-full max-w-7xl items-stretch px-1 sm:px-2">
         {tabs.map((tab) => {
           const href = resolveHref(tab);
           const active = isActive(tab.href);
