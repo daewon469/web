@@ -1,37 +1,49 @@
+export function ensureKakaoMapsSdk(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+
+  const w = window as { kakao?: { maps?: { load?: (fn: () => void) => void } } };
+  if (w.kakao?.maps?.load) return Promise.resolve();
+
+  if (ensureKakaoMapsSdk.promise) return ensureKakaoMapsSdk.promise;
+
+  ensureKakaoMapsSdk.promise = new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script[src^="https://dapi.kakao.com/v2/maps/sdk.js"]`,
+    );
+    const script = existing ?? document.createElement("script");
+    const done = () => {
+      if (w.kakao?.maps?.load) resolve();
+      else reject(new Error("Kakao Maps SDK failed to load"));
+    };
+
+    if (existing) {
+      if (w.kakao?.maps?.load) {
+        resolve();
+        return;
+      }
+      existing.addEventListener("load", done, { once: true });
+      existing.addEventListener("error", () => reject(new Error("Kakao Maps SDK failed to load")), {
+        once: true,
+      });
+      return;
+    }
+
+    script.src = KAKAO_MAP_SDK_URL;
+    script.async = true;
+    script.addEventListener("load", done, { once: true });
+    script.addEventListener("error", () => reject(new Error("Kakao Maps SDK failed to load")), {
+      once: true,
+    });
+    document.head.appendChild(script);
+  });
+
+  return ensureKakaoMapsSdk.promise;
+}
+ensureKakaoMapsSdk.promise = null as Promise<void> | null;
+
 export function parseCoord(value: unknown): number | null {
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
-}
-
-export function buildKakaoMapPreviewHtml(lat: number, lng: number, zoom = 16) {
-  const key = KAKAO_MAP_JS_KEY;
-  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<style>html,body,#map{margin:0;height:100%;width:100%}</style>
-<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&autoload=false"></script>
-</head><body><div id="map"></div>
-<script>
-(function(){
-  function levelFromZoom(z){
-    if(typeof z!=='number'||!isFinite(z)) return 3;
-    var lvl=Math.round(21-z);
-    if(lvl<1) lvl=1;
-    if(lvl>14) lvl=14;
-    return lvl;
-  }
-  function init(){
-    if(!window.kakao||!kakao.maps||!kakao.maps.load){ setTimeout(init,50); return; }
-    kakao.maps.load(function(){
-      var center=new kakao.maps.LatLng(${lat},${lng});
-      var map=new kakao.maps.Map(document.getElementById('map'),{center:center,level:levelFromZoom(${zoom})});
-      map.setDraggable(false);
-      map.setZoomable(false);
-      var marker=new kakao.maps.Marker({position:center});
-      marker.setMap(map);
-    });
-  }
-  init();
-})();
-</script></body></html>`;
 }
 
 export const KAKAO_MAP_JS_KEY =
@@ -55,6 +67,7 @@ export type KakaoMapsApi = {
     setLevel: (n: number) => void;
     setDraggable: (v: boolean) => void;
     setZoomable: (v: boolean) => void;
+    relayout: () => void;
   };
   Marker: new (opts: { position: unknown; map?: unknown }) => {
     setMap: (v: unknown) => void;
