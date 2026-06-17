@@ -1,59 +1,50 @@
 "use client";
 
-import { KAKAO_MAP_SDK_URL, levelFromZoom, loadKakaoMaps } from "@/lib/kakaoMaps";
-import Script from "next/script";
-import { useEffect, useRef, useState } from "react";
+import { buildKakaoMapPreviewHtml, parseCoord } from "@/lib/kakaoMaps";
+import { useMemo } from "react";
 
 type Props = {
-  lat: number;
-  lng: number;
+  lat: number | string | null | undefined;
+  lng: number | string | null | undefined;
   zoom?: number;
   height?: number;
   onClick?: () => void;
 };
 
-export default function KakaoMapMini({ lat, lng, zoom = 16, height = 200, onClick }: Props) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [sdkReady, setSdkReady] = useState(false);
+export default function KakaoMapMini({
+  lat,
+  lng,
+  zoom = 16,
+  height = 200,
+  onClick,
+}: Props) {
+  const numLat = parseCoord(lat);
+  const numLng = parseCoord(lng);
 
-  useEffect(() => {
-    if (!sdkReady || !mapRef.current) return;
-    loadKakaoMaps((maps) => {
-      if (!mapRef.current) return;
-      const center = new maps.LatLng(lat, lng);
-      const map = new maps.Map(mapRef.current, {
-        center,
-        level: levelFromZoom(zoom),
-      });
-      map.setDraggable(false);
-      map.setZoomable(false);
-      const marker = new maps.Marker({ position: center, map });
-      marker.setMap(map);
-    });
-  }, [sdkReady, lat, lng, zoom]);
+  const html = useMemo(() => {
+    if (numLat == null || numLng == null) return "";
+    return buildKakaoMapPreviewHtml(numLat, numLng, zoom);
+  }, [numLat, numLng, zoom]);
 
-  const inner = (
-    <div
-      ref={mapRef}
+  if (!html) return null;
+
+  const map = (
+    <iframe
+      title="카카오 지도 미리보기"
+      srcDoc={html}
       className="w-full overflow-hidden rounded-xl border border-black bg-white"
-      style={{ height }}
+      style={{ height, pointerEvents: onClick ? "none" : "auto" }}
+      loading="lazy"
     />
   );
 
-  return (
-    <>
-      <Script
-        src={KAKAO_MAP_SDK_URL}
-        strategy="afterInteractive"
-        onLoad={() => setSdkReady(true)}
-      />
-      {onClick ? (
-        <button type="button" onClick={onClick} className="block w-full text-left">
-          {inner}
-        </button>
-      ) : (
-        inner
-      )}
-    </>
-  );
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className="block w-full text-left">
+        {map}
+      </button>
+    );
+  }
+
+  return map;
 }

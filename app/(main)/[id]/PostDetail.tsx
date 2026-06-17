@@ -1,12 +1,31 @@
 "use client";
 
-import Heart from "@/components/Heart";
 import CommentsSection from "@/components/CommentsSection";
-import PostAddressMaps from "@/components/PostAddressMaps";
+import Heart from "@/components/Heart";
+import JobPostDetail from "@/components/JobPostDetail";
 import { Posts, resolveMediaUrl, type Post } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+function backHrefFor(post: Post) {
+  switch (post.post_type) {
+    case 3:
+      return "/list3";
+    case 4:
+      return "/list4";
+    case 5:
+      return "/list5";
+    case 6:
+      return "/list6";
+    case 7:
+      return "/list7";
+    case 2:
+      return "/list2";
+    default:
+      return "/list";
+  }
+}
 
 export default function PostDetail({ id }: { id: number }) {
   const [post, setPost] = useState<Post | null>(null);
@@ -47,22 +66,19 @@ export default function PostDetail({ id }: { id: number }) {
     );
   }
 
-  const imageUri = resolveMediaUrl(post.image_url);
+  const backHref = backHrefFor(post);
   const showComments = [3, 5, 6, 7].includes(Number(post.post_type ?? 1));
-  const backHref =
-    post.post_type === 3
-      ? "/list3"
-      : post.post_type === 4
-        ? "/list4"
-        : post.post_type === 5
-          ? "/list5"
-          : post.post_type === 6
-            ? "/list6"
-            : post.post_type === 7
-              ? "/list7"
-              : post.post_type === 2
-                ? "/list2"
-                : "/list";
+
+  if (post.post_type === 1) {
+    return (
+      <div className="flex flex-col gap-4">
+        <JobPostDetail post={post} backHref={backHref} />
+        {showComments && <CommentsSection postId={post.id} />}
+      </div>
+    );
+  }
+
+  const imageUri = resolveMediaUrl(post.image_url);
 
   return (
     <article className="rounded-xl bg-white p-4 shadow-sm">
@@ -70,7 +86,7 @@ export default function PostDetail({ id }: { id: number }) {
         <Link href={backHref} className="text-sm text-[#4A6CF7]">
           ← 목록으로
         </Link>
-        {post.post_type === 1 && <Heart postId={post.id} postLiked={post.liked} size={26} />}
+        <Heart postId={post.id} postLiked={post.liked} size={26} />
       </div>
       <h1 className="text-2xl font-bold text-[#0B1B3A]">{post.title}</h1>
       <p className="mt-2 text-sm text-gray-500">
@@ -92,17 +108,6 @@ export default function PostDetail({ id }: { id: number }) {
         className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed text-gray-800"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
-
-      {post.post_type === 1 && (
-        <PostAddressMaps
-          workplaceAddress={post.workplace_address}
-          workplaceLat={post.workplace_lat}
-          workplaceLng={post.workplace_lng}
-          businessAddress={post.business_address}
-          businessLat={post.business_lat}
-          businessLng={post.business_lng}
-        />
-      )}
 
       {showComments && <CommentsSection postId={post.id} />}
     </article>

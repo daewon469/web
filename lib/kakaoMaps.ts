@@ -1,3 +1,39 @@
+export function parseCoord(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+export function buildKakaoMapPreviewHtml(lat: number, lng: number, zoom = 16) {
+  const key = KAKAO_MAP_JS_KEY;
+  return `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>html,body,#map{margin:0;height:100%;width:100%}</style>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${key}&autoload=false"></script>
+</head><body><div id="map"></div>
+<script>
+(function(){
+  function levelFromZoom(z){
+    if(typeof z!=='number'||!isFinite(z)) return 3;
+    var lvl=Math.round(21-z);
+    if(lvl<1) lvl=1;
+    if(lvl>14) lvl=14;
+    return lvl;
+  }
+  function init(){
+    if(!window.kakao||!kakao.maps||!kakao.maps.load){ setTimeout(init,50); return; }
+    kakao.maps.load(function(){
+      var center=new kakao.maps.LatLng(${lat},${lng});
+      var map=new kakao.maps.Map(document.getElementById('map'),{center:center,level:levelFromZoom(${zoom})});
+      map.setDraggable(false);
+      map.setZoomable(false);
+      var marker=new kakao.maps.Marker({position:center});
+      marker.setMap(map);
+    });
+  }
+  init();
+})();
+</script></body></html>`;
+}
+
 export const KAKAO_MAP_JS_KEY =
   process.env.NEXT_PUBLIC_KAKAO_MAP_JS_KEY ?? "6b463e22639b1f1c21a652838d95a99f";
 
