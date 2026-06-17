@@ -92,10 +92,6 @@ export default function LoginPage() {
         <Link href="/signup" className="text-blue-600 hover:underline">
           회원가입
         </Link>
-        <span className="text-gray-400">|</span>
-        <span className="text-gray-400">아이디 찾기 (준비 중)</span>
-        <span className="text-gray-400">|</span>
-        <span className="text-gray-400">비밀번호 찾기 (준비 중)</span>
       </div>
     </div>
   );

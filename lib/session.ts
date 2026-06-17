@@ -23,4 +23,5 @@ export function setLoggedIn(username: string, token: string) {
 
 export function setLoggedOut() {
   localStorage.setItem("isLogin", "false");
+  window.dispatchEvent(new Event("session-updated"));
 }
