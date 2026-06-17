@@ -36,6 +36,73 @@ export type User = {
   custom_industry_codes: string[];
   custom_region_codes: string[];
   area_region_codes: string[];
+  custom_role_codes?: string[];
+};
+
+export type PointLedgerItem = {
+  id: number;
+  reason: string;
+  amount: number;
+  created_at: string | null;
+};
+
+export type PointLedgerResponse = {
+  status: number;
+  items: PointLedgerItem[];
+};
+
+export type AttendanceStatusResponse = {
+  status: number;
+  claimed: boolean;
+};
+
+export type CashLedgerItem = {
+  id: number;
+  reason: string;
+  amount: number;
+  created_at: string | null;
+};
+
+export type CashLedgerResponse = {
+  status: number;
+  items: CashLedgerItem[];
+};
+
+export type StatusType = "published" | "closed";
+
+export type PostInput = {
+  title: string;
+  content: string;
+  image_url?: string;
+  province?: string;
+  city?: string;
+  job_industry?: string;
+  status?: StatusType;
+  agency_call?: string;
+  agent?: string;
+  highlight_color?: string;
+  highlight_content?: string;
+  total_use?: boolean;
+  branch_use?: boolean;
+  hq_use?: boolean;
+  leader_use?: boolean;
+  member_use?: boolean;
+  team_use?: boolean;
+  each_use?: boolean;
+  total_fee?: string;
+  branch_fee?: string;
+  hq_fee?: string;
+  leader_fee?: string;
+  member_fee?: string;
+  team_fee?: string;
+  each_fee?: string;
+  other_role_name?: string | null;
+  other_role_fee?: string | null;
+  card_type?: number;
+  workplace_lat?: number;
+  workplace_lng?: number;
+  business_lat?: number;
+  business_lng?: number;
 };
 
 export type UserResponse = {
@@ -91,6 +158,10 @@ export type Post = {
   each_fee?: string;
   other_role_name?: string | null;
   other_role_fee?: string | null;
+  workplace_lat?: number;
+  workplace_lng?: number;
+  business_lat?: number;
+  business_lng?: number;
   post_type?: number;
 };
 
@@ -187,6 +258,47 @@ export const Auth = {
       }
     );
   },
+
+  updateUser: async (
+    username: string,
+    payload: {
+      area_region_codes?: string[];
+      custom_industry_codes?: string[];
+      custom_region_codes?: string[];
+      custom_role_codes?: string[];
+    },
+  ) => {
+    const { data } = await api.put(`/community/user/${encodeURIComponent(username)}`, payload);
+    return data;
+  },
+};
+
+export const Points = {
+  list: async (username: string): Promise<PointLedgerResponse> => {
+    const { data } = await api.get(`/community/points/${encodeURIComponent(username)}`);
+    return data ?? { status: 1, items: [] };
+  },
+
+  attendanceStatus: async (username: string): Promise<AttendanceStatusResponse> => {
+    const { data } = await api.get(
+      `/community/points/attendance/status/${encodeURIComponent(username)}`,
+    );
+    return data ?? { status: 1, claimed: false };
+  },
+
+  attendanceClaim: async (username: string): Promise<AttendanceStatusResponse> => {
+    const { data } = await api.post(
+      `/community/points/attendance/claim/${encodeURIComponent(username)}`,
+    );
+    return data ?? { status: 1, claimed: false };
+  },
+};
+
+export const Cash = {
+  list: async (username: string): Promise<CashLedgerResponse> => {
+    const { data } = await api.get(`/community/cash/${encodeURIComponent(username)}`);
+    return data ?? { status: 1, items: [] };
+  },
 };
 
 export const Posts = {
@@ -195,11 +307,17 @@ export const Posts = {
     cursor?: PostListCursor;
     status?: "published" | "closed";
     limit?: number;
+    province?: string;
+    city?: string;
+    regions?: string;
   }): Promise<{ items: Post[]; next_cursor?: PostListCursor }> => {
     const params: Record<string, string | number> = { limit: opts?.limit ?? 50 };
     if (opts?.username) params.username = opts.username;
     if (opts?.cursor) params.cursor = opts.cursor;
     if (opts?.status) params.status = opts.status;
+    if (opts?.province) params.province = opts.province;
+    if (opts?.city) params.city = opts.city;
+    if (opts?.regions) params.regions = opts.regions;
     try {
       const { data } = await api.get("/community/posts", { params });
       return data ?? { items: [], next_cursor: undefined };
@@ -248,5 +366,30 @@ export const Posts = {
       { params },
     );
     return data ?? { items: [], next_cursor: undefined };
+  },
+
+  listCustom: async (opts?: {
+    username?: string;
+    cursor?: PostListCursor;
+    limit?: number;
+    status?: "published" | "closed";
+  }): Promise<{ items: Post[]; next_cursor?: PostListCursor }> => {
+    const params: Record<string, string | number> = { limit: opts?.limit ?? 50 };
+    if (opts?.username) params.username = opts.username;
+    if (opts?.cursor) params.cursor = opts.cursor;
+    if (opts?.status) params.status = opts.status;
+    try {
+      const { data } = await api.get("/community/posts/custom", { params });
+      return data ?? { items: [], next_cursor: undefined };
+    } catch (e: unknown) {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      if (status === 401) throw e;
+      return { items: [], next_cursor: undefined };
+    }
+  },
+
+  create: async (payload: PostInput, username: string): Promise<Post> => {
+    const { data } = await api.post(`/community/posts/${encodeURIComponent(username)}`, payload);
+    return data;
   },
 };

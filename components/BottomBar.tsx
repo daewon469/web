@@ -9,7 +9,7 @@ const BAR_BG = "#EEF3FF";
 const BAR_FG = "#1A2B5F";
 
 const tabs = [
-  { href: null, label: "지도검색", icon: "🗺️", comingSoon: true },
+  { href: "/list?openMap=1", label: "지도검색", icon: "🗺️", requiresLogin: true, isMap: true },
   { href: "/textsearch", label: "제목검색", icon: "🔍", requiresLogin: true },
   { href: "/areasite", label: "지역저장", icon: "📍", requiresLogin: true, dynamic: "area" as const },
   { href: "/customsite", label: "맞춤저장", icon: "⚙️", requiresLogin: true, dynamic: "custom" as const },
@@ -42,11 +42,11 @@ export default function BottomBar() {
   };
 
   const resolveHref = async (tab: (typeof tabs)[number]) => {
-    if ("comingSoon" in tab && tab.comingSoon) {
-      alert("지도검색은 웹 버전에서 준비 중입니다.");
-      return null;
-    }
     if ("requiresLogin" in tab && tab.requiresLogin && !ensureLogin()) return null;
+
+    if ("isMap" in tab && tab.isMap) {
+      return "/list?openMap=1";
+    }
 
     if ("dynamic" in tab && tab.dynamic === "area") {
       const { username } = getSession();
@@ -86,40 +86,21 @@ export default function BottomBar() {
       style={{ backgroundColor: BAR_BG }}
     >
       <div className="mx-auto flex h-14 max-w-3xl items-stretch">
-        {tabs.map((tab) => {
-          if (tab.href) {
-            return (
-              <button
-                key={tab.label}
-                type="button"
-                onClick={async () => {
-                  const href = await resolveHref(tab);
-                  if (href) router.push(href);
-                }}
-                className="flex flex-1 flex-col items-center justify-center gap-0.5"
-                style={{ color: BAR_FG }}
-              >
-                <span className="text-lg leading-none">{tab.icon}</span>
-                <span className="text-[13px] font-bold">{tab.label}</span>
-              </button>
-            );
-          }
-          return (
-            <button
-              key={tab.label}
-              type="button"
-              onClick={() => {
-                if (!ensureLogin()) return;
-                alert("지도검색은 웹 버전에서 준비 중입니다.");
-              }}
-              className="flex flex-1 flex-col items-center justify-center gap-0.5"
-              style={{ color: BAR_FG }}
-            >
-              <span className="text-lg leading-none">{tab.icon}</span>
-              <span className="text-[13px] font-bold">{tab.label}</span>
-            </button>
-          );
-        })}
+        {tabs.map((tab) => (
+          <button
+            key={tab.label}
+            type="button"
+            onClick={async () => {
+              const href = await resolveHref(tab);
+              if (href) router.push(href);
+            }}
+            className="flex flex-1 flex-col items-center justify-center gap-0.5"
+            style={{ color: BAR_FG }}
+          >
+            <span className="text-lg leading-none">{tab.icon}</span>
+            <span className="text-[13px] font-bold">{tab.label}</span>
+          </button>
+        ))}
       </div>
     </nav>
   );

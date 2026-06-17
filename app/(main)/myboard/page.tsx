@@ -3,6 +3,7 @@
 import { Auth } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession, setLoggedOut } from "@/lib/session";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -85,8 +86,8 @@ export default function MyBoardPage() {
     { label: "내 구인글", count: summary.posts.type1, href: "/mypage", soon: true },
     { label: "내 커뮤니티글", count: summary.posts.type3, href: "/mypage3", soon: true },
     { label: "내 광고글", count: summary.posts.type4, href: "/mypage4", soon: true },
-    { label: "포인트", count: summary.point_balance, href: "/points", soon: true },
-    { label: "캐시", count: summary.cash_balance, href: "/cash", soon: true },
+    { label: "포인트", count: summary.point_balance, href: "/points", soon: false },
+    { label: "캐시", count: summary.cash_balance, href: "/cash", soon: false },
   ];
 
   return (
@@ -107,20 +108,20 @@ export default function MyBoardPage() {
         )}
       </div>
 
-      <div className="rounded-xl bg-white shadow-sm">
+      <div className="overflow-hidden rounded-xl bg-white shadow-sm">
         {menuItems.map((item) => (
-          <div
+          <Link
             key={item.label}
-            className="flex items-center justify-between border-b border-gray-100 px-5 py-4 last:border-b-0"
+            href={item.soon ? "#" : item.href}
+            onClick={item.soon ? (e) => e.preventDefault() : undefined}
+            className="flex items-center justify-between border-b border-gray-100 px-5 py-4 last:border-b-0 hover:bg-gray-50"
           >
             <span className="font-medium">{item.label}</span>
             <span className="text-sm text-gray-500">
-              {item.count}
-              {item.soon && (
-                <span className="ml-2 text-xs text-gray-400">(준비 중)</span>
-              )}
+              {item.count.toLocaleString()}
+              {item.soon && <span className="ml-2 text-xs text-gray-400">(준비 중)</span>}
             </span>
-          </div>
+          </Link>
         ))}
       </div>
 
