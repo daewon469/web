@@ -300,7 +300,7 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
         strategy="afterInteractive"
         onLoad={() => setSdkReady(true)}
       />
-      <div className="fixed inset-0 z-[200] flex flex-col bg-white lg:left-56">
+      <div className="fixed inset-0 z-[200] flex flex-col bg-white">
         <div className="flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-[#0B1B3A] px-4">
           <span className="font-bold text-white">지도검색</span>
           <button type="button" onClick={onClose} className="font-bold text-white">
