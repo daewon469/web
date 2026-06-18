@@ -2,7 +2,7 @@
 
 import NavIcon, { type NavIconName } from "@/components/NavIcon";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Notify } from "@/lib/api";
 import { getSession } from "@/lib/session";
@@ -20,6 +20,7 @@ const tabs = [
 
 export default function TopBar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -79,24 +80,46 @@ export default function TopBar() {
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  const renderTab = (icon: NavIconName, label: string, href: string, active: boolean, badge?: number) => (
-    <Link
-      href={href}
-      className="relative flex flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 text-white transition-opacity hover:opacity-90"
-    >
-      <span className="flex h-[26px] items-center justify-center">
-        <NavIcon name={icon} size={TAB_ICON_SIZE} className={active ? "text-white" : "text-white/75"} />
-      </span>
-      <span className={`text-[13px] font-bold leading-none ${active ? "text-white" : "text-white/75"}`}>
-        {label}
-      </span>
-      {badge != null && badge > 0 && (
-        <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-[#0B1B3A] bg-red-500 px-1 text-[10px] font-bold text-white">
-          {badge > 99 ? "99+" : badge}
+  const renderTab = (
+    icon: NavIconName,
+    label: string,
+    href: string,
+    active: boolean,
+    badge?: number,
+    onNavigate?: () => void,
+  ) => {
+    const className =
+      "relative flex flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1 text-white transition-opacity hover:opacity-90";
+    const content = (
+      <>
+        <span className="flex h-[26px] items-center justify-center">
+          <NavIcon name={icon} size={TAB_ICON_SIZE} className={active ? "text-white" : "text-white/75"} />
         </span>
-      )}
-    </Link>
-  );
+        <span className={`text-[13px] font-bold leading-none ${active ? "text-white" : "text-white/75"}`}>
+          {label}
+        </span>
+        {badge != null && badge > 0 && (
+          <span className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-[#0B1B3A] bg-red-500 px-1 text-[10px] font-bold text-white">
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )}
+      </>
+    );
+
+    if (onNavigate) {
+      return (
+        <button type="button" onClick={onNavigate} className={className}>
+          {content}
+        </button>
+      );
+    }
+
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  };
 
   return (
     <header className="sticky top-0 z-50" style={{ backgroundColor: HEADER_BG }}>
@@ -107,7 +130,14 @@ export default function TopBar() {
           const showBadge = tab.href === "/noti" && unreadCount > 0;
           return (
             <div key={tab.href} className="flex flex-1">
-              {renderTab(tab.icon, tab.label, href, active, showBadge ? unreadCount : undefined)}
+              {renderTab(
+                tab.icon,
+                tab.label,
+                href,
+                active,
+                showBadge ? unreadCount : undefined,
+                tab.href === "/list" ? () => router.replace("/list") : undefined,
+              )}
             </div>
           );
         })}

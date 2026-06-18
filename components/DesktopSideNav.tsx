@@ -152,6 +152,22 @@ export default function DesktopSideNav() {
       );
     }
 
+    if (link.href === "/list") {
+      return (
+        <button
+          key={link.label}
+          type="button"
+          onClick={() => router.replace("/list")}
+          className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium ${
+            active ? "bg-[#4A6CF7] text-white" : "text-white/85 hover:bg-white/10"
+          }`}
+        >
+          {renderIcon(link.icon)}
+          <span>{link.label}</span>
+        </button>
+      );
+    }
+
     return (
       <Link
         key={link.label}

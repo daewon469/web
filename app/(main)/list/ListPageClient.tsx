@@ -54,8 +54,9 @@ export default function ListPageClient() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mapOpen, setMapOpen] = useState(false);
   const [mapMounted, setMapMounted] = useState(false);
+  const openMapParam = searchParams.get("openMap");
+  const mapOpen = openMapParam === "1" || openMapParam === "true";
   const [selectedRegions, setSelectedRegions] = useState<RegionObj[]>([
     { province: "전체", city: "전체" },
   ]);
@@ -170,21 +171,14 @@ export default function ListPageClient() {
   }, []);
 
   useEffect(() => {
-    const openMap = searchParams.get("openMap");
-    if (openMap === "1" || openMap === "true") {
-      const session = getSession();
-      if (!session.isLogin) {
-        router.replace("/login");
-        return;
-      }
-      setMapOpen(true);
-      setMapMounted(true);
+    if (!mapOpen) return;
+    const session = getSession();
+    if (!session.isLogin) {
+      router.replace("/login");
+      return;
     }
-  }, [searchParams, router]);
-
-  useEffect(() => {
-    if (mapOpen) setMapMounted(true);
-  }, [mapOpen]);
+    setMapMounted(true);
+  }, [mapOpen, router]);
 
   useEffect(() => {
     const el = loadMoreRef.current;
@@ -221,10 +215,10 @@ export default function ListPageClient() {
   );
 
   const closeMap = () => {
-    setMapOpen(false);
-    if (searchParams.get("openMap")) {
-      router.replace("/list");
-    }
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("openMap");
+    const qs = next.toString();
+    router.replace(qs ? `/list?${qs}` : "/list", { scroll: false });
   };
 
   const resetRegionFilter = () => {
