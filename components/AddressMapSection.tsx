@@ -17,6 +17,7 @@ export default function AddressMapSection({
   lat,
   lng,
   pickerKind,
+  showAddressInput = true,
 }: {
   title: string;
   placeholder: string;
@@ -24,6 +25,7 @@ export default function AddressMapSection({
   lat?: number | string | null;
   lng?: number | string | null;
   pickerKind: "work" | "business";
+  showAddressInput?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const numLat = parseCoord(lat);
@@ -43,15 +45,17 @@ export default function AddressMapSection({
     <section className="overflow-hidden rounded-lg border border-black bg-[#f9f9f9]">
       <h2 className="px-4 pt-4 text-lg font-bold text-[#0B1B3A]">{title}</h2>
       <div className="flex flex-col gap-2 p-4">
-        <button type="button" onClick={() => setOpen(true)} className="w-full text-left">
-          <input
-            readOnly
-            tabIndex={-1}
-            value={address ?? ""}
-            placeholder={placeholder}
-            className={`${inputClass} pointer-events-none placeholder:text-gray-500`}
-          />
-        </button>
+        {showAddressInput && (
+          <button type="button" onClick={() => setOpen(true)} className="w-full text-left">
+            <input
+              readOnly
+              tabIndex={-1}
+              value={address ?? ""}
+              placeholder={placeholder}
+              className={`${inputClass} pointer-events-none placeholder:text-gray-500`}
+            />
+          </button>
+        )}
         {hasMap && (
           <button
             type="button"

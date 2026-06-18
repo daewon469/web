@@ -245,6 +245,7 @@ export default function JobPostDetail({ post }: { post: Post }) {
         lat={post.workplace_lat}
         lng={post.workplace_lng}
         pickerKind="work"
+        showAddressInput={false}
       />
 
       <AddressMapSection
@@ -254,6 +255,7 @@ export default function JobPostDetail({ post }: { post: Post }) {
         lat={post.business_lat}
         lng={post.business_lng}
         pickerKind="business"
+        showAddressInput={false}
       />
     </article>
   );

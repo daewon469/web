@@ -9,6 +9,8 @@ import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
 import type { MapLocation } from "@/lib/map";
 import {
+  DEFAULT_BUSINESS_LOCATION,
+  DEFAULT_WORKPLACE_LOCATION,
   resolveBusinessForSubmit,
   resolveWorkplaceForSubmit,
 } from "@/lib/map";
@@ -101,8 +103,12 @@ export default function WritePageClient() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [regionModalOpen, setRegionModalOpen] = useState(false);
-  const [workplace, setWorkplace] = useState<MapLocation | null>(null);
-  const [business, setBusiness] = useState<MapLocation | null>(null);
+  const [workplace, setWorkplace] = useState<MapLocation | null>(() =>
+    isEdit ? null : DEFAULT_WORKPLACE_LOCATION,
+  );
+  const [business, setBusiness] = useState<MapLocation | null>(() =>
+    isEdit ? null : DEFAULT_BUSINESS_LOCATION,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

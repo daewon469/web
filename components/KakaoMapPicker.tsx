@@ -288,7 +288,7 @@ export default function KakaoMapPicker({
             {resolving && " 주소 조회 중..."}
           </p>
         )}
-        {picked?.address && (
+        {isWrite && picked?.address && (
           <p className="truncate border-b px-4 py-2 text-sm font-medium">{picked.address}</p>
         )}
 
