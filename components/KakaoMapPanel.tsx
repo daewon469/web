@@ -2,14 +2,14 @@
 
 import PostCard from "@/components/PostCard";
 import { Posts, type Post } from "@/lib/api";
+import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
 import { getSession } from "@/lib/session";
-import Script from "next/script";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-import { KAKAO_MAP_SDK_URL } from "@/lib/kakaoMaps";
 
 const MAP_PAGE_SIZE = 500;
 const MAP_CHUNK_SIZE = 100;
+const MAP_INITIAL_CHUNK = 100;
+const CACHE_TTL_MS = 5 * 60 * 1000;
 
 const SEL_DOT_HTML =
   '<div style="width:12px;height:12px;border-radius:999px;background:rgba(239,68,68,0.98);' +
@@ -56,6 +56,27 @@ type Props = {
   onClose: () => void;
 };
 
+let mapItemsCache: Post[] = [];
+let mapItemsCacheAt = 0;
+
+function getMapItemsCache(): Post[] | null {
+  if (mapItemsCache.length > 0 && Date.now() - mapItemsCacheAt < CACHE_TTL_MS) {
+    return mapItemsCache;
+  }
+  return null;
+}
+
+function setMapItemsCache(items: Post[]) {
+  mapItemsCache = items;
+  mapItemsCacheAt = Date.now();
+}
+
+function dedupePosts(items: Post[]): Post[] {
+  const byId = new Map<number, Post>();
+  items.forEach((p) => byId.set(p.id, p));
+  return Array.from(byId.values());
+}
+
 function buildMarkerSignature(mode: MarkerMode, list: MapMarker[]) {
   return `${mode}|${list.map((m) => `${m.id}@${m.lat},${m.lng}`).join("|")}`;
 }
@@ -71,21 +92,35 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
   const selectedIdRef = useRef<number | null>(null);
 
   const [sdkReady, setSdkReady] = useState(false);
-  const [mapItems, setMapItems] = useState<Post[]>([]);
+  const [mapItems, setMapItems] = useState<Post[]>(() => getMapItemsCache() ?? []);
   const [mapLoading, setMapLoading] = useState(false);
   const [markerMode, setMarkerMode] = useState<MarkerMode>("workplace");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const loadingRef = useRef(false);
 
+  useEffect(() => {
+    ensureKakaoMapsSdk()
+      .then(() => setSdkReady(true))
+      .catch(() => {});
+  }, []);
+
   const loadNationwideForMap = useCallback(async () => {
     if (loadingRef.current) return;
+
+    const cached = getMapItemsCache();
+    if (cached) {
+      setMapItems(cached);
+      return;
+    }
+
     loadingRef.current = true;
     setMapLoading(true);
     try {
       const { username } = getSession();
-      setMapItems([]);
       let nextCursor: string | undefined;
       let loaded = 0;
+      let all: Post[] = [];
+      let flushedInitial = false;
 
       while (loaded < MAP_PAGE_SIZE) {
         const { items, next_cursor } = await Posts.list({
@@ -97,15 +132,18 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
         if (!items.length) break;
         loaded += items.length;
         nextCursor = next_cursor;
+        all = dedupePosts([...all, ...items]);
 
-        setMapItems((prev) => {
-          const byId = new Map<number, Post>();
-          [...prev, ...items].forEach((p) => byId.set(p.id, p));
-          return Array.from(byId.values());
-        });
+        if (!flushedInitial && all.length >= MAP_INITIAL_CHUNK) {
+          setMapItems(all);
+          flushedInitial = true;
+        }
 
         if (!nextCursor) break;
       }
+
+      setMapItems(all);
+      if (all.length > 0) setMapItemsCache(all);
     } catch {
       setMapItems([]);
     } finally {
@@ -115,10 +153,17 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
   }, []);
 
   useEffect(() => {
-    if (!open) return;
-    setSelectedId(null);
+    if (!open) {
+      setSelectedId(null);
+      return;
+    }
     if (mapItems.length === 0) loadNationwideForMap();
   }, [open, mapItems.length, loadNationwideForMap]);
+
+  useEffect(() => {
+    if (!open || !sdkReady || !mapObj.current) return;
+    requestAnimationFrame(() => mapObj.current?.relayout());
+  }, [open, sdkReady]);
 
   const markerCounts = useMemo(() => {
     const business = mapItems.filter((p) => p.business_lat && p.business_lng).length;
@@ -283,92 +328,78 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
     updateSelectionOverlays(markers, selectedId);
   }, [open, sdkReady, selectedId, markers, updateSelectionOverlays]);
 
-  useEffect(() => {
-    if (!open) {
-      mapObj.current = null;
-      mapsApiRef.current = null;
-      clearMarkers();
-    }
-  }, [open, clearMarkers]);
-
-  if (!open) return null;
-
   return (
-    <>
-      <Script
-        src={KAKAO_MAP_SDK_URL}
-        strategy="afterInteractive"
-        onLoad={() => setSdkReady(true)}
-      />
-      <div className="fixed inset-0 z-[200] flex flex-col bg-white">
-        <div className="flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-[#0B1B3A] px-4">
-          <span className="font-bold text-white">지도검색</span>
-          <button type="button" onClick={onClose} className="font-bold text-white">
-            닫기
+    <div
+      className={open ? "fixed inset-0 z-[200] flex flex-col bg-white" : "hidden"}
+      aria-hidden={!open}
+    >
+      <div className="flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-[#0B1B3A] px-4">
+        <span className="font-bold text-white">지도검색</span>
+        <button type="button" onClick={onClose} className="font-bold text-white">
+          닫기
+        </button>
+      </div>
+
+      <div className="relative min-h-0 flex-1">
+        <div ref={mapRef} className="absolute inset-0" />
+
+        {mapLoading && mapItems.length === 0 && (
+          <div className="pointer-events-none absolute inset-x-0 top-[18px] z-10 flex justify-center">
+            <div
+              className="h-6 w-6 animate-spin rounded-full border-2 border-[#2F6BFF] border-t-transparent"
+              aria-label="전국 현장 불러오는 중"
+            />
+          </div>
+        )}
+
+        <div className="absolute left-3 top-3 z-10 flex overflow-hidden rounded-[14px] border border-gray-200 bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => {
+              setMarkerMode("workplace");
+              setSelectedId(null);
+            }}
+            className={`px-3 py-2.5 text-[13px] font-black ${
+              markerMode === "workplace"
+                ? "bg-[#2F6BFF] text-white"
+                : "bg-white text-gray-900"
+            }`}
+          >
+            모델하우스 기준
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMarkerMode("business");
+              setSelectedId(null);
+            }}
+            className={`border-l border-gray-200 px-3 py-2.5 text-[13px] font-black ${
+              markerMode === "business"
+                ? "bg-[#2F6BFF] text-white"
+                : "bg-white text-gray-900"
+            }`}
+          >
+            현장사업지 기준
           </button>
         </div>
 
-        <div className="relative min-h-0 flex-1">
-          <div ref={mapRef} className="absolute inset-0" />
-
-          {mapLoading && mapItems.length === 0 && (
-            <div className="pointer-events-none absolute inset-x-0 top-[18px] z-10 flex justify-center">
-              <div
-                className="h-6 w-6 animate-spin rounded-full border-2 border-[#2F6BFF] border-t-transparent"
-                aria-label="전국 현장 불러오는 중"
-              />
+        {selectedPost && (
+          <div className="pointer-events-none absolute bottom-2.5 left-2.5 right-2.5 z-10">
+            <div className="pointer-events-auto overflow-hidden rounded-xl border border-black bg-white">
+              <PostCard post={selectedPost} />
             </div>
-          )}
-
-          <div className="absolute left-3 top-3 z-10 flex overflow-hidden rounded-[14px] border border-gray-200 bg-white shadow-sm">
-            <button
-              type="button"
-              onClick={() => {
-                setMarkerMode("workplace");
-                setSelectedId(null);
-              }}
-              className={`px-3 py-2.5 text-[13px] font-black ${
-                markerMode === "workplace"
-                  ? "bg-[#2F6BFF] text-white"
-                  : "bg-white text-gray-900"
-              }`}
-            >
-              모델하우스 기준
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMarkerMode("business");
-                setSelectedId(null);
-              }}
-              className={`border-l border-gray-200 px-3 py-2.5 text-[13px] font-black ${
-                markerMode === "business"
-                  ? "bg-[#2F6BFF] text-white"
-                  : "bg-white text-gray-900"
-              }`}
-            >
-              현장사업지 기준
-            </button>
+            <div className="pointer-events-auto mt-2.5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedId(null)}
+                className="mr-1.5 rounded-[10px] bg-[#2F6BFF] px-3.5 py-2.5 text-sm font-black text-white"
+              >
+                카드 닫기
+              </button>
+            </div>
           </div>
-
-          {selectedPost && (
-            <div className="pointer-events-none absolute bottom-2.5 left-2.5 right-2.5 z-10">
-              <div className="pointer-events-auto overflow-hidden rounded-xl border border-black bg-white">
-                <PostCard post={selectedPost} />
-              </div>
-              <div className="pointer-events-auto mt-2.5 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setSelectedId(null)}
-                  className="mr-1.5 rounded-[10px] bg-[#2F6BFF] px-3.5 py-2.5 text-sm font-black text-white"
-                >
-                  카드 닫기
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }

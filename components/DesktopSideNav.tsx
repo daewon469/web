@@ -3,7 +3,7 @@
 import { Auth } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 const primaryLinks = [
@@ -27,7 +27,10 @@ type NavLink = (typeof primaryLinks)[number] | (typeof filterLinks)[number];
 export default function DesktopSideNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(false);
+  const mapOpen =
+    searchParams.get("openMap") === "1" || searchParams.get("openMap") === "true";
 
   const reloadSession = useCallback(() => {
     setIsLogin(getSession().isLogin);
@@ -44,8 +47,13 @@ export default function DesktopSideNav() {
   }, [reloadSession]);
 
   const isActive = (href: string) => {
-    const base = href.split("?")[0];
-    if (base === "/list") return pathname === "/list" || pathname === "/";
+    const [base, query] = href.split("?");
+    const onList = pathname === "/list" || pathname === "/";
+    if (base === "/list") {
+      if (!onList) return false;
+      const wantsMap = query?.includes("openMap");
+      return wantsMap ? mapOpen : !mapOpen;
+    }
     return pathname === base || pathname.startsWith(`${base}/`);
   };
 

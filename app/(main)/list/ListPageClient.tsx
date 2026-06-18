@@ -9,6 +9,7 @@ import PostCard from "@/components/PostCard";
 import ReferralModal from "@/components/ReferralModal";
 import RegionViewPanel from "@/components/RegionViewPanel";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
+import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
 import {
   type RegionObj,
   selectedRegionsToPostListParams,
@@ -54,6 +55,7 @@ export default function ListPageClient() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
+  const [mapMounted, setMapMounted] = useState(false);
   const [selectedRegions, setSelectedRegions] = useState<RegionObj[]>([
     { province: "전체", city: "전체" },
   ]);
@@ -164,6 +166,10 @@ export default function ListPageClient() {
   }, [regionParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    void ensureKakaoMapsSdk();
+  }, []);
+
+  useEffect(() => {
     const openMap = searchParams.get("openMap");
     if (openMap === "1" || openMap === "true") {
       const session = getSession();
@@ -172,8 +178,13 @@ export default function ListPageClient() {
         return;
       }
       setMapOpen(true);
+      setMapMounted(true);
     }
   }, [searchParams, router]);
+
+  useEffect(() => {
+    if (mapOpen) setMapMounted(true);
+  }, [mapOpen]);
 
   useEffect(() => {
     const el = loadMoreRef.current;
@@ -297,7 +308,7 @@ export default function ListPageClient() {
         </div>
       </div>
 
-      <KakaoMapPanel open={mapOpen} onClose={closeMap} />
+      {mapMounted && <KakaoMapPanel open={mapOpen} onClose={closeMap} />}
     </>
   );
 }
