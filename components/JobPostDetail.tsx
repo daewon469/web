@@ -83,26 +83,30 @@ export default function JobPostDetail({ post }: { post: Post }) {
 
   return (
     <article className="flex flex-col gap-1 bg-white">
-      <div className={`${sectionClass} flex items-center justify-between`}>
-        <span className="font-semibold">{post.author?.username}</span>
-        <span className="text-sm text-gray-600">
-          {new Date(post.created_at).toLocaleString("ko-KR")}
-        </span>
-      </div>
+      <div className="overflow-hidden rounded-lg border border-black">
+        <div className="flex items-center justify-between bg-[#f9f9f9] p-4">
+          <span className="font-semibold">{post.author?.username}</span>
+          <span className="text-sm text-gray-600">
+            {new Date(post.created_at).toLocaleString("ko-KR")}
+          </span>
+        </div>
 
-      {imageUri && (
-        <Image
-          src={imageUri}
-          alt=""
-          width={800}
-          height={500}
-          className="w-full object-cover"
-          unoptimized
-        />
-      )}
+        {imageUri && (
+          <div className="border-t border-black bg-[#f9f9f9] px-4">
+            <Image
+              src={imageUri}
+              alt=""
+              width={800}
+              height={500}
+              className="block w-full rounded-[10px] object-cover"
+              unoptimized
+            />
+          </div>
+        )}
 
-      <div className={`${sectionClass} border-t-0`}>
-        <h1 className="text-2xl font-bold text-[#0B1B3A]">{post.title}</h1>
+        <div className="border-t border-black bg-[#f9f9f9] p-4">
+          <h1 className="text-2xl font-bold text-[#0B1B3A]">{post.title}</h1>
+        </div>
       </div>
 
       {post.highlight_content && (

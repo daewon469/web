@@ -1,5 +1,6 @@
 "use client";
 
+import NavIcon, { type NavIconName } from "@/components/NavIcon";
 import { Auth } from "@/lib/api";
 import { getSession } from "@/lib/session";
 import Link from "next/link";
@@ -7,19 +8,19 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 const primaryLinks = [
-  { href: "/list", label: "첫화면", icon: "🏠" },
-  { href: "/write", label: "구인등록", icon: "✏️", requiresLogin: true },
-  { href: "/list4", label: "광고", icon: "📢" },
-  { href: "/noti", label: "알림", icon: "🔔", requiresLogin: true },
-  { href: "/myboard", label: "마이메뉴", icon: "👤", requiresLogin: true },
+  { href: "/write", label: "구인등록", icon: "create" as const, requiresLogin: true },
+  { href: "/list4", label: "광고", icon: "megaphone" as const },
+  { href: "/list", label: "첫화면", icon: "home" as const },
+  { href: "/noti", label: "알림", icon: "notifications" as const, requiresLogin: true },
+  { href: "/myboard", label: "마이메뉴", icon: "person" as const, requiresLogin: true },
 ] as const;
 
 const filterLinks = [
-  { href: "/list?openMap=1", label: "지도검색", icon: "🗺️", requiresLogin: true, isMap: true },
-  { href: "/textsearch", label: "제목검색", icon: "🔍", requiresLogin: true },
-  { href: "/areasite", label: "지역저장", icon: "📍", requiresLogin: true, dynamic: "area" as const },
-  { href: "/customsite", label: "맞춤저장", icon: "⚙️", requiresLogin: true, dynamic: "custom" as const },
-  { href: "/like", label: "관심현장", icon: "❤️", requiresLogin: true },
+  { href: "/list?openMap=1", label: "지도검색", icon: "map" as const, requiresLogin: true, isMap: true },
+  { href: "/textsearch", label: "제목검색", icon: "search" as const, requiresLogin: true },
+  { href: "/areasite", label: "지역저장", icon: "location" as const, requiresLogin: true, dynamic: "area" as const },
+  { href: "/customsite", label: "맞춤저장", icon: "options-outline" as const, requiresLogin: true, dynamic: "custom" as const },
+  { href: "/like", label: "관심현장", icon: "heart" as const, requiresLogin: true },
 ] as const;
 
 type NavLink = (typeof primaryLinks)[number] | (typeof filterLinks)[number];
@@ -46,13 +47,20 @@ export default function DesktopSideNav() {
     };
   }, [reloadSession]);
 
-  const isActive = (href: string) => {
+  const isActive = (link: NavLink) => {
+    const href = link.href;
     const [base, query] = href.split("?");
     const onList = pathname === "/list" || pathname === "/";
     if (base === "/list") {
       if (!onList) return false;
       const wantsMap = query?.includes("openMap");
       return wantsMap ? mapOpen : !mapOpen;
+    }
+    if ("dynamic" in link && link.dynamic === "area") {
+      return pathname === "/areasite" || pathname === "/arealike";
+    }
+    if ("dynamic" in link && link.dynamic === "custom") {
+      return pathname === "/customsite" || pathname === "/customlike";
     }
     return pathname === base || pathname.startsWith(`${base}/`);
   };
@@ -100,8 +108,14 @@ export default function DesktopSideNav() {
     return link.href;
   };
 
+  const renderIcon = (name: NavIconName) => (
+    <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+      <NavIcon name={name} size={20} />
+    </span>
+  );
+
   const renderLink = (link: NavLink) => {
-    const active = isActive(link.href);
+    const active = isActive(link);
     const needsLogin = "requiresLogin" in link && link.requiresLogin && !isLogin;
     const targetHref =
       needsLogin ? "/login" : link.href.split("?")[0] === link.href ? link.href : link.href;
@@ -113,7 +127,7 @@ export default function DesktopSideNav() {
           href="/login"
           className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/70 hover:bg-white/10"
         >
-          <span>{link.icon}</span>
+          {renderIcon(link.icon)}
           <span>{link.label}</span>
         </Link>
       );
@@ -132,7 +146,7 @@ export default function DesktopSideNav() {
             active ? "bg-[#4A6CF7] text-white" : "text-white/85 hover:bg-white/10"
           }`}
         >
-          <span>{link.icon}</span>
+          {renderIcon(link.icon)}
           <span>{link.label}</span>
         </button>
       );
@@ -146,7 +160,7 @@ export default function DesktopSideNav() {
           active ? "bg-[#4A6CF7] text-white" : "text-white/85 hover:bg-white/10"
         }`}
       >
-        <span>{link.icon}</span>
+        {renderIcon(link.icon)}
         <span>{link.label}</span>
       </Link>
     );

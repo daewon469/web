@@ -26,6 +26,7 @@ function objectFitClass(mode: "contain" | "cover" | "stretch") {
 }
 
 const TOP_BANNER_MAX_HEIGHT = 130;
+
 const FEED_BANNER_MAX_HEIGHT =130;
 
 function ResponsiveBannerImage({
