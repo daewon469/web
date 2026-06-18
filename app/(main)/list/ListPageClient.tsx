@@ -1,11 +1,18 @@
 "use client";
 
+import BlueStrip from "@/components/BlueStrip";
 import { FeedBannerCard, TopBannerStrip } from "@/components/FeedBanner";
 import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
+import NewsPreview from "@/components/NewsPreview";
 import PostCard from "@/components/PostCard";
 import ReferralModal from "@/components/ReferralModal";
+import RegionViewPanel from "@/components/RegionViewPanel";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
+import {
+  type RegionObj,
+  selectedRegionsToPostListParams,
+} from "@/lib/regionUtils";
 import { getSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -47,25 +54,50 @@ export default function ListPageClient() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapOpen, setMapOpen] = useState(false);
+  const [selectedRegions, setSelectedRegions] = useState<RegionObj[]>([
+    { province: "전체", city: "전체" },
+  ]);
   const [topBanners, setTopBanners] = useState<UIConfigBannerItem[]>([]);
+  const [topBannerResizeMode, setTopBannerResizeMode] = useState<
+    "contain" | "cover" | "stretch"
+  >("contain");
   const [feedBanner, setFeedBanner] = useState<{
     enabled: boolean;
     interval: number;
     items: UIConfigBannerItem[];
-  }>({ enabled: false, interval: 10, items: [] });
+    resize_mode: "contain" | "cover" | "stretch";
+  }>({ enabled: false, interval: 10, items: [], resize_mode: "contain" });
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const regionParams = useMemo(
+    () => selectedRegionsToPostListParams(selectedRegions),
+    [selectedRegions],
+  );
+  const isNationwide = useMemo(
+    () => selectedRegions.some((r) => r.province === "전체"),
+    [selectedRegions],
+  );
 
   useEffect(() => {
     UIConfig.get().then((res) => {
       if (res.status !== 0) return;
       const tb = res.config.top_banner;
-      if (tb?.enabled) setTopBanners(tb.items ?? []);
+      const enabled = tb?.enabled !== false;
+      const items = (tb?.items ?? []).filter((b) => String(b.image_url ?? "").trim());
+      setTopBanners(enabled ? items : []);
+      setTopBannerResizeMode((() => {
+        const rm = String(tb?.resize_mode ?? "contain");
+        return rm === "cover" || rm === "stretch" ? rm : "contain";
+      })());
       setFeedBanner({
         enabled: !!res.config.banner?.enabled,
         interval: Number(res.config.banner?.interval_posts ?? 10) || 10,
         items: res.config.banner?.items ?? [],
+        resize_mode: (() => {
+          const rm = String(res.config.banner?.resize_mode ?? "contain");
+          return rm === "cover" || rm === "stretch" ? rm : "contain";
+        })(),
       });
     });
   }, []);
@@ -86,6 +118,9 @@ export default function ListPageClient() {
           limit: 20,
           cursor: reset ? undefined : cursor,
           status: "published",
+          province: regionParams.province,
+          city: regionParams.city,
+          regions: regionParams.regions,
         });
         setPosts((prev) => (reset ? items : [...prev, ...items]));
         setCursor(items.length >= 20 ? next_cursor : undefined);
@@ -97,7 +132,7 @@ export default function ListPageClient() {
         setRefreshing(false);
       }
     },
-    [cursor, refreshing],
+    [cursor, refreshing, regionParams],
   );
 
   const refresh = useCallback(async () => {
@@ -110,6 +145,9 @@ export default function ListPageClient() {
         username: username ?? undefined,
         limit: 20,
         status: "published",
+        province: regionParams.province,
+        city: regionParams.city,
+        regions: regionParams.regions,
       });
       setPosts(items);
       setCursor(items.length >= 20 ? next_cursor : undefined);
@@ -118,11 +156,12 @@ export default function ListPageClient() {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [regionParams]);
 
   useEffect(() => {
+    setCursor(undefined);
     load(true);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [regionParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const openMap = searchParams.get("openMap");
@@ -177,6 +216,11 @@ export default function ListPageClient() {
     }
   };
 
+  const resetRegionFilter = () => {
+    setSelectedRegions([{ province: "전체", city: "전체" }]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <>
       <HomePopup />
@@ -185,73 +229,72 @@ export default function ListPageClient() {
         onClose={() => setReferralModalOpen(false)}
         referralCode={referralCode}
       />
-      <div className="flex flex-col gap-3">
+
+      <div className="-mx-3 flex flex-col gap-1.5 lg:mx-0">
+        <BlueStrip
+          mode={isNationwide ? "nationwide" : "region"}
+          onResetRegion={resetRegionFilter}
+        />
+
         {topBanners.length > 0 && (
-          <TopBannerStrip items={topBanners} onReferralClick={openReferralModal} />
-        )}
-
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-xl font-bold text-[#0B1B3A]">구인 현장</h1>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={refresh}
-              disabled={refreshing || loading}
-              className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-bold disabled:opacity-50"
-            >
-              {refreshing ? "새로고침 중..." : "새로고침"}
-            </button>
-            {getSession().isLogin && (
-              <button
-                type="button"
-                onClick={() => setMapOpen(true)}
-                className="rounded-lg bg-[#1A2B5F] px-3 py-1.5 text-sm font-bold text-white lg:hidden"
-              >
-                지도검색
-              </button>
-            )}
-          </div>
-        </div>
-
-        {loading && !refreshing && (
-          <p className="py-12 text-center text-gray-500">불러오는 중...</p>
-        )}
-
-        {!loading && error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-red-700">
-            {error}
-            <button
-              type="button"
-              onClick={() => refresh()}
-              className="mt-2 block w-full text-sm font-medium text-[#4A6CF7] underline"
-            >
-              다시 시도
-            </button>
+          <div className="px-2.5">
+            <TopBannerStrip
+              items={topBanners}
+              onReferralClick={openReferralModal}
+              defaultResizeMode={topBannerResizeMode}
+            />
           </div>
         )}
 
-        {!loading && !error && posts.length === 0 && (
-          <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
-        )}
+        <div className="flex flex-col gap-1.5 px-2.5">
+          <NewsPreview />
 
-        {!error &&
-          feed.map((row) =>
-            row.kind === "post" ? (
-              <PostCard key={row.post.id} post={row.post} />
-            ) : (
-              <FeedBannerCard
-                key={row.key}
-                item={row.item}
-                onReferralClick={openReferralModal}
-              />
-            ),
+          <RegionViewPanel
+            selectedRegions={selectedRegions}
+            onChangeRegions={setSelectedRegions}
+          />
+
+          {loading && !refreshing && (
+            <p className="py-12 text-center text-gray-500">불러오는 중...</p>
           )}
 
-        {loadingMore && (
-          <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>
-        )}
+          {!loading && error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-red-700">
+              {error}
+              <button
+                type="button"
+                onClick={() => refresh()}
+                className="mt-2 block w-full text-sm font-medium text-[#4A6CF7] underline"
+              >
+                다시 시도
+              </button>
+            </div>
+          )}
 
-        {cursor && !loading && !error && <div ref={loadMoreRef} className="h-4" aria-hidden />}
+          {!loading && !error && posts.length === 0 && (
+            <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
+          )}
+
+          {!error &&
+            feed.map((row) =>
+              row.kind === "post" ? (
+                <PostCard key={row.post.id} post={row.post} />
+              ) : (
+                <FeedBannerCard
+                  key={row.key}
+                  item={row.item}
+                  onReferralClick={openReferralModal}
+                  defaultResizeMode={feedBanner.resize_mode}
+                />
+              ),
+            )}
+
+          {loadingMore && (
+            <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>
+          )}
+
+          {cursor && !loading && !error && <div ref={loadMoreRef} className="h-4" aria-hidden />}
+        </div>
       </div>
 
       <KakaoMapPanel open={mapOpen} onClose={closeMap} />

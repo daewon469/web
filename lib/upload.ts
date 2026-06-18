@@ -21,3 +21,15 @@ export async function uploadImageFile(file: File): Promise<string> {
   const url = data.url.startsWith("http") ? data.url : `${API_URL}${data.url}`;
   return url;
 }
+
+const DEFAULT_PLACEHOLDER_IMAGE_PATH = "/ic.png";
+
+export async function uploadDefaultPlaceholderImage(): Promise<string> {
+  const res = await fetch(DEFAULT_PLACEHOLDER_IMAGE_PATH);
+  if (!res.ok) throw new Error("기본 이미지를 불러오지 못했습니다.");
+  const blob = await res.blob();
+  const file = new File([blob], "ic.png", { type: blob.type || "image/png" });
+  return uploadImageFile(file);
+}
+
+export { DEFAULT_PLACEHOLDER_IMAGE_PATH };

@@ -18,6 +18,9 @@ type Props = {
   onApply: (regions: RegionObj[]) => void | Promise<void>;
   loading?: boolean;
   onClose?: () => void;
+  titleText?: string;
+  subtitleText?: string;
+  applyButtonText?: string;
 };
 
 export default function CustomRegionMultiSelect({
@@ -25,6 +28,9 @@ export default function CustomRegionMultiSelect({
   onApply,
   loading,
   onClose,
+  titleText = "지역저장 설정",
+  subtitleText = "(복수선택 가능)",
+  applyButtonText,
 }: Props) {
   const [localSelected, setLocalSelected] = useState<RegionObj[]>([]);
   const [activeProvince, setActiveProvince] = useState("서울");
@@ -85,8 +91,8 @@ export default function CustomRegionMultiSelect({
     <div className="rounded-2xl border border-black bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-black">지역저장 설정</h2>
-          <span className="text-[11px] font-semibold text-gray-400">(복수선택 가능)</span>
+          <h2 className="text-lg font-black text-black">{titleText}</h2>
+          <span className="text-[11px] font-semibold text-gray-400">{subtitleText}</span>
         </div>
         {onClose && (
           <button type="button" onClick={onClose} className="text-sm font-bold text-gray-600">
@@ -182,7 +188,7 @@ export default function CustomRegionMultiSelect({
           disabled={loading}
           className="flex-1 rounded-xl bg-[#4A6CF7] py-3 font-black text-white disabled:opacity-60"
         >
-          {loading ? "저장 중..." : `저장 (${localSelected.length})`}
+          {loading ? "저장 중..." : applyButtonText ?? `저장 (${localSelected.length})`}
         </button>
       </div>
     </div>

@@ -82,8 +82,9 @@ export default function BottomBar() {
     return tab.href;
   };
 
-  const renderButton = (icon: NavIconName, label: string, onClick: () => void) => (
+  const renderButton = (key: string, icon: NavIconName, label: string, onClick: () => void) => (
     <button
+      key={key}
       type="button"
       onClick={onClick}
       className="flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5"
@@ -103,7 +104,7 @@ export default function BottomBar() {
     >
       <div className="mx-auto flex h-14 w-full max-w-7xl items-stretch lg:hidden">
         {tabs.map((tab) =>
-          renderButton(tab.icon, tab.label, async () => {
+          renderButton(tab.label, tab.icon, tab.label, async () => {
             const href = await resolveHref(tab);
             if (href) router.push(href);
           }),

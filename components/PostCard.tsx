@@ -63,7 +63,7 @@ export default function PostCard({ post, showHeart = true }: { post: Post; showH
   return (
     <Link
       href={`/${post.id}`}
-      className="relative block rounded-lg border border-gray-200 bg-white shadow-md transition-shadow hover:shadow-lg"
+      className="relative block rounded-lg border border-black bg-white shadow-md transition-shadow hover:shadow-lg"
     >
       {showHeart && (
         <Heart
