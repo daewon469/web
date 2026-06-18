@@ -8,6 +8,10 @@ import { WRITE_INDUSTRY_OPTIONS, WRITE_ROLE_OPTIONS } from "@/lib/customSiteOpti
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
 import type { MapLocation } from "@/lib/map";
+import {
+  resolveBusinessForSubmit,
+  resolveWorkplaceForSubmit,
+} from "@/lib/map";
 import { uploadDefaultPlaceholderImage, uploadImageFile, DEFAULT_PLACEHOLDER_IMAGE_PATH } from "@/lib/upload";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -158,6 +162,9 @@ export default function WritePageClient() {
   }, [isEdit, editId]);
 
   const buildPayload = (status: "published" | "closed", resolvedImageUrl?: string): PostInput => {
+    const resolvedWorkplace = resolveWorkplaceForSubmit(workplace, !isEdit);
+    const resolvedBusiness = resolveBusinessForSubmit(business, !isEdit);
+
     const payload: PostInput = {
       title: title.trim(),
       content: content.trim(),
@@ -172,14 +179,14 @@ export default function WritePageClient() {
       status,
       card_type: 1,
       image_url: resolvedImageUrl,
-      workplace_lat: workplace?.lat,
-      workplace_lng: workplace?.lng,
-      workplace_address: workplace?.address,
-      workplace_map_url: workplace?.mapUrl,
-      business_lat: business?.lat,
-      business_lng: business?.lng,
-      business_address: business?.address,
-      business_map_url: business?.mapUrl,
+      workplace_lat: resolvedWorkplace?.lat,
+      workplace_lng: resolvedWorkplace?.lng,
+      workplace_address: resolvedWorkplace?.address,
+      workplace_map_url: resolvedWorkplace?.mapUrl,
+      business_lat: resolvedBusiness?.lat,
+      business_lng: resolvedBusiness?.lng,
+      business_address: resolvedBusiness?.address,
+      business_map_url: resolvedBusiness?.mapUrl,
     };
 
     const extra = payload as Record<string, unknown>;
