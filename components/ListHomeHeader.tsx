@@ -52,8 +52,8 @@ export default function ListHomeHeader() {
   };
 
   return (
-    <div className="mb-3 flex w-full flex-col">
-      <div style={{ backgroundColor: NAV_BG }} className="px-4 py-2 sm:px-6">
+    <div className="w-full" style={{ backgroundColor: NAV_BG }}>
+      <div className="px-4 py-2 sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-end gap-3 sm:gap-4">
           {utilityLinks.map((link) => {
             if (link.id === "logout") {
@@ -106,8 +106,8 @@ export default function ListHomeHeader() {
         </div>
       </div>
 
-      <div className="bg-[#f5f5f5] px-4 pb-1 pt-3 sm:px-6">
-        <div className="mx-auto flex max-w-3xl items-center gap-3 xl:max-w-4xl">
+      <div className="px-4 py-2 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center gap-3">
           <Image
             src="/icon_72.png"
             alt="분양프로"

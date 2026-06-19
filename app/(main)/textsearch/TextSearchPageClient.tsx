@@ -1,7 +1,6 @@
 "use client";
 
 import PostCard from "@/components/PostCard";
-import TitleSearchBar from "@/components/TitleSearchBar";
 import { Posts, UIConfig, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
@@ -93,8 +92,6 @@ export default function TextSearchPageClient() {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold text-[#0B1B3A]">제목 검색</h1>
-
-      <TitleSearchBar loading={loading} defaultQuery={initialQuery} onSearch={runSearch} />
 
       {!searched && (
         <div className="flex flex-col gap-3">

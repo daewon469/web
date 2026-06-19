@@ -47,13 +47,13 @@ export default function TitleSearchBar({
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`relative min-w-0 flex-1 ${className}`.trim()}>
+    <form onSubmit={handleSubmit} className={`relative w-2/3 min-w-0 ${className}`.trim()}>
       <input
         type="search"
-        placeholder="제목을 입력하세요"
+        placeholder="현장을 검색하세요."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-4 pr-12 outline-none focus:ring-2 focus:ring-[#4A6CF7]"
+        className="w-full rounded-xl border-2 border-[#4A6CF7] bg-white py-3 pl-4 pr-12 outline-none ring-2 ring-[#4A6CF7]/30 focus:border-[#4A6CF7] focus:ring-[#4A6CF7]/40"
       />
       <button
         type="submit"
