@@ -41,14 +41,9 @@ export function CategoryTabButton({
   accent?: boolean;
   className?: string;
   labelClassName?: string;
-  layout?: "equal" | "auto" | "grid";
+  layout?: "equal" | "auto";
 }) {
-  const layoutClass =
-    layout === "auto"
-      ? "shrink-0 px-2.5"
-      : layout === "grid"
-        ? "w-1/6 min-w-0 shrink-0 px-0"
-        : "flex-1";
+  const layoutClass = layout === "auto" ? "shrink-0 px-2.5" : "flex-1";
 
   return (
     <button
