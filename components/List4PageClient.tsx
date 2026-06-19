@@ -38,47 +38,63 @@ function orderPosts(items: Post[]): Post[] {
 }
 
 function AdCardTitleOnly({ item }: { item: Post }) {
-  const author = item.author?.username?.trim() || "광고";
+  const companyName = item.company_agency?.trim();
 
   return (
     <Link
       href={`/${item.id}`}
-      className="mx-1.5 mt-3 block rounded-xl border border-black bg-white px-3.5 py-4"
+      className="block h-full rounded-xl border border-black bg-white px-2.5 py-3"
     >
-      <p className="truncate text-[13px] font-semibold" style={{ color: PRIMARY }}>
-        {author}
+      {companyName && (
+        <p className="truncate text-[12px] font-semibold" style={{ color: PRIMARY }}>
+          {companyName}
+        </p>
+      )}
+      <p
+        className={`line-clamp-2 text-[14px] font-bold leading-snug text-[#222] ${
+          companyName ? "mt-1" : ""
+        }`}
+      >
+        {item.title}
       </p>
-      <p className="mt-1 truncate text-[17px] font-bold text-[#222]">{item.title}</p>
     </Link>
   );
 }
 
 function AdCardSlim({ item }: { item: Post }) {
   const imageUri = resolveMediaUrl(item.image_url);
-  const author = item.author?.username?.trim() || "광고";
+  const companyName = item.company_agency?.trim();
 
   return (
     <Link
       href={`/${item.id}`}
-      className="mx-1.5 mt-3.5 block overflow-hidden rounded-[14px] border border-black bg-white"
+      className="block h-full overflow-hidden rounded-[14px] border border-black bg-white"
     >
       {imageUri ? (
         <Image
           src={imageUri}
           alt=""
-          width={800}
-          height={200}
-          className="block h-[200px] w-full bg-[#DDD] object-cover"
+          width={400}
+          height={300}
+          className="block aspect-[4/3] w-full bg-[#DDD] object-cover"
           unoptimized
         />
       ) : (
-        <div className="h-[200px] w-full bg-[#DDD]" />
+        <div className="aspect-[4/3] w-full bg-[#DDD]" />
       )}
-      <div className="flex flex-col justify-center px-3 py-3">
-        <p className="truncate text-[13px] font-semibold" style={{ color: PRIMARY }}>
-          {author}
+      <div className="flex flex-col justify-center px-2.5 py-2.5">
+        {companyName && (
+          <p className="truncate text-[12px] font-semibold" style={{ color: PRIMARY }}>
+            {companyName}
+          </p>
+        )}
+        <p
+          className={`line-clamp-2 text-[14px] font-bold leading-snug text-[#222] ${
+            companyName ? "mt-1" : ""
+          }`}
+        >
+          {item.title}
         </p>
-        <p className="mt-1 truncate text-[17px] font-bold text-[#222]">{item.title}</p>
       </div>
     </Link>
   );
@@ -273,22 +289,24 @@ export default function List4PageClient() {
     <div className="-mx-3 -mt-4 flex flex-col bg-white lg:mx-0 lg:mt-0">
       <CategoryTabs active={activeCategory} onChange={handleChangeCategory} />
 
-      <div className="px-1.5 pb-6">
+      <div className="px-2 pb-6 pt-2">
         {loading && items.length === 0 && (
           <p className="py-12 text-center text-gray-500">불러오는 중...</p>
         )}
-        {error && <p className="mx-1.5 mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+        {error && <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
         {!loading && !error && activeItems.length === 0 && (
           <p className="py-12 text-center text-gray-500">광고가 없습니다.</p>
         )}
 
-        {activeItems.map((item) =>
-          item.card_type === 3 ? (
-            <AdCardTitleOnly key={item.id} item={item} />
-          ) : (
-            <AdCardSlim key={item.id} item={item} />
-          ),
-        )}
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+          {activeItems.map((item) =>
+            item.card_type === 3 ? (
+              <AdCardTitleOnly key={item.id} item={item} />
+            ) : (
+              <AdCardSlim key={item.id} item={item} />
+            ),
+          )}
+        </div>
 
         {loadingMore && (
           <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>
