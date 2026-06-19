@@ -47,7 +47,7 @@ export default function TitleSearchBar({
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`relative w-2/3 min-w-0 ${className}`.trim()}>
+    <form onSubmit={handleSubmit} className={`relative w-full min-w-0 ${className}`.trim()}>
       <input
         type="search"
         placeholder="현장을 검색하세요."

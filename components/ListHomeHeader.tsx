@@ -106,8 +106,8 @@ export default function ListHomeHeader() {
         </div>
       </div>
 
-      <div className="px-4 py-2 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center gap-3">
+      <div className="px-4 pb-5 pt-2 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-3">
           <Image
             src="/icon_72.png"
             alt="분양프로"
@@ -116,7 +116,9 @@ export default function ListHomeHeader() {
             className="shrink-0 rounded-xl"
             priority
           />
-          <TitleSearchBar redirectOnSearch />
+          <div className="w-[160px] sm:w-[200px]">
+            <TitleSearchBar redirectOnSearch />
+          </div>
         </div>
       </div>
     </div>
