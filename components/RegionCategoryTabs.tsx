@@ -43,15 +43,15 @@ export default function RegionCategoryTabs({ selectedRegions, onChangeRegions }:
 
   return (
     <CategoryBarShell stickyTopClass="top-[6.25rem] z-40 lg:top-11">
-      <div className="flex w-full overflow-x-auto">
+      <div className="flex w-full flex-wrap">
         {QUICK_REGION_OPTIONS.map((label) => (
           <CategoryTabButton
             key={label}
-            layout="auto"
+            layout="grid"
             active={activeProvinceShort === label}
             label={label}
             onClick={() => selectQuickRegion(label)}
-            className="[&_span]:whitespace-nowrap [&_span]:text-[13px] sm:[&_span]:text-[14px]"
+            className="[&_span]:whitespace-nowrap [&_span]:text-[12px] sm:[&_span]:text-[13px]"
           />
         ))}
       </div>
