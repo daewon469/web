@@ -92,20 +92,21 @@ export default function RegionJobsPageClient() {
   };
 
   return (
-    <div className="flex flex-col gap-1.5 bg-[#f5f5f5]">
+    <div className="flex flex-col bg-[#f5f5f5]">
       <RegionCategoryTabs
         selectedRegions={selectedRegions}
         onChangeRegions={setSelectedRegions}
       />
 
-      <div className="-mx-3 flex flex-col gap-1.5 lg:mx-0">
+      <div className="-mx-3 lg:mx-0">
         <BlueStrip
           mode={isNationwide ? "nationwide" : "region"}
           regionLabel={regionStripLabel}
           onResetRegion={resetRegionFilter}
         />
+      </div>
 
-        <div className="flex flex-col gap-1.5 px-2.5">
+      <div className="mt-1.5 flex flex-col gap-1.5 px-2.5">
           {loading && (
             <p className="py-12 text-center text-gray-500">불러오는 중...</p>
           )}
@@ -134,7 +135,6 @@ export default function RegionJobsPageClient() {
           )}
 
           {cursor && !loading && !error && <div ref={loadMoreRef} className="h-4" aria-hidden />}
-        </div>
       </div>
     </div>
   );

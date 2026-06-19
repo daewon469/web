@@ -37,8 +37,8 @@ export default function BlueStrip({ mode, regionLabel, onResetRegion }: Props) {
   if (mode === "like") {
     return (
       <BlueStripShell>
-        <div className="flex h-[22px] items-center justify-center px-4">
-          <span className="text-center text-[15px] font-extrabold leading-tight text-white">
+        <div className="flex h-[22px] items-center px-4">
+          <span className="text-[15px] font-extrabold leading-tight text-white">
             ※ &apos;관 심 현 장&apos; 을 보고 계십니다.
           </span>
         </div>
