@@ -286,7 +286,7 @@ export default function List4PageClient() {
   );
 
   return (
-    <div className="-mx-3 -mt-4 flex flex-col bg-white lg:mx-0 lg:mt-0">
+    <div className="-mx-3 -mt-4 flex flex-col bg-[#f5f5f5] lg:mx-0 lg:mt-0">
       <CategoryTabs active={activeCategory} onChange={handleChangeCategory} />
 
       <div className="px-2 pb-6 pt-2">
