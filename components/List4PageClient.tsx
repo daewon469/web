@@ -108,7 +108,7 @@ function CategoryTabs({
   onChange: (c: Category) => void;
 }) {
   return (
-    <div className="sticky top-14 z-40 border-b border-[#E1E4EA] bg-white lg:top-0">
+    <div className="sticky top-14 z-40 border-b border-[#E1E4EA] bg-white lg:top-0 relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2">
       <div className="flex items-center">
         {MAIN_CATEGORIES.map((c) => {
           const isActive = c === active;
