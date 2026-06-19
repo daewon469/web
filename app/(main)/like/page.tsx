@@ -41,7 +41,7 @@ export default function LikePage() {
 
   return (
     <div className="flex flex-col gap-1.5 bg-[#f5f5f5]">
-      <div className="-mx-3 flex flex-col gap-1.5 lg:mx-0">
+      <div className="-mx-3 flex flex-col lg:mx-0">
         <BlueStrip mode="like" />
 
         <div className="flex flex-col gap-1.5 px-2.5">

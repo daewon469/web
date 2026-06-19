@@ -2,7 +2,7 @@
 
 import TitleSearchBar from "@/components/TitleSearchBar";
 import { Auth, Notify } from "@/lib/api";
-import { isListHomePath } from "@/lib/paths";
+import { isListHomePath, isListMapOpen, LIST_HOME_PATH } from "@/lib/paths";
 import { getSession, setLoggedOut } from "@/lib/session";
 import Image from "next/image";
 import Link from "next/link";
@@ -97,11 +97,16 @@ export default function ListHomeHeader() {
   };
 
   const handleLogoClick = () => {
-    if (isListHomePath(pathname)) {
+    const onListHome = isListHomePath(pathname);
+    const mapOpen =
+      typeof window !== "undefined" && isListMapOpen(window.location.search);
+
+    if (onListHome && !mapOpen) {
       window.location.reload();
       return;
     }
-    router.replace("/list");
+
+    router.replace(LIST_HOME_PATH);
   };
 
   const renderNotiButton = () => (

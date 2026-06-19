@@ -218,7 +218,7 @@ export default function ListPageClient() {
         referralCode={referralCode}
       />
 
-      <div className="-mx-3 flex flex-col gap-1.5 lg:mx-0">
+      <div className="-mx-3 flex flex-col lg:mx-0">
         <BlueStrip mode="nationwide" />
 
         {topBanners.length > 0 && (

@@ -378,6 +378,11 @@ export const Auth = {
     );
   },
 
+  deleteUser: async (username: string) => {
+    const { data } = await api.delete(`/community/user/${encodeURIComponent(username)}`);
+    return data ?? { status: 1 };
+  },
+
   updateUser: async (
     username: string,
     payload: {
@@ -660,6 +665,20 @@ export const Referral = {
         reward: null,
       }
     );
+  },
+
+  networkCount: async (username: string, opts?: { max_depth?: number }): Promise<number> => {
+    const { data } = await api.get(
+      `/community/referrals/network/${encodeURIComponent(username)}`,
+      {
+        params: {
+          limit: 1,
+          max_depth: opts?.max_depth ?? 20,
+        },
+      },
+    );
+    if (data?.status !== 0) return 0;
+    return Number(data?.total_count ?? 0);
   },
 };
 

@@ -8,3 +8,14 @@ export function normalizePathname(pathname: string): string {
 export function isListHomePath(pathname: string): boolean {
   return normalizePathname(pathname) === "/list";
 }
+
+export function isListMapOpen(search: string | URLSearchParams): boolean {
+  const params =
+    typeof search === "string"
+      ? new URLSearchParams(search.startsWith("?") ? search.slice(1) : search)
+      : search;
+  const value = params.get("openMap");
+  return value === "1" || value === "true";
+}
+
+export const LIST_HOME_PATH = "/list";

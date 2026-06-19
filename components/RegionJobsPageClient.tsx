@@ -106,7 +106,7 @@ export default function RegionJobsPageClient() {
         />
       </div>
 
-      <div className="mt-1.5 flex flex-col gap-1.5 px-2.5">
+      <div className="flex flex-col gap-1.5 px-2.5">
           {loading && (
             <p className="py-12 text-center text-gray-500">불러오는 중...</p>
           )}
