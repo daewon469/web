@@ -1,5 +1,6 @@
 "use client";
 
+import { CATEGORY_BAR_BLEED_CLASS } from "@/lib/categoryNav";
 import Link from "next/link";
 import { type ReactNode } from "react";
 
@@ -14,9 +15,6 @@ const TICKER_LINES = [
   "추천인 인맥 100명 달성 시 1,000,000p 지급.",
 ];
 
-const FULL_BLEED_CLASS =
-  "-left-[calc(0.75rem+max(0px,(100vw-80rem)/2))] w-screen lg:-left-[calc(1.5rem+14rem+1.5rem+max(0px,(100vw-80rem)/2))]";
-
 function spacedChars(text: string) {
   return Array.from(text).join(" ");
 }
@@ -26,7 +24,7 @@ function BlueStripShell({ children }: { children: ReactNode }) {
     <div className="relative h-[22px]">
       <div
         aria-hidden
-        className={`pointer-events-none absolute inset-y-0 bg-[#4A6CF7] ${FULL_BLEED_CLASS}`}
+        className={`pointer-events-none absolute inset-y-0 bg-[#4A6CF7] ${CATEGORY_BAR_BLEED_CLASS}`}
       />
       <div className="relative h-[22px]">{children}</div>
     </div>

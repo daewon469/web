@@ -12,6 +12,10 @@ export const COMMON_CATEGORY_TABS = [
 
 export const COMMON_CATEGORY_TAB_TEXT_CLASS = "text-[17px] sm:text-[18px] font-bold text-black";
 
+/** main(max-w-7xl) 좌·우 패딩 기준 카테고리 바·파란띠 full-bleed */
+export const CATEGORY_BAR_BLEED_CLASS =
+  "-left-[calc(0.75rem+max(0px,(100vw-80rem)/2))] w-screen lg:-left-[calc(1.5rem+max(0px,(100vw-80rem)/2))]";
+
 export type CommonCategoryTabId = (typeof COMMON_CATEGORY_TABS)[number]["id"];
 
 const COMMON_CATEGORY_PATHS = [

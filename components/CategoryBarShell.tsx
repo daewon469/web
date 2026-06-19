@@ -1,5 +1,6 @@
 "use client";
 
+import { CATEGORY_BAR_BLEED_CLASS } from "@/lib/categoryNav";
 import { type ReactNode } from "react";
 
 type CategoryBarShellProps = {
@@ -19,7 +20,7 @@ export default function CategoryBarShell({
     <div className={`relative ${sticky ? `sticky ${stickyTopClass} ${zIndexClass}` : ""}`}>
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-y-0 -left-[calc(0.75rem+max(0px,(100vw-80rem)/2))] w-screen border-b border-[#E1E4EA] bg-white lg:-left-[calc(1.5rem+14rem+1.5rem+max(0px,(100vw-80rem)/2))]"
+        className={`pointer-events-none absolute inset-y-0 border-b border-[#E1E4EA] bg-white ${CATEGORY_BAR_BLEED_CLASS}`}
       />
       <div className="relative flex items-center">{children}</div>
     </div>
