@@ -2,6 +2,7 @@
 
 import { Posts, resolveMediaUrl, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
+import CategoryBarShell, { CategoryTabButton } from "@/components/CategoryBarShell";
 import { getSession } from "@/lib/session";
 import Image from "next/image";
 import Link from "next/link";
@@ -108,40 +109,24 @@ function CategoryTabs({
   onChange: (c: Category) => void;
 }) {
   return (
-    <div className="sticky top-14 z-40 lg:top-0 relative">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 -left-[calc(0.75rem+max(0px,(100vw-80rem)/2))] w-screen border-b border-[#E1E4EA] bg-white lg:-left-[calc(1.5rem+14rem+1.5rem+max(0px,(100vw-80rem)/2))]"
+    <CategoryBarShell stickyTopClass="top-[6.25rem] z-40 lg:top-11">
+      {MAIN_CATEGORIES.map((c) => (
+        <CategoryTabButton
+          key={c}
+          active={c === active}
+          label={c}
+          onClick={() => onChange(c)}
+          className="[&_span]:text-[15px]"
+        />
+      ))}
+      <CategoryTabButton
+        active={false}
+        label="글 작성"
+        accent
+        onClick={() => onChange(SPECIAL_CATEGORY)}
+        className="[&_span]:text-base"
       />
-      <div className="relative flex items-center">
-        {MAIN_CATEGORIES.map((c) => {
-          const isActive = c === active;
-          return (
-            <button
-              key={c}
-              type="button"
-              onClick={() => onChange(c)}
-              className={`flex flex-1 items-center justify-center py-2.5 ${
-                isActive ? "border-b-[3px] border-[#0099FF]" : "border-b-[3px] border-transparent"
-              }`}
-            >
-              <span
-                className={`text-[15px] ${isActive ? "font-black text-[#0099FF]" : "text-[#666]"}`}
-              >
-                {c}
-              </span>
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => onChange(SPECIAL_CATEGORY)}
-          className="flex flex-1 items-center justify-center py-2.5"
-        >
-          <span className="text-base font-bold text-[#FF8A3D]">글 작성</span>
-        </button>
-      </div>
-    </div>
+    </CategoryBarShell>
   );
 }
 
@@ -290,7 +275,7 @@ export default function List4PageClient() {
   );
 
   return (
-    <div className="-mt-4 flex flex-col bg-[#f5f5f5] lg:mt-0">
+    <div className="flex flex-col bg-[#f5f5f5]">
       <CategoryTabs active={activeCategory} onChange={handleChangeCategory} />
 
       <div className="px-2 pb-6 pt-2">
