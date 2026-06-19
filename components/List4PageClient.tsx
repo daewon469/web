@@ -38,18 +38,24 @@ function orderPosts(items: Post[]): Post[] {
 }
 
 function AdCardTitleOnly({ item }: { item: Post }) {
+  const author = item.author?.username?.trim() || "광고";
+
   return (
     <Link
       href={`/${item.id}`}
-      className="mx-1.5 mt-3 block rounded-xl border border-black bg-white px-3.5 py-[18px]"
+      className="mx-1.5 mt-3 block rounded-xl border border-black bg-white px-3.5 py-4"
     >
-      <p className="truncate text-[17px] font-bold text-[#222]">{item.title}</p>
+      <p className="truncate text-[13px] font-semibold" style={{ color: PRIMARY }}>
+        {author}
+      </p>
+      <p className="mt-1 truncate text-[17px] font-bold text-[#222]">{item.title}</p>
     </Link>
   );
 }
 
 function AdCardSlim({ item }: { item: Post }) {
   const imageUri = resolveMediaUrl(item.image_url);
+  const author = item.author?.username?.trim() || "광고";
 
   return (
     <Link
@@ -68,13 +74,11 @@ function AdCardSlim({ item }: { item: Post }) {
       ) : (
         <div className="h-[200px] w-full bg-[#DDD]" />
       )}
-      <div className="flex h-[52px] flex-col justify-center px-3">
-        {!!item.company_agency && (
-          <p className="truncate text-[13px]" style={{ color: PRIMARY }}>
-            {item.company_agency}
-          </p>
-        )}
-        <p className="truncate text-[17px] font-bold text-[#222]">{item.title}</p>
+      <div className="flex flex-col justify-center px-3 py-3">
+        <p className="truncate text-[13px] font-semibold" style={{ color: PRIMARY }}>
+          {author}
+        </p>
+        <p className="mt-1 truncate text-[17px] font-bold text-[#222]">{item.title}</p>
       </div>
     </Link>
   );
@@ -88,7 +92,7 @@ function CategoryTabs({
   onChange: (c: Category) => void;
 }) {
   return (
-    <div className="border-b border-[#E1E4EA] bg-white">
+    <div className="sticky top-14 z-40 border-b border-[#E1E4EA] bg-white lg:top-0">
       <div className="flex items-center">
         {MAIN_CATEGORIES.map((c) => {
           const isActive = c === active;
@@ -114,7 +118,7 @@ function CategoryTabs({
           onClick={() => onChange(SPECIAL_CATEGORY)}
           className="flex flex-1 items-center justify-center py-2.5"
         >
-          <span className="text-base font-bold text-[#FF8A3D]">글작성</span>
+          <span className="text-base font-bold text-[#FF8A3D]">글 작성</span>
         </button>
       </div>
     </div>
@@ -266,7 +270,7 @@ export default function List4PageClient() {
   );
 
   return (
-    <div className="-mx-3 flex flex-col bg-white lg:mx-0">
+    <div className="-mx-3 -mt-4 flex flex-col bg-white lg:mx-0 lg:mt-0">
       <CategoryTabs active={activeCategory} onChange={handleChangeCategory} />
 
       <div className="px-1.5 pb-6">

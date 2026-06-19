@@ -199,6 +199,7 @@ export type Post = {
   business_lat?: number;
   business_lng?: number;
   post_type?: number;
+  card_type?: number;
   company_agency?: string;
   is_owner?: boolean;
   community?: { is_owner?: boolean } | null;
