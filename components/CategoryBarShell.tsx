@@ -33,6 +33,7 @@ export function CategoryTabButton({
   accent = false,
   className = "",
   labelClassName = "",
+  layout = "equal",
 }: {
   active: boolean;
   label: string;
@@ -40,14 +41,15 @@ export function CategoryTabButton({
   accent?: boolean;
   className?: string;
   labelClassName?: string;
+  layout?: "equal" | "auto";
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-1 items-center justify-center py-2.5 ${
-        active ? "border-b-[3px] border-[#0099FF]" : "border-b-[3px] border-transparent"
-      } ${className}`}
+      className={`flex items-center justify-center py-2.5 ${
+        layout === "auto" ? "shrink-0 px-2.5" : "flex-1"
+      } ${active ? "border-b-[3px] border-[#0099FF]" : "border-b-[3px] border-transparent"} ${className}`}
     >
       <span
         className={`${labelClassName || "text-[13px] sm:text-[14px]"} ${
