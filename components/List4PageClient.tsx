@@ -108,7 +108,7 @@ function CategoryTabs({
   onChange: (c: Category) => void;
 }) {
   return (
-    <div className="sticky top-14 z-40 border-b border-[#E1E4EA] bg-white lg:top-0 relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2">
+    <div className="sticky top-14 z-40 border-b border-[#E1E4EA] bg-white lg:top-0 -mx-3 px-3 lg:-mx-6 lg:px-6">
       <div className="flex items-center">
         {MAIN_CATEGORIES.map((c) => {
           const isActive = c === active;
@@ -286,7 +286,7 @@ export default function List4PageClient() {
   );
 
   return (
-    <div className="-mx-3 -mt-4 flex flex-col bg-[#f5f5f5] lg:mx-0 lg:mt-0">
+    <div className="-mt-4 flex flex-col bg-[#f5f5f5] lg:mt-0">
       <CategoryTabs active={activeCategory} onChange={handleChangeCategory} />
 
       <div className="px-2 pb-6 pt-2">
