@@ -18,7 +18,7 @@ const primaryLinks = [
 const filterLinks = [
   { href: "/list?openMap=1", label: "지도검색", icon: "map" as const, requiresLogin: true, isMap: true },
   { href: "/textsearch", label: "제목검색", icon: "search" as const, requiresLogin: true },
-  { href: "/areasite", label: "지역저장", icon: "location" as const, requiresLogin: true, dynamic: "area" as const },
+  { href: "/areasite", label: "지역현장", icon: "location" as const },
   { href: "/customsite", label: "맞춤저장", icon: "options-outline" as const, requiresLogin: true, dynamic: "custom" as const },
   { href: "/like", label: "관심현장", icon: "heart" as const, requiresLogin: true },
 ] as const;
@@ -56,9 +56,6 @@ export default function DesktopSideNav() {
       const wantsMap = query?.includes("openMap");
       return wantsMap ? mapOpen : !mapOpen;
     }
-    if ("dynamic" in link && link.dynamic === "area") {
-      return pathname === "/areasite" || pathname === "/arealike";
-    }
     if ("dynamic" in link && link.dynamic === "custom") {
       return pathname === "/customsite" || pathname === "/customlike";
     }
@@ -75,19 +72,6 @@ export default function DesktopSideNav() {
   const resolveHref = async (link: NavLink) => {
     if ("requiresLogin" in link && link.requiresLogin && !ensureLogin()) return null;
     if ("isMap" in link && link.isMap) return "/list?openMap=1";
-
-    if ("dynamic" in link && link.dynamic === "area") {
-      const { username } = getSession();
-      if (!username) return "/areasite";
-      try {
-        const res = await Auth.getUser(username);
-        const regs = res.user?.area_region_codes ?? [];
-        const has = Array.isArray(regs) && regs.some((s) => String(s ?? "").trim());
-        return has ? "/arealike" : "/areasite";
-      } catch {
-        return "/areasite";
-      }
-    }
 
     if ("dynamic" in link && link.dynamic === "custom") {
       const { username } = getSession();

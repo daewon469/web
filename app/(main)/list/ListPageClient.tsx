@@ -7,13 +7,8 @@ import KakaoMapPanel from "@/components/KakaoMapPanel";
 import NewsPreview from "@/components/NewsPreview";
 import PostCard from "@/components/PostCard";
 import ReferralModal from "@/components/ReferralModal";
-import RegionViewPanel from "@/components/RegionViewPanel";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
-import {
-  type RegionObj,
-  selectedRegionsToPostListParams,
-} from "@/lib/regionUtils";
 import { getSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -58,9 +53,6 @@ export default function ListPageClient() {
   const [mapSearchOpen, setMapSearchOpen] = useState(false);
   const openMapParam = searchParams.get("openMap");
   const mapOpenFromUrl = openMapParam === "1" || openMapParam === "true";
-  const [selectedRegions, setSelectedRegions] = useState<RegionObj[]>([
-    { province: "전체", city: "전체" },
-  ]);
   const [topBanners, setTopBanners] = useState<UIConfigBannerItem[]>([]);
   const [topBannerResizeMode, setTopBannerResizeMode] = useState<
     "contain" | "cover" | "stretch"
@@ -74,14 +66,6 @@ export default function ListPageClient() {
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const regionParams = useMemo(
-    () => selectedRegionsToPostListParams(selectedRegions),
-    [selectedRegions],
-  );
-  const isNationwide = useMemo(
-    () => selectedRegions.some((r) => r.province === "전체"),
-    [selectedRegions],
-  );
 
   useEffect(() => {
     UIConfig.get().then((res) => {
@@ -122,9 +106,6 @@ export default function ListPageClient() {
           limit: 20,
           cursor: reset ? undefined : cursor,
           status: "published",
-          province: regionParams.province,
-          city: regionParams.city,
-          regions: regionParams.regions,
         });
         setPosts((prev) => (reset ? items : [...prev, ...items]));
         setCursor(items.length >= 20 ? next_cursor : undefined);
@@ -136,7 +117,7 @@ export default function ListPageClient() {
         setRefreshing(false);
       }
     },
-    [cursor, refreshing, regionParams],
+    [cursor, refreshing],
   );
 
   const refresh = useCallback(async () => {
@@ -149,9 +130,6 @@ export default function ListPageClient() {
         username: username ?? undefined,
         limit: 20,
         status: "published",
-        province: regionParams.province,
-        city: regionParams.city,
-        regions: regionParams.regions,
       });
       setPosts(items);
       setCursor(items.length >= 20 ? next_cursor : undefined);
@@ -160,12 +138,12 @@ export default function ListPageClient() {
     } finally {
       setRefreshing(false);
     }
-  }, [regionParams]);
+  }, []);
 
   useEffect(() => {
     setCursor(undefined);
     load(true);
-  }, [regionParams]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     void ensureKakaoMapsSdk();
@@ -231,11 +209,6 @@ export default function ListPageClient() {
     router.replace(href, { scroll: false });
   }, [router, searchParams]);
 
-  const resetRegionFilter = () => {
-    setSelectedRegions([{ province: "전체", city: "전체" }]);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
     <>
       <HomePopup />
@@ -246,10 +219,7 @@ export default function ListPageClient() {
       />
 
       <div className="-mx-3 flex flex-col gap-1.5 lg:mx-0">
-        <BlueStrip
-          mode={isNationwide ? "nationwide" : "region"}
-          onResetRegion={resetRegionFilter}
-        />
+        <BlueStrip mode="nationwide" />
 
         {topBanners.length > 0 && (
           <div className="px-2.5">
@@ -263,11 +233,6 @@ export default function ListPageClient() {
 
         <div className="flex flex-col gap-1.5 px-2.5">
           <NewsPreview />
-
-          <RegionViewPanel
-            selectedRegions={selectedRegions}
-            onChangeRegions={setSelectedRegions}
-          />
 
           {loading && !refreshing && (
             <p className="py-12 text-center text-gray-500">불러오는 중...</p>

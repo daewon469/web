@@ -3,14 +3,14 @@ import { getSession } from "@/lib/session";
 
 export const COMMON_CATEGORY_TABS = [
   { id: "home", label: "첫화면", requiresLogin: false },
-  { id: "area", label: "지역저장", requiresLogin: true },
+  { id: "area", label: "지역현장", requiresLogin: false },
   { id: "custom", label: "맞춤저장", requiresLogin: true },
   { id: "map", label: "지도검색", requiresLogin: true },
   { id: "like", label: "관심현장", requiresLogin: true },
   { id: "ad", label: "광고", requiresLogin: false },
 ] as const;
 
-export const COMMON_CATEGORY_TAB_TEXT_CLASS = "text-[17px] sm:text-[18px] font-bold";
+export const COMMON_CATEGORY_TAB_TEXT_CLASS = "text-[17px] sm:text-[18px] font-bold text-black";
 
 export type CommonCategoryTabId = (typeof COMMON_CATEGORY_TABS)[number]["id"];
 
@@ -54,18 +54,8 @@ export async function resolveCommonCategoryHref(id: CommonCategoryTabId): Promis
       return "/list?openMap=1";
     case "like":
       return "/like";
-    case "area": {
-      const { username } = getSession();
-      if (!username) return "/areasite";
-      try {
-        const res = await Auth.getUser(username);
-        const regs = res.user?.area_region_codes ?? [];
-        const has = Array.isArray(regs) && regs.some((s) => String(s ?? "").trim());
-        return has ? "/arealike" : "/areasite";
-      } catch {
-        return "/areasite";
-      }
-    }
+    case "area":
+      return "/areasite";
     case "custom": {
       const { username } = getSession();
       if (!username) return "/customsite";

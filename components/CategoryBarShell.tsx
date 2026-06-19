@@ -54,8 +54,12 @@ export function CategoryTabButton({
           accent
             ? "font-bold text-[#FF8A3D]"
             : active
-              ? "font-black text-[#0099FF]"
-              : "text-[#666]"
+              ? labelClassName
+                ? "font-black"
+                : "font-black text-[#0099FF]"
+              : labelClassName
+                ? ""
+                : "text-[#666]"
         }`}
       >
         {label}
