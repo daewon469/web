@@ -1,10 +1,12 @@
 "use client";
 
 import PostCard from "@/components/PostCard";
+import TitleSearchBar from "@/components/TitleSearchBar";
 import { Posts, UIConfig, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
-import { FormEvent, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 async function fetchPostsByIds(ids: number[]) {
   const out: Post[] = [];
@@ -21,7 +23,8 @@ async function fetchPostsByIds(ids: number[]) {
 }
 
 export default function TextSearchPage() {
-  const [query, setQuery] = useState("");
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") ?? "";
   const [items, setItems] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -29,6 +32,7 @@ export default function TextSearchPage() {
   const [recommendedEnabled, setRecommendedEnabled] = useState(true);
   const [recommendedItems, setRecommendedItems] = useState<Post[]>([]);
   const [loadingRecommended, setLoadingRecommended] = useState(true);
+  const autoSearchedRef = useRef(false);
 
   useEffect(() => {
     (async () => {
@@ -60,9 +64,8 @@ export default function TextSearchPage() {
     })();
   }, []);
 
-  const search = async (e: FormEvent) => {
-    e.preventDefault();
-    const q = query.trim();
+  const runSearch = useCallback(async (raw: string) => {
+    const q = raw.trim();
     if (!q) return;
 
     setLoading(true);
@@ -78,28 +81,24 @@ export default function TextSearchPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const q = initialQuery.trim();
+    if (!q || autoSearchedRef.current) return;
+    autoSearchedRef.current = true;
+    void runSearch(q);
+  }, [initialQuery, runSearch]);
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold text-[#0B1B3A]">제목 검색</h1>
 
-      <form onSubmit={search} className="flex gap-2">
-        <input
-          type="search"
-          placeholder="제목을 입력하세요"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-[#4A6CF7]"
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-xl bg-[#4A6CF7] px-5 font-bold text-white disabled:opacity-60"
-        >
-          검색
-        </button>
-      </form>
+      <TitleSearchBar
+        loading={loading}
+        defaultQuery={initialQuery}
+        onSearch={runSearch}
+      />
 
       {!searched && (
         <div className="flex flex-col gap-3">

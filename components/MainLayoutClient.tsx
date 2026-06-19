@@ -3,14 +3,16 @@
 import BottomBar from "@/components/BottomBar";
 import CommonCategoryBar from "@/components/CommonCategoryBar";
 import DesktopSideNav from "@/components/DesktopSideNav";
+import ListHomeHeader from "@/components/ListHomeHeader";
 import TopBar from "@/components/TopBar";
 import { shouldShowCommonCategoryBar } from "@/lib/categoryNav";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 
 const HIDE_BOTTOM_BAR = ["/login", "/signup"];
-const HIDE_TOP_BAR = ["/login", "/signup"];
+const HIDE_TOP_BAR = ["/login", "/signup", "/list"];
 const HIDE_SIDE_NAV = ["/login", "/signup"];
+const LIST_HOME_HEADER_PATHS = ["/list"];
 
 export default function MainLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -18,6 +20,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
   const showTopBar = !HIDE_TOP_BAR.includes(pathname);
   const showSideNav = !HIDE_SIDE_NAV.includes(pathname);
   const showCommonCategoryBar = shouldShowCommonCategoryBar(pathname);
+  const showListHomeHeader = LIST_HOME_HEADER_PATHS.includes(pathname);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-[#f5f5f5]">
@@ -33,8 +36,9 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
           </Suspense>
         )}
         <main className="min-w-0 flex-1 lg:max-w-3xl xl:max-w-4xl">
+          {showListHomeHeader && <ListHomeHeader />}
           {showCommonCategoryBar && (
-            <div className="-mt-4 lg:mt-0">
+            <div className={showListHomeHeader ? "" : "-mt-4 lg:mt-0"}>
               <Suspense fallback={null}>
                 <CommonCategoryBar />
               </Suspense>
