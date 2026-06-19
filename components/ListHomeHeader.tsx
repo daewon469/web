@@ -116,7 +116,7 @@ export default function ListHomeHeader() {
             className="shrink-0 rounded-xl"
             priority
           />
-          <div className="w-[160px] md:w-[380px] xl:w-[440px]">
+          <div className="w-[160px] md:w-[460px] xl:w-[520px]">
             <TitleSearchBar redirectOnSearch />
           </div>
         </div>
