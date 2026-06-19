@@ -1,4 +1,4 @@
-const CACHE = "daewonweb-v1";
+const CACHE = "daewonweb-v2";
 const PRECACHE = ["/list", "/icon.svg"];
 
 self.addEventListener("install", (event) => {

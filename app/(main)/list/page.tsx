@@ -8,7 +8,7 @@ export const metadata: Metadata = pageMetadata(
   "전국 분양 구인 현장을 조회하고 관심 현장을 저장하세요.",
 );
 
-/** 상단 유틸 띠·로고·검색창은 MainLayoutClient에서 ListHomeHeader로 /list 전용 렌더 */
+/** 상단 유틸 띠·로고·검색창·CommonCategoryBar는 MainLayoutClient에서 /list 전용 렌더 */
 export default function ListPage() {
   return (
     <Suspense fallback={<p className="py-12 text-center text-gray-500">불러오는 중...</p>}>

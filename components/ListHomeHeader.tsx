@@ -52,9 +52,9 @@ export default function ListHomeHeader() {
   };
 
   return (
-    <div className="-mx-3 mb-3 flex flex-col lg:mx-0">
-      <div style={{ backgroundColor: NAV_BG }} className="px-3 py-2">
-        <div className="flex items-center justify-end gap-3 sm:gap-4">
+    <div className="mb-3 flex w-full flex-col">
+      <div style={{ backgroundColor: NAV_BG }} className="px-4 py-2 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-end gap-3 sm:gap-4">
           {utilityLinks.map((link) => {
             if (link.id === "logout") {
               if (!isLogin) {
@@ -108,7 +108,7 @@ export default function ListHomeHeader() {
 
       <div
         style={{ backgroundColor: NAV_BG }}
-        className="flex flex-col items-center gap-2 px-3 pb-4 pt-3"
+        className="flex flex-col items-center gap-2 px-4 pb-4 pt-3 sm:px-6"
       >
         <Image
           src="/icon_72.png"
@@ -121,8 +121,10 @@ export default function ListHomeHeader() {
         <span className="text-lg font-bold tracking-tight text-white sm:text-xl">분양프로</span>
       </div>
 
-      <div className="bg-[#f5f5f5] px-3 pb-1 pt-3">
-        <TitleSearchBar redirectOnSearch />
+      <div className="bg-[#f5f5f5] px-4 pb-1 pt-3 sm:px-6">
+        <div className="mx-auto max-w-3xl xl:max-w-4xl">
+          <TitleSearchBar redirectOnSearch />
+        </div>
       </div>
     </div>
   );
