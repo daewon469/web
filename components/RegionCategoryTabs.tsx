@@ -49,7 +49,7 @@ export default function RegionCategoryTabs({ selectedRegions, onChangeRegions }:
           active={activeProvinceShort === label}
           label={label}
           onClick={() => selectQuickRegion(label)}
-          className="min-w-0 px-0 [&_span]:whitespace-nowrap [&_span]:text-[11px] sm:[&_span]:text-[12px]"
+          className="min-w-0 px-0 [&_span]:whitespace-nowrap [&_span]:text-[11px] sm:[&_span]:text-[14px]"
         />
       ))}
     </CategoryBarShell>
