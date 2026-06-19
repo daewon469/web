@@ -106,23 +106,16 @@ export default function ListHomeHeader() {
         </div>
       </div>
 
-      <div
-        style={{ backgroundColor: NAV_BG }}
-        className="flex flex-col items-center gap-2 px-4 pb-4 pt-3 sm:px-6"
-      >
-        <Image
-          src="/icon_72.png"
-          alt="분양프로"
-          width={72}
-          height={72}
-          className="rounded-2xl"
-          priority
-        />
-        <span className="text-lg font-bold tracking-tight text-white sm:text-xl">분양프로</span>
-      </div>
-
       <div className="bg-[#f5f5f5] px-4 pb-1 pt-3 sm:px-6">
-        <div className="mx-auto max-w-3xl xl:max-w-4xl">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 xl:max-w-4xl">
+          <Image
+            src="/icon_72.png"
+            alt="분양프로"
+            width={48}
+            height={48}
+            className="shrink-0 rounded-xl"
+            priority
+          />
           <TitleSearchBar redirectOnSearch />
         </div>
       </div>

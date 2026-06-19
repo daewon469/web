@@ -1,5 +1,6 @@
 "use client";
 
+import NavIcon from "@/components/NavIcon";
 import { getSession } from "@/lib/session";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
@@ -46,20 +47,21 @@ export default function TitleSearchBar({
   };
 
   return (
-    <form onSubmit={handleSubmit} className={`flex gap-2 ${className}`.trim()}>
+    <form onSubmit={handleSubmit} className={`relative min-w-0 flex-1 ${className}`.trim()}>
       <input
         type="search"
         placeholder="제목을 입력하세요"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none focus:ring-2 focus:ring-[#4A6CF7]"
+        className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-4 pr-12 outline-none focus:ring-2 focus:ring-[#4A6CF7]"
       />
       <button
         type="submit"
         disabled={loading}
-        className="rounded-xl bg-[#4A6CF7] px-5 font-bold text-white disabled:opacity-60"
+        aria-label="검색"
+        className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-[#4A6CF7] hover:bg-[#EEF3FF] disabled:opacity-50"
       >
-        검색
+        <NavIcon name="search" size={22} />
       </button>
     </form>
   );
