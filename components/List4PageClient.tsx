@@ -108,8 +108,12 @@ function CategoryTabs({
   onChange: (c: Category) => void;
 }) {
   return (
-    <div className="sticky top-14 z-40 border-b border-[#E1E4EA] bg-white lg:top-0 ml-[calc(50%-50vw)] mr-[calc(50%-50vw)] pl-[calc(50vw-50%)] pr-[calc(50vw-50%)]">
-      <div className="flex items-center">
+    <div className="sticky top-14 z-40 lg:top-0 relative">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 -left-[calc(0.75rem+max(0px,(100vw-80rem)/2))] w-screen border-b border-[#E1E4EA] bg-white lg:-left-[calc(1.5rem+14rem+1.5rem+max(0px,(100vw-80rem)/2))]"
+      />
+      <div className="relative flex items-center">
         {MAIN_CATEGORIES.map((c) => {
           const isActive = c === active;
           return (
