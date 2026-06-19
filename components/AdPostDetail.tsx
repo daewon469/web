@@ -1,7 +1,6 @@
 "use client";
 
 import AddressMapSection from "@/components/AddressMapSection";
-import Heart from "@/components/Heart";
 import { resolveMediaUrl, type Post } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
@@ -38,15 +37,13 @@ export default function AdPostDetail({ post, backHref }: { post: Post; backHref:
     post.highlight_color === "white" || post.highlight_color === "black"
       ? "#000"
       : post.highlight_color || "#000";
-  const contactDigits = (post.agency_call ?? "").replace(/[^0-9]/g, "");
 
   return (
     <article className="flex flex-col gap-1 bg-white">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2">
         <Link href={backHref} className="text-sm text-[#4A6CF7]">
           ← 목록으로
         </Link>
-        <Heart postId={post.id} postLiked={post.liked} size={26} />
       </div>
 
       <div className={`${sectionClass} flex items-center justify-between`}>
@@ -85,22 +82,6 @@ export default function AdPostDetail({ post, backHref }: { post: Post; backHref:
             {post.agent ?? "연락처"} :{" "}
             <span className="font-semibold">{formatPhone(post.agency_call)}</span>
           </p>
-          {contactDigits && (
-            <div className="mt-3 flex gap-2">
-              <a
-                href={`tel:${contactDigits}`}
-                className="flex-1 rounded-xl bg-[#4A6CF7] py-2.5 text-center text-sm font-bold text-white"
-              >
-                전화
-              </a>
-              <a
-                href={`sms:${contactDigits}`}
-                className="flex-1 rounded-xl border border-black py-2.5 text-center text-sm font-bold"
-              >
-                문자
-              </a>
-            </div>
-          )}
         </div>
       )}
 

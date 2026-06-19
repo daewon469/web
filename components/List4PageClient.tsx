@@ -47,12 +47,12 @@ function AdCardTitleOnly({ item }: { item: Post }) {
       className="block h-full rounded-xl border border-black bg-white px-2.5 py-3"
     >
       {companyName && (
-        <p className="truncate text-[12px] font-semibold" style={{ color: PRIMARY }}>
+        <p className="truncate text-[17px] font-semibold" style={{ color: PRIMARY }}>
           {companyName}
         </p>
       )}
       <p
-        className={`line-clamp-2 text-[14px] font-bold leading-snug text-[#222] ${
+        className={`line-clamp-2 text-[19px] font-bold leading-snug text-[#222] ${
           companyName ? "mt-1" : ""
         }`}
       >
@@ -85,12 +85,12 @@ function AdCardSlim({ item }: { item: Post }) {
       )}
       <div className="flex flex-col justify-center px-2.5 py-2.5">
         {companyName && (
-          <p className="truncate text-[12px] font-semibold" style={{ color: PRIMARY }}>
+          <p className="truncate text-[17px] font-semibold" style={{ color: PRIMARY }}>
             {companyName}
           </p>
         )}
         <p
-          className={`line-clamp-2 text-[14px] font-bold leading-snug text-[#222] ${
+          className={`line-clamp-2 text-[19px] font-bold leading-snug text-[#222] ${
             companyName ? "mt-1" : ""
           }`}
         >

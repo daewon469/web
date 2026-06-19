@@ -16,7 +16,7 @@ import {
 } from "@/lib/map";
 import { uploadDefaultPlaceholderImage, uploadImageFile, DEFAULT_PLACEHOLDER_IMAGE_PATH } from "@/lib/upload";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const ROLE_FIELD_MAP: Record<string, { use: keyof PostInput; fee: keyof PostInput; label: string }> = {
   총괄: { use: "total_use", fee: "total_fee", label: "총괄" },
@@ -102,6 +102,7 @@ export default function WritePageClient() {
   const [companyAgency, setCompanyAgency] = useState("");
   const [imageUri, setImageUri] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
   const [regionModalOpen, setRegionModalOpen] = useState(false);
   const [workplace, setWorkplace] = useState<MapLocation | null>(() =>
     isEdit ? null : DEFAULT_WORKPLACE_LOCATION,
@@ -111,6 +112,17 @@ export default function WritePageClient() {
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const adjustContentHeight = useCallback(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.max(200, el.scrollHeight)}px`;
+  }, []);
+
+  useEffect(() => {
+    adjustContentHeight();
+  }, [content, adjustContentHeight]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -476,11 +488,12 @@ export default function WritePageClient() {
         <div>
           <label className="mb-2 block text-[15px] font-bold">상세 내용 (필수)</label>
           <textarea
+            ref={contentRef}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={8}
             placeholder="내용을 입력하세요"
-            className={`${inputClass} min-h-[200px] resize-y`}
+            className={`${inputClass} min-h-[200px] resize-none overflow-hidden`}
           />
         </div>
 
