@@ -41,6 +41,15 @@ export default function AdWritePageClient() {
   }, [router]);
 
   useEffect(() => {
+    if (isEdit) return;
+    const job = String(searchParams.get("job_industry") ?? "").trim();
+    if (job === "광고업체") setCategory("광고");
+    else if (CATEGORIES.includes(job as (typeof CATEGORIES)[number])) {
+      setCategory(job as (typeof CATEGORIES)[number]);
+    }
+  }, [isEdit, searchParams]);
+
+  useEffect(() => {
     if (!isEdit) return;
     (async () => {
       try {
