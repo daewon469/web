@@ -42,7 +42,7 @@ export default function RegionCategoryTabs({ selectedRegions, onChangeRegions }:
   );
 
   return (
-    <CategoryBarShell stickyTopClass="top-[6.25rem] z-40 lg:top-11">
+    <CategoryBarShell sticky={false}>
       {QUICK_REGION_OPTIONS.map((label) => (
         <CategoryTabButton
           key={label}
