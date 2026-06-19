@@ -3,6 +3,7 @@
 import CategoryBarShell, { CategoryTabButton } from "@/components/CategoryBarShell";
 import {
   COMMON_CATEGORY_TABS,
+  COMMON_CATEGORY_TAB_TEXT_CLASS,
   type CommonCategoryTabId,
   commonCategoryRequiresLogin,
   getActiveCommonCategoryTab,
@@ -48,6 +49,7 @@ export default function CommonCategoryBar() {
           key={tab.id}
           active={active === tab.id}
           label={tab.label}
+          labelClassName={COMMON_CATEGORY_TAB_TEXT_CLASS}
           onClick={() => onSelect(tab.id)}
         />
       ))}

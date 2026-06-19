@@ -32,12 +32,14 @@ export function CategoryTabButton({
   onClick,
   accent = false,
   className = "",
+  labelClassName = "",
 }: {
   active: boolean;
   label: string;
   onClick: () => void;
   accent?: boolean;
   className?: string;
+  labelClassName?: string;
 }) {
   return (
     <button
@@ -48,7 +50,7 @@ export function CategoryTabButton({
       } ${className}`}
     >
       <span
-        className={`text-[13px] sm:text-[14px] ${
+        className={`${labelClassName || "text-[13px] sm:text-[14px]"} ${
           accent
             ? "font-bold text-[#FF8A3D]"
             : active

@@ -10,6 +10,8 @@ export const COMMON_CATEGORY_TABS = [
   { id: "ad", label: "광고", requiresLogin: false },
 ] as const;
 
+export const COMMON_CATEGORY_TAB_TEXT_CLASS = "text-[17px] sm:text-[18px] font-bold";
+
 export type CommonCategoryTabId = (typeof COMMON_CATEGORY_TABS)[number]["id"];
 
 const COMMON_CATEGORY_PATHS = [
