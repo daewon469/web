@@ -172,14 +172,16 @@ export default function ListHomeHeader() {
 
       <div className="px-4 pb-5 pt-2 sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-end gap-3 pr-8 sm:pr-12 md:pr-50">
-          <Image
-            src="/icon_72.png"
-            alt="분양프로"
-            width={56}
-            height={56}
-            className="shrink-0 rounded-xl"
-            priority
-          />
+          <Link href="/list" className="shrink-0 rounded-xl" aria-label="첫화면">
+            <Image
+              src="/icon_72.png"
+              alt="분양프로"
+              width={56}
+              height={56}
+              className="rounded-xl"
+              priority
+            />
+          </Link>
           <div className="w-[160px] md:w-[600px] xl:w-[700px]">
             <TitleSearchBar redirectOnSearch />
           </div>

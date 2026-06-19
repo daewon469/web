@@ -21,7 +21,9 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
     <div className="flex min-h-full flex-1 flex-col bg-[#f5f5f5]">
       {showChrome && <ListHomeHeader />}
 
-      <div className="mx-auto flex w-full max-w-7xl flex-1 gap-6 px-3 py-4 lg:px-6">
+      <div
+        className={`mx-auto flex w-full max-w-7xl flex-1 gap-6 px-3 pb-4 lg:px-6 ${showChrome ? "pt-0" : "pt-4"}`}
+      >
         {showChrome && (
           <Suspense fallback={<aside className="hidden w-56 shrink-0 lg:block" aria-hidden />}>
             <DesktopSideNav />
@@ -29,11 +31,9 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
         )}
         <main className="min-w-0 flex-1 lg:max-w-3xl xl:max-w-4xl">
           {showCommonCategoryBar && (
-            <div className={showChrome ? "" : "-mt-4 lg:mt-0"}>
-              <Suspense fallback={null}>
-                <CommonCategoryBar />
-              </Suspense>
-            </div>
+            <Suspense fallback={null}>
+              <CommonCategoryBar />
+            </Suspense>
           )}
           {children}
         </main>
