@@ -1,5 +1,6 @@
 "use client";
 
+import BlueStrip from "@/components/BlueStrip";
 import PostCard from "@/components/PostCard";
 import { Posts, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
@@ -39,17 +40,19 @@ export default function LikePage() {
   }, [load]);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="rounded bg-[#2F6BFF] py-1.5 text-center text-[15px] font-extrabold text-white">
-        ※ &apos;관 심 현 장&apos; 을 보고 계십니다.
-      </div>
+    <div className="flex flex-col gap-1.5 bg-[#f5f5f5]">
+      <div className="-mx-3 flex flex-col gap-1.5 lg:mx-0">
+        <BlueStrip mode="like" />
 
-      {loading && <p className="py-12 text-center text-gray-500">불러오는 중...</p>}
-      {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-      {!loading && !error && items.length === 0 && (
-        <p className="py-12 text-center text-gray-500">관심 등록한 현장이 없습니다.</p>
-      )}
-      {!loading && items.map((post) => <PostCard key={post.id} post={post} />)}
+        <div className="flex flex-col gap-1.5 px-2.5">
+          {loading && <p className="py-12 text-center text-gray-500">불러오는 중...</p>}
+          {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+          {!loading && !error && items.length === 0 && (
+            <p className="py-12 text-center text-gray-500">관심 등록한 현장이 없습니다.</p>
+          )}
+          {!loading && items.map((post) => <PostCard key={post.id} post={post} />)}
+        </div>
+      </div>
     </div>
   );
 }
