@@ -82,7 +82,7 @@ export default function PostDetail({ id }: { id: number }) {
   if (post.post_type === 4) {
     return (
       <div className="flex flex-col gap-4">
-        <AdPostDetail post={post} backHref={backHref} />
+        <AdPostDetail post={post} />
       </div>
     );
   }

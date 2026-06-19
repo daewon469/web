@@ -3,7 +3,6 @@
 import AddressMapSection from "@/components/AddressMapSection";
 import { resolveMediaUrl, type Post } from "@/lib/api";
 import Image from "next/image";
-import Link from "next/link";
 
 const sectionClass = "rounded-lg border border-black bg-[#f9f9f9] p-4";
 
@@ -31,7 +30,7 @@ function formatPhone(num?: string | null) {
   return digits;
 }
 
-export default function AdPostDetail({ post, backHref }: { post: Post; backHref: string }) {
+export default function AdPostDetail({ post }: { post: Post }) {
   const imageUri = resolveMediaUrl(post.image_url);
   const highlightColor =
     post.highlight_color === "white" || post.highlight_color === "black"
@@ -40,32 +39,30 @@ export default function AdPostDetail({ post, backHref }: { post: Post; backHref:
 
   return (
     <article className="flex flex-col gap-1 bg-white">
-      <div className="mb-2">
-        <Link href={backHref} className="text-sm text-[#4A6CF7]">
-          ← 목록으로
-        </Link>
-      </div>
+      <div className="overflow-hidden rounded-lg border border-black">
+        <div className="flex items-center justify-between bg-[#f9f9f9] p-4">
+          <span className="font-semibold">{post.author?.username}</span>
+          <span className="text-sm text-gray-600">
+            {new Date(post.created_at).toLocaleString("ko-KR")}
+          </span>
+        </div>
 
-      <div className={`${sectionClass} flex items-center justify-between`}>
-        <span className="font-semibold">{post.author?.username}</span>
-        <span className="text-sm text-gray-600">
-          {new Date(post.created_at).toLocaleString("ko-KR")}
-        </span>
-      </div>
+        {imageUri && (
+          <div className="border-t border-black">
+            <Image
+              src={imageUri}
+              alt=""
+              width={800}
+              height={500}
+              className="block w-full object-cover"
+              unoptimized
+            />
+          </div>
+        )}
 
-      {imageUri && (
-        <Image
-          src={imageUri}
-          alt=""
-          width={800}
-          height={500}
-          className="w-full object-cover"
-          unoptimized
-        />
-      )}
-
-      <div className={sectionClass}>
-        <h1 className="text-2xl font-bold text-[#0B1B3A]">{post.title}</h1>
+        <div className="border-t border-black bg-[#f9f9f9] p-4">
+          <h1 className="text-2xl font-bold text-[#0B1B3A]">{post.title}</h1>
+        </div>
       </div>
 
       {post.highlight_content && (
