@@ -1,7 +1,8 @@
 "use client";
 
+import NavIcon from "@/components/NavIcon";
 import TitleSearchBar from "@/components/TitleSearchBar";
-import { Auth } from "@/lib/api";
+import { Auth, Notify } from "@/lib/api";
 import { getSession, setLoggedOut } from "@/lib/session";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,9 +21,27 @@ const utilityLinks = [
 export default function ListHomeHeader() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const reloadSession = useCallback(() => {
-    setIsLogin(getSession().isLogin);
+    const session = getSession();
+    setIsLogin(session.isLogin);
+    setUsername(session.username);
+  }, []);
+
+  const refreshUnread = useCallback(async () => {
+    const session = getSession();
+    if (!session.isLogin || !session.username) {
+      setUnreadCount(0);
+      return;
+    }
+    try {
+      const count = await Notify.getUnreadCount(session.username);
+      setUnreadCount(count);
+    } catch {
+      setUnreadCount(0);
+    }
   }, []);
 
   useEffect(() => {
@@ -34,6 +53,21 @@ export default function ListHomeHeader() {
       window.removeEventListener("session-updated", reloadSession);
     };
   }, [reloadSession]);
+
+  useEffect(() => {
+    if (!isLogin || !username) {
+      setUnreadCount(0);
+      return;
+    }
+    refreshUnread();
+    const onNotify = () => refreshUnread();
+    window.addEventListener("notify-updated", onNotify);
+    const timer = window.setInterval(refreshUnread, 60_000);
+    return () => {
+      window.removeEventListener("notify-updated", onNotify);
+      window.clearInterval(timer);
+    };
+  }, [isLogin, username, refreshUnread]);
 
   const handleLogout = () => {
     if (!confirm("정말 로그아웃할까요?")) return;
@@ -51,24 +85,50 @@ export default function ListHomeHeader() {
     router.push(href);
   };
 
+  const handleNotiClick = () => {
+    if (!isLogin) {
+      alert("로그인이 필요합니다.");
+      router.push("/login");
+      return;
+    }
+    router.push("/noti");
+  };
+
+  const renderNotiButton = () => (
+    <button
+      key="noti"
+      type="button"
+      onClick={handleNotiClick}
+      aria-label="알림"
+      className="relative flex h-8 w-8 items-center justify-center text-white/85 hover:text-white"
+    >
+      <NavIcon name="notifications" size={20} />
+      {unreadCount > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full border border-[#0B1B3A] bg-red-500 px-0.5 text-[9px] font-bold text-white">
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </span>
+      )}
+    </button>
+  );
+
   return (
     <div className="w-full" style={{ backgroundColor: NAV_BG }}>
       <div className="px-4 py-2 sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-end gap-3 sm:gap-4">
-          {utilityLinks.map((link) => {
+          {utilityLinks.flatMap((link) => {
             if (link.id === "logout") {
               if (!isLogin) {
-                return (
+                return [
                   <Link
                     key={link.id}
                     href="/login"
                     className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
                   >
                     로그인
-                  </Link>
-                );
+                  </Link>,
+                ];
               }
-              return (
+              return [
                 <button
                   key={link.id}
                   type="button"
@@ -76,12 +136,12 @@ export default function ListHomeHeader() {
                   className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
                 >
                   {link.label}
-                </button>
-              );
+                </button>,
+              ];
             }
 
             if (link.requiresLogin) {
-              return (
+              const node = (
                 <button
                   key={link.id}
                   type="button"
@@ -91,17 +151,21 @@ export default function ListHomeHeader() {
                   {link.label}
                 </button>
               );
+              if (link.id === "myboard") {
+                return [node, renderNotiButton()];
+              }
+              return [node];
             }
 
-            return (
+            return [
               <Link
                 key={link.id}
                 href={link.href}
                 className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
               >
                 {link.label}
-              </Link>
-            );
+              </Link>,
+            ];
           })}
         </div>
       </div>
