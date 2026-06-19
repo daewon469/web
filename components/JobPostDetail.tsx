@@ -92,13 +92,13 @@ export default function JobPostDetail({ post }: { post: Post }) {
         </div>
 
         {imageUri && (
-          <div className="border-t border-black bg-[#f9f9f9] px-4">
+          <div className="border-t border-black">
             <Image
               src={imageUri}
               alt=""
               width={800}
               height={500}
-              className="block w-full rounded-[10px] object-cover"
+              className="block w-full object-cover"
               unoptimized
             />
           </div>
