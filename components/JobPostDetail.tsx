@@ -79,8 +79,6 @@ export default function JobPostDetail({ post }: { post: Post }) {
     post.other_role_name ? String(post.other_role_name) : null,
   ].filter(Boolean);
 
-  const contactDigits = (post.agency_call ?? "").replace(/[^0-9]/g, "");
-
   return (
     <article className="flex flex-col gap-1 bg-white">
       <div className="overflow-hidden rounded-lg border border-black">
@@ -220,22 +218,6 @@ export default function JobPostDetail({ post }: { post: Post }) {
         <p className="text-base">
           {post.agent} : <span className="font-semibold">{formatPhone(post.agency_call)}</span>
         </p>
-        {contactDigits && (
-          <div className="mt-3 flex gap-2">
-            <a
-              href={`tel:${contactDigits}`}
-              className="flex-1 rounded-xl bg-[#4A6CF7] py-2.5 text-center text-sm font-bold text-white"
-            >
-              전화
-            </a>
-            <a
-              href={`sms:${contactDigits}`}
-              className="flex-1 rounded-xl border border-black py-2.5 text-center text-sm font-bold"
-            >
-              문자
-            </a>
-          </div>
-        )}
       </div>
 
       <AddressMapSection
