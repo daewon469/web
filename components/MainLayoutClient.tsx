@@ -2,7 +2,6 @@
 
 import BottomBar from "@/components/BottomBar";
 import CommonCategoryBar from "@/components/CommonCategoryBar";
-import DesktopSideNav from "@/components/DesktopSideNav";
 import ListHomeHeader from "@/components/ListHomeHeader";
 import { shouldShowCommonCategoryBar } from "@/lib/categoryNav";
 import { normalizePathname } from "@/lib/paths";
@@ -22,14 +21,9 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
       {showChrome && <ListHomeHeader />}
 
       <div
-        className={`mx-auto flex w-full max-w-7xl flex-1 gap-6 px-3 pb-4 lg:px-6 ${showChrome ? "pt-0" : "pt-4"}`}
+        className={`mx-auto flex w-full max-w-7xl flex-1 px-3 pb-4 lg:px-6 ${showChrome ? "pt-0" : "pt-4"}`}
       >
-        {showChrome && (
-          <Suspense fallback={<aside className="hidden w-56 shrink-0 lg:block" aria-hidden />}>
-            <DesktopSideNav />
-          </Suspense>
-        )}
-        <main className="min-w-0 flex-1 lg:max-w-3xl xl:max-w-4xl">
+        <main className="min-w-0 flex-1">
           {showCommonCategoryBar && (
             <Suspense fallback={null}>
               <CommonCategoryBar />

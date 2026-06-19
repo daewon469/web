@@ -12,6 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 const NAV_BG = "#0B1B3A";
 
 const utilityLinks = [
+  { id: "write", label: "구인등록", href: "/write", requiresLogin: true },
   { id: "logout", label: "로그아웃" },
   { id: "myboard", label: "마이페이지", href: "/myboard", requiresLogin: true },
   { id: "notice", label: "공지사항", href: "/list5", requiresLogin: false },
