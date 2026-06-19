@@ -2,6 +2,7 @@
 
 type Props = {
   mode: "nationwide" | "region";
+  regionLabel?: string;
   onResetRegion?: () => void;
 };
 
@@ -10,12 +11,18 @@ const TICKER_LINES = [
   "추천인 인맥 100명 달성 시 1,000,000p 지급.",
 ];
 
-export default function BlueStrip({ mode, onResetRegion }: Props) {
+function spacedChars(text: string) {
+  return Array.from(text).join(" ");
+}
+
+export default function BlueStrip({ mode, regionLabel, onResetRegion }: Props) {
   if (mode === "region") {
+    const label = regionLabel?.trim() || "지역";
+    const message = spacedChars(`${label}현장입니다`);
     return (
       <div className="flex h-[22px] items-center justify-between bg-[#4A6CF7] px-4">
         <span className="text-center text-[15px] font-extrabold leading-tight text-white">
-          ※ &apos;지 역 보 기&apos; 중 입니다.
+          ※ &apos;{message}.&apos;
         </span>
         <button
           type="button"

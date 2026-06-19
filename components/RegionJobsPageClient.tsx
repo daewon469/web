@@ -7,6 +7,7 @@ import { Posts, type Post } from "@/lib/api";
 import {
   type RegionObj,
   selectedRegionsToPostListParams,
+  toProvinceShort,
 } from "@/lib/regionUtils";
 import { getSession } from "@/lib/session";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -30,6 +31,12 @@ export default function RegionJobsPageClient() {
     () => selectedRegions.some((r) => r.province === "전체"),
     [selectedRegions],
   );
+  const regionStripLabel = useMemo(() => {
+    if (isNationwide) return undefined;
+    const first = selectedRegions.find((r) => r.province !== "전체");
+    if (!first) return undefined;
+    return toProvinceShort(first.province);
+  }, [isNationwide, selectedRegions]);
 
   const load = useCallback(
     async (reset: boolean) => {
@@ -94,6 +101,7 @@ export default function RegionJobsPageClient() {
       <div className="-mx-3 flex flex-col gap-1.5 lg:mx-0">
         <BlueStrip
           mode={isNationwide ? "nationwide" : "region"}
+          regionLabel={regionStripLabel}
           onResetRegion={resetRegionFilter}
         />
 
