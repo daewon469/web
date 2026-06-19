@@ -1,12 +1,12 @@
 "use client";
 
-import NavIcon from "@/components/NavIcon";
 import TitleSearchBar from "@/components/TitleSearchBar";
 import { Auth, Notify } from "@/lib/api";
+import { isListHomePath } from "@/lib/paths";
 import { getSession, setLoggedOut } from "@/lib/session";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 const NAV_BG = "#0B1B3A";
@@ -20,6 +20,7 @@ const utilityLinks = [
 
 export default function ListHomeHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isLogin, setIsLogin] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -94,17 +95,24 @@ export default function ListHomeHeader() {
     router.push("/noti");
   };
 
+  const handleLogoClick = () => {
+    if (isListHomePath(pathname)) {
+      window.location.reload();
+      return;
+    }
+    router.replace("/list");
+  };
+
   const renderNotiButton = () => (
     <button
       key="noti"
       type="button"
       onClick={handleNotiClick}
-      aria-label="알림"
-      className="relative flex h-8 w-8 items-center justify-center text-white/85 hover:text-white"
+      className="relative text-xs font-medium text-white/85 hover:text-white sm:text-sm"
     >
-      <NavIcon name="notifications" size={20} />
+      알림
       {unreadCount > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-[16px] min-w-[16px] items-center justify-center rounded-full border border-[#0B1B3A] bg-red-500 px-0.5 text-[9px] font-bold text-white">
+        <span className="ml-1 inline-flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
           {unreadCount > 99 ? "99+" : unreadCount}
         </span>
       )}
@@ -172,7 +180,12 @@ export default function ListHomeHeader() {
 
       <div className="px-4 pb-5 pt-2 sm:px-6">
         <div className="mx-auto flex max-w-7xl items-center justify-end gap-3 pr-8 sm:pr-12 md:pr-50">
-          <Link href="/list" className="shrink-0 rounded-xl" aria-label="첫화면">
+          <button
+            type="button"
+            onClick={handleLogoClick}
+            className="shrink-0 rounded-xl"
+            aria-label="첫화면"
+          >
             <Image
               src="/icon_72.png"
               alt="분양프로"
@@ -181,7 +194,7 @@ export default function ListHomeHeader() {
               className="rounded-xl"
               priority
             />
-          </Link>
+          </button>
           <div className="w-[160px] md:w-[600px] xl:w-[700px]">
             <TitleSearchBar redirectOnSearch />
           </div>
