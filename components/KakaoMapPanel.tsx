@@ -5,6 +5,7 @@ import { Posts, type Post } from "@/lib/api";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
 import { getSession } from "@/lib/session";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const MAP_PAGE_SIZE = 500;
 const MAP_CHUNK_SIZE = 100;
@@ -96,7 +97,12 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
   const [mapLoading, setMapLoading] = useState(false);
   const [markerMode, setMarkerMode] = useState<MarkerMode>("workplace");
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [portalReady, setPortalReady] = useState(false);
   const loadingRef = useRef(false);
+
+  useEffect(() => {
+    setPortalReady(true);
+  }, []);
 
   useEffect(() => {
     ensureKakaoMapsSdk()
@@ -328,14 +334,25 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
     updateSelectionOverlays(markers, selectedId);
   }, [open, sdkReady, selectedId, markers, updateSelectionOverlays]);
 
-  return (
+  const handleClose = useCallback(() => {
+    setSelectedId(null);
+    onClose();
+  }, [onClose]);
+
+  if (!portalReady) return null;
+
+  return createPortal(
     <div
       className={open ? "fixed inset-0 z-[200] flex flex-col bg-white" : "hidden"}
       aria-hidden={!open}
     >
-      <div className="flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-[#0B1B3A] px-4">
+      <div className="relative z-10 flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-[#0B1B3A] px-4">
         <span className="font-bold text-white">지도검색</span>
-        <button type="button" onClick={onClose} className="font-bold text-white">
+        <button
+          type="button"
+          onClick={handleClose}
+          className="relative z-20 rounded px-2 py-1 font-bold text-white hover:bg-white/10"
+        >
           닫기
         </button>
       </div>
@@ -400,6 +417,7 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

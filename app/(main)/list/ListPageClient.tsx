@@ -55,8 +55,9 @@ export default function ListPageClient() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mapMounted, setMapMounted] = useState(false);
+  const [mapSearchOpen, setMapSearchOpen] = useState(false);
   const openMapParam = searchParams.get("openMap");
-  const mapOpen = openMapParam === "1" || openMapParam === "true";
+  const mapOpenFromUrl = openMapParam === "1" || openMapParam === "true";
   const [selectedRegions, setSelectedRegions] = useState<RegionObj[]>([
     { province: "전체", city: "전체" },
   ]);
@@ -171,14 +172,18 @@ export default function ListPageClient() {
   }, []);
 
   useEffect(() => {
-    if (!mapOpen) return;
+    if (!mapOpenFromUrl) {
+      setMapSearchOpen(false);
+      return;
+    }
     const session = getSession();
     if (!session.isLogin) {
       router.replace("/login");
       return;
     }
+    setMapSearchOpen(true);
     setMapMounted(true);
-  }, [mapOpen, router]);
+  }, [mapOpenFromUrl, router]);
 
   useEffect(() => {
     const el = loadMoreRef.current;
@@ -214,12 +219,17 @@ export default function ListPageClient() {
     [posts, feedBanner],
   );
 
-  const closeMap = () => {
+  const closeMap = useCallback(() => {
+    setMapSearchOpen(false);
     const next = new URLSearchParams(searchParams.toString());
     next.delete("openMap");
     const qs = next.toString();
-    router.replace(qs ? `/list?${qs}` : "/list", { scroll: false });
-  };
+    const href = qs ? `/list?${qs}` : "/list";
+    if (typeof window !== "undefined") {
+      window.history.replaceState(window.history.state, "", href);
+    }
+    router.replace(href, { scroll: false });
+  }, [router, searchParams]);
 
   const resetRegionFilter = () => {
     setSelectedRegions([{ province: "전체", city: "전체" }]);
@@ -302,7 +312,7 @@ export default function ListPageClient() {
         </div>
       </div>
 
-      {mapMounted && <KakaoMapPanel open={mapOpen} onClose={closeMap} />}
+      {mapMounted && <KakaoMapPanel open={mapSearchOpen} onClose={closeMap} />}
     </>
   );
 }
