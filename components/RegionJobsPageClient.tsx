@@ -2,6 +2,7 @@
 
 import BlueStrip from "@/components/BlueStrip";
 import PostCard from "@/components/PostCard";
+import PostCard2 from "@/components/PostCard2";
 import RegionCategoryTabs from "@/components/RegionCategoryTabs";
 import { Posts, type Post } from "@/lib/api";
 import {
@@ -11,6 +12,18 @@ import {
 } from "@/lib/regionUtils";
 import { getSession } from "@/lib/session";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+function orderPostsByCardType(items: Post[]): Post[] {
+  const type1 = items.filter((p) => p.card_type === 1);
+  const type2 = items.filter((p) => p.card_type === 2);
+  const type3 = items.filter((p) => p.card_type === 3);
+  return [...type1, ...type2, ...type3];
+}
+
+function renderListCard(post: Post) {
+  if (post.card_type === 2) return <PostCard2 post={post} />;
+  return <PostCard post={post} />;
+}
 
 export default function RegionJobsPageClient() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -91,6 +104,8 @@ export default function RegionJobsPageClient() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const orderedPosts = useMemo(() => orderPostsByCardType(posts), [posts]);
+
   return (
     <div className="flex flex-col bg-[#f5f5f5]">
       <RegionCategoryTabs
@@ -128,7 +143,7 @@ export default function RegionJobsPageClient() {
             <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
           )}
 
-          {!error && posts.map((post) => <PostCard key={post.id} post={post} />)}
+          {!error && orderedPosts.map((post) => <div key={post.id}>{renderListCard(post)}</div>)}
 
           {loadingMore && (
             <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>

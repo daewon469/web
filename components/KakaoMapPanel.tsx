@@ -1,6 +1,7 @@
 "use client";
 
 import PostCard from "@/components/PostCard";
+import PostCard2 from "@/components/PostCard2";
 import { Posts, type Post } from "@/lib/api";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
 import { getSession } from "@/lib/session";
@@ -80,6 +81,11 @@ function dedupePosts(items: Post[]): Post[] {
 
 function buildMarkerSignature(mode: MarkerMode, list: MapMarker[]) {
   return `${mode}|${list.map((m) => `${m.id}@${m.lat},${m.lng}`).join("|")}`;
+}
+
+function renderListCard(post: Post) {
+  if (post.card_type === 2) return <PostCard2 post={post} />;
+  return <PostCard post={post} />;
 }
 
 export default function KakaoMapPanel({ open, onClose }: Props) {
@@ -403,7 +409,7 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
         {selectedPost && (
           <div className="pointer-events-none absolute bottom-2.5 left-2.5 right-2.5 z-10">
             <div className="pointer-events-auto overflow-hidden rounded-xl border border-black bg-white">
-              <PostCard post={selectedPost} />
+              {renderListCard(selectedPost)}
             </div>
             <div className="pointer-events-auto mt-2.5 flex justify-end">
               <button

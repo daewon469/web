@@ -1,11 +1,24 @@
 "use client";
 
 import PostCard from "@/components/PostCard";
+import PostCard2 from "@/components/PostCard2";
 import { Posts, UIConfig, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+function orderPostsByCardType(items: Post[]): Post[] {
+  const type1 = items.filter((p) => p.card_type === 1);
+  const type2 = items.filter((p) => p.card_type === 2);
+  const type3 = items.filter((p) => p.card_type === 3);
+  return [...type1, ...type2, ...type3];
+}
+
+function renderListCard(post: Post) {
+  if (post.card_type === 2) return <PostCard2 post={post} />;
+  return <PostCard post={post} />;
+}
 
 async function fetchPostsByIds(ids: number[]) {
   const out: Post[] = [];
@@ -89,6 +102,12 @@ export default function TextSearchPageClient() {
     void runSearch(q);
   }, [initialQuery, runSearch]);
 
+  const orderedRecommendedItems = useMemo(
+    () => orderPostsByCardType(recommendedItems),
+    [recommendedItems],
+  );
+  const orderedItems = useMemo(() => orderPostsByCardType(items), [items]);
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold text-[#0B1B3A]">제목 검색</h1>
@@ -107,7 +126,9 @@ export default function TextSearchPageClient() {
           )}
           {!loadingRecommended &&
             recommendedEnabled &&
-            recommendedItems.map((post) => <PostCard key={post.id} post={post} />)}
+            orderedRecommendedItems.map((post) => (
+              <div key={post.id}>{renderListCard(post)}</div>
+            ))}
         </div>
       )}
 
@@ -118,8 +139,8 @@ export default function TextSearchPageClient() {
         <p className="py-8 text-center text-gray-500">검색 결과가 없습니다.</p>
       )}
 
-      {!loading && items.map((post) => (
-        <PostCard key={post.id} post={post} />
+      {!loading && orderedItems.map((post) => (
+        <div key={post.id}>{renderListCard(post)}</div>
       ))}
     </div>
   );

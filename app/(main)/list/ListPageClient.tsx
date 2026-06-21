@@ -6,6 +6,7 @@ import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
 import NewsPreview from "@/components/NewsPreview";
 import PostCard from "@/components/PostCard";
+import PostCard2 from "@/components/PostCard2";
 import ReferralModal from "@/components/ReferralModal";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
@@ -16,6 +17,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 type FeedItem =
   | { kind: "post"; post: Post }
   | { kind: "banner"; item: UIConfigBannerItem; key: string };
+
+function orderPostsByCardType(items: Post[]): Post[] {
+  const type1 = items.filter((p) => p.card_type === 1);
+  const type2 = items.filter((p) => p.card_type === 2);
+  const type3 = items.filter((p) => p.card_type === 3);
+  return [...type1, ...type2, ...type3];
+}
+
+function renderListCard(post: Post) {
+  if (post.card_type === 2) return <PostCard2 post={post} />;
+  return <PostCard post={post} />;
+}
 
 function buildFeed(
   posts: Post[],
@@ -192,9 +205,11 @@ export default function ListPageClient() {
     setReferralModalOpen(true);
   }, [router]);
 
+  const orderedPosts = useMemo(() => orderPostsByCardType(posts), [posts]);
+
   const feed = useMemo(
-    () => buildFeed(posts, feedBanner.enabled, feedBanner.interval, feedBanner.items),
-    [posts, feedBanner],
+    () => buildFeed(orderedPosts, feedBanner.enabled, feedBanner.interval, feedBanner.items),
+    [orderedPosts, feedBanner],
   );
 
   const closeMap = useCallback(() => {
@@ -258,7 +273,7 @@ export default function ListPageClient() {
           {!error &&
             feed.map((row) =>
               row.kind === "post" ? (
-                <PostCard key={row.post.id} post={row.post} />
+                <div key={row.post.id}>{renderListCard(row.post)}</div>
               ) : (
                 <FeedBannerCard
                   key={row.key}
