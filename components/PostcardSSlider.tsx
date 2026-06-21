@@ -1,6 +1,6 @@
 "use client";
 
-import PostcardS from "@/components/PostcardS";
+import PostcardS, { SLIDE_CARD_HEIGHT } from "@/components/PostcardS";
 import type { Post } from "@/lib/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -70,13 +70,17 @@ export default function PostcardSSlider({ posts }: Props) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="group relative">
+      <div className="group relative" style={{ minHeight: SLIDE_CARD_HEIGHT }}>
         <div
           ref={scrollerRef}
           className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {posts.map((post) => (
-            <div key={post.id} className="w-full shrink-0 snap-center snap-always px-0.5">
+            <div
+              key={post.id}
+              className="w-full shrink-0 snap-center snap-always px-0.5"
+              style={{ height: SLIDE_CARD_HEIGHT }}
+            >
               <PostcardS post={post} />
             </div>
           ))}

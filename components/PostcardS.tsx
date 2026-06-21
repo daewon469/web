@@ -10,6 +10,20 @@ type Props = {
   showHeart?: boolean;
 };
 
+/** 슬라이드 카드 고정 높이(px) — Tailwind purge/HMR 이슈 방지를 위해 style로도 적용 */
+export const SLIDE_CARD_HEIGHT = 420;
+
+/** 슬라이드 카드(어두운 배경)용 현장 한마디 색 — 검은색이면 흰색 */
+function resolveSlideHighlightColor(color?: string | null) {
+  const raw = String(color ?? "").trim();
+  if (!raw) return "#fff";
+  const lower = raw.toLowerCase();
+  if (lower === "black" || lower === "#000" || lower === "#000000" || lower === "#111111") {
+    return "#fff";
+  }
+  return raw;
+}
+
 export default function PostcardS({ post, showHeart = true }: Props) {
   const imageUri = resolveMediaUrl(post.image_url);
   const industryProvinceCity = `${post.job_industry ?? ""}/${formatProvinceCity(post.province, post.city)}`;
@@ -17,7 +31,8 @@ export default function PostcardS({ post, showHeart = true }: Props) {
   return (
     <Link
       href={`/${post.id}`}
-      className="relative block h-[420px] w-full overflow-hidden rounded-xl border border-black bg-black shadow-md"
+      style={{ height: SLIDE_CARD_HEIGHT }}
+      className="relative block w-full shrink-0 overflow-hidden rounded-xl border border-black bg-black shadow-md"
     >
       {imageUri ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -27,33 +42,33 @@ export default function PostcardS({ post, showHeart = true }: Props) {
       )}
 
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-black/90 via-black/55 to-transparent px-3 pb-6 pt-2.5"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-black/90 via-black/55 to-transparent px-3 pb-8 pt-2.5"
         aria-hidden
       >
         <p className="line-clamp-2 text-base font-bold leading-snug text-white">{post.title}</p>
-        <p className="mt-0.5 truncate text-sm font-bold text-[#7eb8ff]">{industryProvinceCity}</p>
-      </div>
-
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-black/92 via-black/60 to-transparent px-3 pb-2.5 pt-8"
-        aria-hidden
-      >
-        <p className="truncate text-sm font-bold text-[#ffb4b4]">{formatRoles(post)}</p>
         {post.highlight_content ? (
           <p
-            className="mt-0.5 truncate text-xs font-bold"
-            style={{ color: post.highlight_color ?? "#fff" }}
+            className="mt-1 line-clamp-2 text-sm font-bold leading-snug"
+            style={{ color: resolveSlideHighlightColor(post.highlight_color) }}
           >
             {post.highlight_content}
           </p>
         ) : null}
       </div>
 
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-black/92 via-black/60 to-transparent px-3 pb-2.5 pt-8"
+        aria-hidden
+      >
+        <p className="truncate text-sm font-bold text-[#7eb8ff]">{industryProvinceCity}</p>
+        <p className="mt-0.5 truncate text-sm font-bold text-[#ffb4b4]">{formatRoles(post)}</p>
+      </div>
+
       {showHeart && (
         <Heart
           postId={post.id}
           postLiked={post.liked}
-          className="absolute right-2 top-10 z-10"
+          className="absolute right-2 top-2 z-10"
         />
       )}
     </Link>
