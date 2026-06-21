@@ -10,7 +10,7 @@ import PostCard from "@/components/PostCard";
 import PostCard2 from "@/components/PostCard2";
 import ReferralModal from "@/components/ReferralModal";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
-import { CARD_TYPE_S } from "@/lib/postCardFormat";
+import { isCardTypeS, resolveSlidePosts } from "@/lib/postCardFormat";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
 import { getSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -28,7 +28,7 @@ function orderPostsByCardType(items: Post[]): Post[] {
 }
 
 function orderSlidePosts(items: Post[], slidePostIds: number[]): Post[] {
-  const slide = items.filter((p) => p.card_type === CARD_TYPE_S);
+  const slide = items.filter((p) => isCardTypeS(p.card_type));
   if (slidePostIds.length === 0) return slide;
   const byId = new Map(slide.map((p) => [Number(p.id), p]));
   const ordered = slidePostIds
@@ -38,12 +38,9 @@ function orderSlidePosts(items: Post[], slidePostIds: number[]): Post[] {
   return [...ordered, ...rest];
 }
 
-function splitPostsByCardType(items: Post[], slidePostIds: number[]) {
-  const postcardS = orderSlidePosts(items, slidePostIds);
-  const feed = orderPostsByCardType(
-    items.filter((p) => p.card_type !== CARD_TYPE_S),
-  );
-  return { postcardS, feed };
+function splitPostsByCardType(items: Post[]) {
+  const feed = orderPostsByCardType(items.filter((p) => !isCardTypeS(p.card_type)));
+  return feed;
 }
 
 function renderListCard(post: Post) {
@@ -100,6 +97,8 @@ export default function ListPageClient() {
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [slidePostIds, setSlidePostIds] = useState<number[]>([]);
+  const [slidePosts, setSlidePosts] = useState<Post[]>([]);
+  const [slideConfigReady, setSlideConfigReady] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -131,8 +130,25 @@ export default function ListPageClient() {
           ),
         ),
       );
+      setSlideConfigReady(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (!slideConfigReady) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const items = await resolveSlidePosts(slidePostIds);
+        if (!cancelled) setSlidePosts(items);
+      } catch {
+        if (!cancelled) setSlidePosts([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [slideConfigReady, slidePostIds]);
 
   const load = useCallback(
     async (reset: boolean) => {
@@ -236,9 +252,11 @@ export default function ListPageClient() {
     setReferralModalOpen(true);
   }, [router]);
 
-  const { postcardS, feed: orderedPosts } = useMemo(
-    () => splitPostsByCardType(posts, slidePostIds),
-    [posts, slidePostIds],
+  const orderedPosts = useMemo(() => splitPostsByCardType(posts), [posts]);
+
+  const postcardS = useMemo(
+    () => orderSlidePosts(slidePosts, slidePostIds),
+    [slidePosts, slidePostIds],
   );
 
   const feed = useMemo(
