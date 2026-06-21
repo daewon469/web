@@ -18,6 +18,11 @@ const tabs = [
   { href: "/myboard", label: "마이메뉴", icon: "person" as const, requiresLogin: true },
 ] as const;
 
+function formatNotiLabel(count: number) {
+  if (count <= 0) return "알림";
+  return `알림(${count > 99 ? "99+" : count})`;
+}
+
 export default function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -127,15 +132,15 @@ export default function TopBar() {
         {tabs.map((tab) => {
           const href = resolveHref(tab);
           const active = isActive(tab.href);
-          const showBadge = tab.href === "/noti" && unreadCount > 0;
+          const label = tab.href === "/noti" ? formatNotiLabel(unreadCount) : tab.label;
           return (
             <div key={tab.href} className="flex flex-1">
               {renderTab(
                 tab.icon,
-                tab.label,
+                label,
                 href,
                 active,
-                showBadge ? unreadCount : undefined,
+                undefined,
                 tab.href === "/list" ? () => router.replace("/list") : undefined,
               )}
             </div>

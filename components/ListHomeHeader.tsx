@@ -19,6 +19,11 @@ const utilityLinks = [
   { id: "cs", label: "고객센터", href: "/write6", requiresLogin: true },
 ] as const;
 
+function formatNotiLabel(count: number) {
+  if (count <= 0) return "알림";
+  return `알림(${count > 99 ? "99+" : count})`;
+}
+
 export default function ListHomeHeader() {
   const router = useRouter();
   const pathname = usePathname();
@@ -114,14 +119,9 @@ export default function ListHomeHeader() {
       key="noti"
       type="button"
       onClick={handleNotiClick}
-      className="relative text-xs font-medium text-white/85 hover:text-white sm:text-sm"
+      className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
     >
-      알림
-      {unreadCount > 0 && (
-        <span className="ml-1 inline-flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
-          {unreadCount > 99 ? "99+" : unreadCount}
-        </span>
-      )}
+      {formatNotiLabel(unreadCount)}
     </button>
   );
 

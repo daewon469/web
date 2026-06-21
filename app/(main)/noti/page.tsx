@@ -148,12 +148,11 @@ export default function NotiPage() {
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <p className="font-bold text-[#0B1B3A]">{item.title}</p>
+              <p className="text-sm text-gray-700">{item.body}</p>
               <span className="shrink-0 text-[11px] text-gray-500">
                 {formatKstDatetime(item.created_at)}
               </span>
             </div>
-            <p className="mt-1 text-sm text-gray-700">{item.body}</p>
             {tab === "sent" && item.target_username && (
               <p className="mt-1 text-xs text-gray-500">수신: {item.target_username}</p>
             )}
