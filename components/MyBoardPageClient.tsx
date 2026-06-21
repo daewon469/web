@@ -319,6 +319,7 @@ export default function MyBoardPageClient() {
             href="/adminusers"
           />
           <Row label="제목검색 추천현장 관리" href="/titlesearchadmin" />
+          <Row label="슬라이드 현장 관리" href="/slidepostsadmin" />
           <Row label="오늘의 현황" href="/todaystatus" />
         </SectionCard>
       )}

@@ -828,6 +828,9 @@ export type UIConfigResponse = {
       enabled: boolean;
       recommended_post_ids: number[];
     };
+    slide_posts?: {
+      post_ids: number[];
+    };
   };
 };
 
@@ -843,6 +846,7 @@ const defaultUIConfig = (): UIConfigResponse["config"] => ({
     resize_mode: "contain",
   },
   title_search: { enabled: true, recommended_post_ids: [] },
+  slide_posts: { post_ids: [] },
 });
 
 export const UIConfig = {

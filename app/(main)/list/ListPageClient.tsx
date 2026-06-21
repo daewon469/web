@@ -5,10 +5,12 @@ import { FeedBannerCard, TopBannerStrip } from "@/components/FeedBanner";
 import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
 import NewsPreview from "@/components/NewsPreview";
+import PostcardSSlider from "@/components/PostcardSSlider";
 import PostCard from "@/components/PostCard";
 import PostCard2 from "@/components/PostCard2";
 import ReferralModal from "@/components/ReferralModal";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
+import { CARD_TYPE_S } from "@/lib/postCardFormat";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
 import { getSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -23,6 +25,25 @@ function orderPostsByCardType(items: Post[]): Post[] {
   const type2 = items.filter((p) => p.card_type === 2);
   const type3 = items.filter((p) => p.card_type === 3);
   return [...type1, ...type2, ...type3];
+}
+
+function orderSlidePosts(items: Post[], slidePostIds: number[]): Post[] {
+  const slide = items.filter((p) => p.card_type === CARD_TYPE_S);
+  if (slidePostIds.length === 0) return slide;
+  const byId = new Map(slide.map((p) => [Number(p.id), p]));
+  const ordered = slidePostIds
+    .map((id) => byId.get(id))
+    .filter(Boolean) as Post[];
+  const rest = slide.filter((p) => !slidePostIds.includes(Number(p.id)));
+  return [...ordered, ...rest];
+}
+
+function splitPostsByCardType(items: Post[], slidePostIds: number[]) {
+  const postcardS = orderSlidePosts(items, slidePostIds);
+  const feed = orderPostsByCardType(
+    items.filter((p) => p.card_type !== CARD_TYPE_S),
+  );
+  return { postcardS, feed };
 }
 
 function renderListCard(post: Post) {
@@ -78,6 +99,7 @@ export default function ListPageClient() {
   }>({ enabled: false, interval: 10, items: [], resize_mode: "contain" });
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [slidePostIds, setSlidePostIds] = useState<number[]>([]);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -100,6 +122,15 @@ export default function ListPageClient() {
           return rm === "cover" || rm === "stretch" ? rm : "contain";
         })(),
       });
+      setSlidePostIds(
+        Array.from(
+          new Set(
+            (res.config.slide_posts?.post_ids ?? [])
+              .map((v) => Number(v))
+              .filter((n) => Number.isFinite(n) && n > 0),
+          ),
+        ),
+      );
     });
   }, []);
 
@@ -205,7 +236,10 @@ export default function ListPageClient() {
     setReferralModalOpen(true);
   }, [router]);
 
-  const orderedPosts = useMemo(() => orderPostsByCardType(posts), [posts]);
+  const { postcardS, feed: orderedPosts } = useMemo(
+    () => splitPostsByCardType(posts, slidePostIds),
+    [posts, slidePostIds],
+  );
 
   const feed = useMemo(
     () => buildFeed(orderedPosts, feedBanner.enabled, feedBanner.interval, feedBanner.items),
@@ -248,6 +282,8 @@ export default function ListPageClient() {
 
         <div className="flex flex-col gap-1.5 px-2.5">
           <NewsPreview />
+
+          {!error && postcardS.length > 0 && <PostcardSSlider posts={postcardS} />}
 
           {loading && !refreshing && (
             <p className="py-12 text-center text-gray-500">불러오는 중...</p>
