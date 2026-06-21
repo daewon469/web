@@ -17,7 +17,7 @@ export default function PostcardS({ post, showHeart = true }: Props) {
   return (
     <Link
       href={`/${post.id}`}
-      className="relative block aspect-[4/5] w-full overflow-hidden rounded-xl border border-black bg-black shadow-md"
+      className="relative block h-[174px] w-full overflow-hidden rounded-xl border border-black bg-black shadow-md"
     >
       {imageUri ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -27,21 +27,21 @@ export default function PostcardS({ post, showHeart = true }: Props) {
       )}
 
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-black/90 via-black/55 to-transparent px-3 pb-10 pt-3"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-black/90 via-black/55 to-transparent px-3 pb-6 pt-2.5"
         aria-hidden
       >
-        <p className="line-clamp-2 text-lg font-bold leading-snug text-white">{post.title}</p>
-        <p className="mt-1 truncate text-[15px] font-bold text-[#7eb8ff]">{industryProvinceCity}</p>
+        <p className="line-clamp-2 text-base font-bold leading-snug text-white">{post.title}</p>
+        <p className="mt-0.5 truncate text-sm font-bold text-[#7eb8ff]">{industryProvinceCity}</p>
       </div>
 
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-black/92 via-black/60 to-transparent px-3 pb-3 pt-12"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-black/92 via-black/60 to-transparent px-3 pb-2.5 pt-8"
         aria-hidden
       >
-        <p className="truncate text-[15px] font-bold text-[#ffb4b4]">{formatRoles(post)}</p>
+        <p className="truncate text-sm font-bold text-[#ffb4b4]">{formatRoles(post)}</p>
         {post.highlight_content ? (
           <p
-            className="mt-1 truncate text-sm font-bold"
+            className="mt-0.5 truncate text-xs font-bold"
             style={{ color: post.highlight_color ?? "#fff" }}
           >
             {post.highlight_content}
@@ -53,7 +53,7 @@ export default function PostcardS({ post, showHeart = true }: Props) {
         <Heart
           postId={post.id}
           postLiked={post.liked}
-          className="absolute right-2 top-14 z-10"
+          className="absolute right-2 top-10 z-10"
         />
       )}
     </Link>
