@@ -89,9 +89,8 @@ export default function NotiPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-[#0B1B3A]">알림</h1>
-        {tab === "inbox" && unread > 0 && (
+      {tab === "inbox" && unread > 0 && (
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={markAllRead}
@@ -100,8 +99,8 @@ export default function NotiPage() {
           >
             {markingAll ? "처리 중..." : "전체 읽음"}
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex gap-2">
         <button
@@ -148,11 +147,12 @@ export default function NotiPage() {
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              <p className="text-sm text-gray-700">{item.body}</p>
+              <p className="font-bold text-[#0B1B3A]">{item.title}</p>
               <span className="shrink-0 text-[11px] text-gray-500">
                 {formatKstDatetime(item.created_at)}
               </span>
             </div>
+            <p className="mt-1 text-sm text-gray-700">{item.body}</p>
             {tab === "sent" && item.target_username && (
               <p className="mt-1 text-xs text-gray-500">수신: {item.target_username}</p>
             )}
