@@ -11,7 +11,7 @@ type Props = {
 };
 
 /** 슬라이드 카드 고정 높이(px) — Tailwind purge/HMR 이슈 방지를 위해 style로도 적용 */
-export const SLIDE_CARD_HEIGHT = 420;
+export const SLIDE_CARD_HEIGHT = 630;
 
 /** 슬라이드 카드(어두운 배경)용 현장 한마디 색 — 검은색이면 흰색 */
 function resolveSlideHighlightColor(color?: string | null) {
