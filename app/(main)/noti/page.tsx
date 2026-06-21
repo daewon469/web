@@ -89,43 +89,47 @@ export default function NotiPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      {tab === "inbox" && unread > 0 && (
-        <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap gap-2">
           <button
             type="button"
-            onClick={markAllRead}
-            disabled={markingAll}
-            className="text-sm font-bold text-[#4A6CF7] disabled:opacity-50"
-          >
-            {markingAll ? "처리 중..." : "전체 읽음"}
-          </button>
-        </div>
-      )}
-
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setTab("inbox")}
-          className={`rounded-full border px-4 py-2 text-sm font-semibold ${
-            tab === "inbox"
-              ? "border-[#4A6CF7] bg-[#4A6CF7] text-white"
-              : "border-black bg-white"
-          }`}
-        >
-          받은 알림 {unread > 0 ? `(${unread})` : ""}
-        </button>
-        {canSeeSent && (
-          <button
-            type="button"
-            onClick={() => setTab("sent")}
+            onClick={() => setTab("inbox")}
             className={`rounded-full border px-4 py-2 text-sm font-semibold ${
-              tab === "sent"
+              tab === "inbox"
                 ? "border-[#4A6CF7] bg-[#4A6CF7] text-white"
                 : "border-black bg-white"
             }`}
           >
-            보낸 내역
+            받은 알림 {unread > 0 ? `(${unread})` : ""}
           </button>
+          {canSeeSent && (
+            <button
+              type="button"
+              onClick={() => setTab("sent")}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold ${
+                tab === "sent"
+                  ? "border-[#4A6CF7] bg-[#4A6CF7] text-white"
+                  : "border-black bg-white"
+              }`}
+            >
+              보낸 내역
+            </button>
+          )}
+        </div>
+
+        {tab === "inbox" && unread > 0 ? (
+          <button
+            type="button"
+            onClick={markAllRead}
+            disabled={markingAll}
+            className="shrink-0 text-sm font-bold text-[#4A6CF7] disabled:opacity-50"
+          >
+            {markingAll ? "처리 중..." : "전체 읽음"}
+          </button>
+        ) : (
+          <span className="shrink-0 text-sm font-bold opacity-0" aria-hidden>
+            전체 읽음
+          </span>
         )}
       </div>
 
@@ -155,9 +159,6 @@ export default function NotiPage() {
             <p className="mt-1 text-sm text-gray-700">{item.body}</p>
             {tab === "sent" && item.target_username && (
               <p className="mt-1 text-xs text-gray-500">수신: {item.target_username}</p>
-            )}
-            {tab === "inbox" && item.data?.post_id && (
-              <p className="mt-2 text-xs text-[#4A6CF7]">게시글 보기 →</p>
             )}
           </button>
         ))}
