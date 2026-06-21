@@ -17,7 +17,7 @@ export default function PostcardS({ post, showHeart = true }: Props) {
   return (
     <Link
       href={`/${post.id}`}
-      className="relative block h-[174px] w-full overflow-hidden rounded-xl border border-black bg-black shadow-md"
+      className="relative block h-[420px] w-full overflow-hidden rounded-xl border border-black bg-black shadow-md"
     >
       {imageUri ? (
         // eslint-disable-next-line @next/next/no-img-element
