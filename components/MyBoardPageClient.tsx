@@ -213,7 +213,7 @@ export default function MyBoardPageClient() {
         </div>
       </section>
 
-      <SectionCard title="1.포인트 관리">
+      <SectionCard title="1. 포인트 관리">
         <Row
           label={
             <>
@@ -247,12 +247,12 @@ export default function MyBoardPageClient() {
         <Row label="적립/사용 내역" href="/points" />
       </SectionCard>
 
-      <SectionCard title="2.캐시 관리">
+      <SectionCard title="2. 캐시 관리">
         <Row label="캐시 충전" href="/payment/toss" />
         <Row label="충전/사용 내역" href="/cash" />
       </SectionCard>
 
-      <SectionCard title="3.글 관리">
+      <SectionCard title="3. 글 관리">
         <Row
           label={
             <>
@@ -288,14 +288,14 @@ export default function MyBoardPageClient() {
         <Row label="내 알림 내역" href="/noti" />
       </SectionCard>
 
-      <SectionCard title="4.설정">
+      <SectionCard title="4. 설정">
         <Row label="내 정보 수정" href="/signup?mode=edit" />
         <Row label="지역저장 설정" href="/areasite" />
         <Row label="맞춤저장 설정" href="/customsite" />
         <Row label="푸시알림 설정" onClick={handlePushSettings} />
       </SectionCard>
 
-      <SectionCard title="5.고객센터">
+      <SectionCard title="5. 고객센터">
         <Row label="공지사항" href="/list5" />
         <Row label="문의 및 건의사항" href="/write6" />
         <Row
@@ -307,7 +307,7 @@ export default function MyBoardPageClient() {
       </SectionCard>
 
       {isAdmin && (
-        <SectionCard title="6.관리자 메뉴">
+        <SectionCard title="6. 관리자 메뉴">
           <Row label="공지사항 관리" href="/mypage5" />
           <Row label="문의 및 건의사항 확인" href="/list6" />
           <Row
@@ -325,7 +325,7 @@ export default function MyBoardPageClient() {
       )}
 
       {isOwner && (
-        <SectionCard title="7.오너 메뉴">
+        <SectionCard title="7. 오너 메뉴">
           <Row
             label={
               <>
