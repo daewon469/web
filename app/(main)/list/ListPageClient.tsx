@@ -17,13 +17,14 @@ import {
 } from "@/lib/postCardFormat";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
 import {
+  hasListBannerGutter,
   LIST_BANNER_WIDTH_PX,
   LIST_PAGE_CONTENT_MAX_PX,
   LIST_PAGE_CONTENT_PX,
 } from "@/lib/listCardLayout";
 import { getSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 export default function ListPageClient() {
   const router = useRouter();
@@ -53,6 +54,8 @@ export default function ListPageClient() {
   const [slidePostIds, setSlidePostIds] = useState<number[]>([]);
   const [slidePosts, setSlidePosts] = useState<Post[]>([]);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const contentColumnRef = useRef<HTMLDivElement | null>(null);
+  const [sidebarBannerVisible, setSidebarBannerVisible] = useState(false);
 
   useEffect(() => {
     UIConfig.get().then((res) => {
@@ -251,6 +254,25 @@ export default function ListPageClient() {
 
   const showBannerRow = topBanners.length > 0 || headerFeedBanners.length > 0;
 
+  useLayoutEffect(() => {
+    if (!showBannerRow) {
+      setSidebarBannerVisible(false);
+      return;
+    }
+    const el = contentColumnRef.current;
+    if (!el) return;
+
+    const update = () => {
+      setSidebarBannerVisible(hasListBannerGutter(el.getBoundingClientRect().left));
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(document.documentElement);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [showBannerRow]);
+
   const closeMap = useCallback(() => {
     setMapSearchOpen(false);
     const next = new URLSearchParams(searchParams.toString());
@@ -284,10 +306,10 @@ export default function ListPageClient() {
           }}
         >
           <div className="grid">
-            {showBannerRow && (
+            {showBannerRow && sidebarBannerVisible && (
               <aside
                 aria-label="배너"
-                className="z-20 col-start-1 row-start-1 hidden min-[1400px]:block self-start justify-self-start"
+                className="z-20 col-start-1 row-start-1 block self-start justify-self-start"
                 style={{
                   width: LIST_BANNER_WIDTH_PX,
                   marginLeft: "calc((100% - 100vw) / 2)",
@@ -305,7 +327,10 @@ export default function ListPageClient() {
               </aside>
             )}
 
-            <div className="col-start-1 row-start-1 flex min-w-0 flex-col gap-1.5">
+            <div
+              ref={contentColumnRef}
+              className="col-start-1 row-start-1 flex min-w-0 flex-col gap-1.5"
+            >
               <NewsPreview />
 
               {loading && !refreshing && (

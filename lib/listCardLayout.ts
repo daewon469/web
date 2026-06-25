@@ -23,3 +23,8 @@ export const LIST_PAGE_CONTENT_PX = 0;
 /** 왼쪽 배너 (중앙 본문 기준) */
 export const LIST_BANNER_WIDTH_PX = 300;
 export const LIST_BANNER_HEIGHT_PX = 80;
+
+/** 본문 왼쪽 여백이 배너 너비 이상일 때만 사이드바 배너 표시 */
+export function hasListBannerGutter(leftGutterPx: number) {
+  return leftGutterPx >= LIST_BANNER_WIDTH_PX;
+}
