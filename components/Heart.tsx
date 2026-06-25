@@ -17,16 +17,25 @@ export default function Heart({ postId, postLiked, size = 22, className }: Props
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setUsername(getSession().username);
+    const syncSession = () => setUsername(getSession().username);
+    syncSession();
+    window.addEventListener("session-updated", syncSession);
+    window.addEventListener("storage", syncSession);
+    return () => {
+      window.removeEventListener("session-updated", syncSession);
+      window.removeEventListener("storage", syncSession);
+    };
   }, []);
 
   useEffect(() => {
     setFavorite(!!postLiked);
+  }, [postId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (postLiked) setFavorite(true);
   }, [postLiked]);
 
-  const toggle = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const runToggle = async () => {
     if (loading || !username) {
       if (!username) alert("로그인이 필요합니다.");
       return;
@@ -47,13 +56,24 @@ export default function Heart({ postId, postLiked, size = 22, className }: Props
     }
   };
 
+  const stopBubble = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <button
       type="button"
-      onClick={toggle}
+      onMouseDown={stopBubble}
+      onTouchStart={stopBubble}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        void runToggle();
+      }}
       disabled={loading}
-      className={className}
+      className={`touch-manipulation select-none ${className ?? ""}`}
       aria-label={favorite ? "관심 해제" : "관심 등록"}
+      aria-pressed={favorite}
       style={{ fontSize: size, lineHeight: 1 }}
     >
       {favorite ? "❤️" : "🤍"}

@@ -1,26 +1,19 @@
 "use client";
 
 import BlueStrip from "@/components/BlueStrip";
-import PostCard from "@/components/PostCard";
-import PostCard2 from "@/components/PostCard2";
+import ListPostGrid from "@/components/ListPostGrid";
 import { Auth, Posts, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
+import {
+  type CustomMatchConfig,
+  postMatchesCustomConfig,
+  splitSlideAndFeedPosts,
+} from "@/lib/postCardFormat";
+import { useSlidePosts } from "@/lib/useSlidePosts";
 import { getSession } from "@/lib/session";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-
-function orderPostsByCardType(items: Post[]): Post[] {
-  const type1 = items.filter((p) => p.card_type === 1);
-  const type2 = items.filter((p) => p.card_type === 2);
-  const type3 = items.filter((p) => p.card_type === 3);
-  return [...type1, ...type2, ...type3];
-}
-
-function renderListCard(post: Post) {
-  if (post.card_type === 2) return <PostCard2 post={post} />;
-  return <PostCard post={post} />;
-}
 
 export default function CustomLikePage() {
   const router = useRouter();
@@ -28,6 +21,14 @@ export default function CustomLikePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasConfig, setHasConfig] = useState(false);
+  const [customConfig, setCustomConfig] = useState<CustomMatchConfig | null>(null);
+
+  const slideFilter = useCallback(
+    (p: Post) => (customConfig ? postMatchesCustomConfig(p, customConfig) : false),
+    [customConfig],
+  );
+  const slidePosts = useSlidePosts(slideFilter);
+  const feedItems = useMemo(() => splitSlideAndFeedPosts(items).feed, [items]);
 
   const load = useCallback(async () => {
     const session = getSession();
@@ -48,9 +49,15 @@ export default function CustomLikePage() {
         (roles ?? []).some((s) => String(s).trim());
       setHasConfig(has);
       if (!has) {
+        setCustomConfig(null);
         setItems([]);
         return;
       }
+      setCustomConfig({
+        industryCodes: inds.map((s) => String(s)),
+        regionCodes: regs.map((s) => String(s)),
+        roleCodes: (roles ?? []).map((s) => String(s)),
+      });
       const { items: fetched } = await Posts.listCustom({
         username: session.username,
         limit: 50,
@@ -68,14 +75,14 @@ export default function CustomLikePage() {
     load();
   }, [load]);
 
-  const orderedItems = useMemo(() => orderPostsByCardType(items), [items]);
+  const isEmpty = items.length === 0 && slidePosts.length === 0;
 
   return (
     <div className="flex flex-col gap-1.5 bg-[#f5f5f5]">
       <div className="-mx-3 flex flex-col lg:mx-0">
         <BlueStrip mode="custom" />
 
-        <div className="flex flex-col gap-1.5 px-2.5">
+        <div className="flex flex-col gap-1.5">
           {loading && <p className="py-12 text-center text-gray-500">불러오는 중...</p>}
           {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
@@ -88,13 +95,13 @@ export default function CustomLikePage() {
             </div>
           )}
 
-          {!loading && hasConfig && items.length === 0 && !error && (
+          {!loading && hasConfig && isEmpty && !error && (
             <p className="py-12 text-center text-gray-500">맞춤 조건에 맞는 구인글이 없습니다.</p>
           )}
 
-          {!loading && orderedItems.map((post) => (
-            <div key={post.id}>{renderListCard(post)}</div>
-          ))}
+          {!loading && !error && hasConfig && (
+            <ListPostGrid slideItems={slidePosts} feedItems={feedItems} />
+          )}
         </div>
       </div>
     </div>

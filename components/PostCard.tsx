@@ -4,6 +4,7 @@ import Heart from "@/components/Heart";
 import Image from "next/image";
 import Link from "next/link";
 import { resolveMediaUrl, type Post } from "@/lib/api";
+import { LIST_CARD_HEIGHT_TYPE1, TYPE1_IMAGE_PX, TYPE1_TITLE_HEIGHT_PX } from "@/lib/listCardLayout";
 
 function simpleProvince(p?: string) {
   if (!p) return "";
@@ -26,6 +27,24 @@ function formatProvinceCity(province: string, city: string) {
   const c = rawCity.toLowerCase() === "null" ? "" : rawCity;
   const cityOk = !!c && c !== "전체";
   return [prov, cityOk ? c : ""].filter(Boolean).join(" ");
+}
+
+function Type1ListImage({ src }: { src: string }) {
+  return (
+    <div
+      className="relative shrink-0 overflow-hidden rounded bg-neutral-200"
+      style={{ width: TYPE1_IMAGE_PX, height: TYPE1_IMAGE_PX }}
+    >
+      <Image
+        src={src}
+        alt=""
+        fill
+        className="object-cover"
+        unoptimized
+        sizes={`${TYPE1_IMAGE_PX}px`}
+      />
+    </div>
+  );
 }
 
 function formatRoles(post: Post) {
@@ -56,15 +75,20 @@ function formatRoles(post: Post) {
   return roleText + feeText;
 }
 
-export default function PostCard({ post, showHeart = true }: { post: Post; showHeart?: boolean }) {
-  const imageUri = resolveMediaUrl(post.image_url);
-  const industryProvinceCity = `${post.job_industry ?? ""}/${formatProvinceCity(post.province, post.city)}`;
-
+/** customlike·areasite 목록과 동일한 1유형 행 레이아웃 */
+function Type1ListRow({
+  post,
+  imageUri,
+  industryProvinceCity,
+  showHeart,
+}: {
+  post: Post;
+  imageUri: string | null;
+  industryProvinceCity: string;
+  showHeart: boolean;
+}) {
   return (
-    <Link
-      href={`/${post.id}`}
-      className="relative block rounded-lg border border-black bg-white shadow-md transition-shadow hover:shadow-lg"
-    >
+    <>
       {showHeart && (
         <Heart
           postId={post.id}
@@ -72,27 +96,19 @@ export default function PostCard({ post, showHeart = true }: { post: Post; showH
           className="absolute right-2 top-12 z-10"
         />
       )}
-      <div className="flex gap-2 p-2">
-        {imageUri && (
-          <Image
-            src={imageUri}
-            alt=""
-            width={100}
-            height={100}
-            className="h-[100px] w-[100px] shrink-0 rounded object-cover"
-            unoptimized
-          />
-        )}
+      <div className="flex items-center gap-2 p-2">
+        {imageUri && <Type1ListImage src={imageUri} />}
         <div className="min-w-0 flex-1 pr-6">
-          <h2 className="line-clamp-2 min-h-[52px] text-lg font-bold text-black">
+          <h2
+            className="line-clamp-2 text-lg font-bold leading-snug text-black"
+            style={{ minHeight: TYPE1_TITLE_HEIGHT_PX }}
+          >
             {post.title}
           </h2>
           <p className="mt-1 truncate text-[15px] font-bold text-[#003366]">
             {industryProvinceCity}
           </p>
-          <p className="truncate text-[15px] font-bold text-[#8B0000]">
-            {formatRoles(post)}
-          </p>
+          <p className="truncate text-[15px] font-bold text-[#8B0000]">{formatRoles(post)}</p>
         </div>
       </div>
       {post.highlight_content && (
@@ -103,6 +119,95 @@ export default function PostCard({ post, showHeart = true }: { post: Post; showH
           {post.highlight_content}
         </p>
       )}
+    </>
+  );
+}
+
+export default function PostCard({
+  post,
+  showHeart = true,
+  compact = false,
+  grid = false,
+}: {
+  post: Post;
+  showHeart?: boolean;
+  compact?: boolean;
+  grid?: boolean;
+}) {
+  const imageUri = resolveMediaUrl(post.image_url);
+  const industryProvinceCity = `${post.job_industry ?? ""}/${formatProvinceCity(post.province, post.city)}`;
+
+  if (grid) {
+    return (
+      <Link
+        href={`/${post.id}`}
+        className="relative block h-full rounded-lg border border-black bg-white shadow-md transition-shadow hover:shadow-lg"
+      >
+        <Type1ListRow
+          post={post}
+          imageUri={imageUri}
+          industryProvinceCity={industryProvinceCity}
+          showHeart={showHeart}
+        />
+      </Link>
+    );
+  }
+
+  if (compact) {
+    return (
+      <Link
+        href={`/${post.id}`}
+        style={{ height: LIST_CARD_HEIGHT_TYPE1 }}
+        className="relative flex flex-col overflow-hidden rounded-lg border border-black bg-white shadow-md transition-shadow hover:shadow-lg"
+      >
+        {showHeart && (
+          <Heart
+            postId={post.id}
+            postLiked={post.liked}
+            size={18}
+            className="absolute right-1 top-1 z-10"
+          />
+        )}
+        {imageUri ? (
+          <Image
+            src={imageUri}
+            alt=""
+            width={200}
+            height={150}
+            className="h-[58%] w-full shrink-0 object-cover"
+            unoptimized
+          />
+        ) : (
+          <div className="h-[58%] w-full shrink-0 bg-neutral-200" />
+        )}
+        <div className="flex min-h-0 flex-1 flex-col p-1.5">
+          <h2 className="line-clamp-2 text-sm font-bold leading-snug text-black">{post.title}</h2>
+          <p className="mt-1 truncate text-xs font-bold text-[#003366]">{industryProvinceCity}</p>
+          <p className="truncate text-xs font-bold text-[#8B0000]">{formatRoles(post)}</p>
+          {post.highlight_content && (
+            <p
+              className="mt-auto truncate pt-1 text-[11px] font-bold"
+              style={{ color: post.highlight_color ?? "#333" }}
+            >
+              {post.highlight_content}
+            </p>
+          )}
+        </div>
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      href={`/${post.id}`}
+      className="relative block rounded-lg border border-black bg-white shadow-md transition-shadow hover:shadow-lg"
+    >
+      <Type1ListRow
+        post={post}
+        imageUri={imageUri}
+        industryProvinceCity={industryProvinceCity}
+        showHeart={showHeart}
+      />
     </Link>
   );
 }

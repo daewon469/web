@@ -1,10 +1,123 @@
 import { Posts, type Post } from "@/lib/api";
+import { regionCodeToObj, toProvinceShort } from "@/lib/regionUtils";
 
 /** Postcard_S 신유형 — API card_type 값과 맞출 때 수정 */
 export const CARD_TYPE_S = 5;
 
+/** 목록 슬라이드(5유형)는 구인글(post_type=1)만 대상 */
+export const JOB_POST_TYPE = 1;
+
 export function isCardTypeS(cardType: unknown) {
   return Number(cardType) === CARD_TYPE_S;
+}
+
+export function isSlideListPost(post: Post) {
+  return Number(post.post_type) === JOB_POST_TYPE && isCardTypeS(post.card_type);
+}
+
+export function filterSlideListPosts(items: Post[]) {
+  return items.filter(isSlideListPost);
+}
+
+export function orderPostsByCardType(items: Post[]): Post[] {
+  const type1 = items.filter((p) => p.card_type === 1);
+  const type2 = items.filter((p) => p.card_type === 2);
+  const type3 = items.filter((p) => p.card_type === 3);
+  return [...type1, ...type2, ...type3];
+}
+
+/** S유형(슬라이드)과 1·2·3유형 피드를 분리 */
+export function splitSlideAndFeedPosts(items: Post[]) {
+  const slide = filterSlideListPosts(items);
+  const feed = orderPostsByCardType(items.filter((p) => !isCardTypeS(p.card_type)));
+  return { slide, feed };
+}
+
+export function orderSlidePosts(items: Post[], slidePostIds: number[]): Post[] {
+  const slide = items.filter(isSlideListPost);
+  if (slidePostIds.length === 0) return slide;
+  const byId = new Map(slide.map((p) => [Number(p.id), p]));
+  const ordered = slidePostIds
+    .map((id) => byId.get(id))
+    .filter(Boolean) as Post[];
+  const rest = slide.filter((p) => !slidePostIds.includes(Number(p.id)));
+  return [...ordered, ...rest];
+}
+
+export function postMatchesRegionParams(
+  post: Post,
+  params: { province?: string; city?: string; regions?: string },
+): boolean {
+  if (!params.province && !params.city && !params.regions) return true;
+
+  const postProv = toProvinceShort(post.province);
+  const postCity = String(post.city ?? "").trim();
+
+  if (params.regions) {
+    const codes = params.regions.split(",").map((s) => s.trim()).filter(Boolean);
+    return codes.some((code) => {
+      const obj = regionCodeToObj(code);
+      if (!obj || obj.province === "전체") return true;
+      const wantProv = toProvinceShort(obj.province);
+      if (postProv !== wantProv && post.province !== obj.province) return false;
+      if (!obj.city || obj.city === "전체") return true;
+      return postCity === obj.city;
+    });
+  }
+
+  const wantProv = toProvinceShort(params.province ?? "");
+  if (postProv !== wantProv && post.province !== params.province) return false;
+  if (params.city) return postCity === params.city;
+  return true;
+}
+
+export type CustomMatchConfig = {
+  industryCodes: string[];
+  regionCodes: string[];
+  roleCodes: string[];
+};
+
+export function postMatchesCustomConfig(post: Post, config: CustomMatchConfig): boolean {
+  const industries = config.industryCodes.map((s) => s.trim()).filter(Boolean);
+  const regions = config.regionCodes.map((s) => s.trim()).filter(Boolean);
+  const roles = config.roleCodes.map((s) => s.trim()).filter(Boolean);
+
+  const industryOk =
+    industries.length === 0 ||
+    industries.some((code) => String(post.job_industry ?? "").trim() === code);
+
+  const regionOk =
+    regions.length === 0 ||
+    regions.some((code) => {
+      if (code === "전체") return true;
+      const obj = regionCodeToObj(code);
+      if (!obj) return false;
+      if (obj.province === "전체") return true;
+      const postProv = toProvinceShort(post.province);
+      const wantProv = toProvinceShort(obj.province);
+      if (postProv !== wantProv && post.province !== obj.province) return false;
+      if (!obj.city || obj.city === "전체") return true;
+      return String(post.city ?? "").trim() === obj.city;
+    });
+
+  const roleOk =
+    roles.length === 0 ||
+    roles.some((role) => {
+      if (role === "총괄") return !!post.total_use;
+      if (role === "본부장") return !!post.branch_use;
+      if (role === "팀장") return !!post.leader_use;
+      if (role === "팀원") return !!post.member_use;
+      if (role === "기타") return !!String(post.other_role_name ?? "").trim();
+      return false;
+    });
+
+  return industryOk && regionOk && roleOk;
+}
+
+export function postMatchesTitleQuery(post: Post, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return false;
+  return String(post.title ?? "").toLowerCase().includes(q);
 }
 
 export function simpleProvince(p?: string) {
@@ -72,31 +185,36 @@ export async function fetchPostsByIds(ids: number[]): Promise<Post[]> {
   return ids.map((id) => byId.get(id)).filter(Boolean) as Post[];
 }
 
-/** UIConfig slide_post_ids 또는 card_type=5 글을 슬라이더용으로 조회 */
+/** post_type=1 구인글 중 card_type=5만 조회 */
+export async function fetchSlideListPosts(opts?: {
+  username?: string;
+  maxItems?: number;
+}): Promise<Post[]> {
+  const maxItems = opts?.maxItems ?? 20;
+  const { items } = await Posts.listByType(JOB_POST_TYPE, {
+    username: opts?.username,
+    status: "published",
+    limit: 50,
+  });
+  return filterSlideListPosts(items).slice(0, maxItems);
+}
+
+/** UIConfig slide_post_ids 또는 card_type=5 구인글을 슬라이더용으로 조회 */
 export async function resolveSlidePosts(slidePostIds: number[]): Promise<Post[]> {
-  if (slidePostIds.length > 0) {
-    return fetchPostsByIds(slidePostIds);
+  const items = await fetchSlideListPosts({ maxItems: 50 });
+
+  if (slidePostIds.length === 0) {
+    return items.slice(0, 20);
   }
 
-  const discovered: number[] = [];
-  let cursor: string | undefined;
-  for (let page = 0; page < 5; page++) {
-    const { items, next_cursor } = await Posts.list({
-      status: "published",
-      limit: 100,
-      cursor,
-    });
-    items.forEach((p) => {
-      if (isCardTypeS(p.card_type)) discovered.push(Number(p.id));
-    });
-    if (!next_cursor || discovered.length >= 20) break;
-    cursor = next_cursor;
+  const byId = new Map(items.map((p) => [Number(p.id), p]));
+  const missing = slidePostIds.filter((id) => !byId.has(id));
+  if (missing.length > 0) {
+    const fetched = filterSlideListPosts(await fetchPostsByIds(missing));
+    fetched.forEach((p) => byId.set(Number(p.id), p));
   }
 
-  const ids = Array.from(new Set(discovered.filter((id) => Number.isFinite(id) && id > 0))).slice(
-    0,
-    20,
-  );
-  if (ids.length === 0) return [];
-  return fetchPostsByIds(ids);
+  return slidePostIds
+    .map((id) => byId.get(id))
+    .filter((p): p is Post => !!p && isSlideListPost(p));
 }

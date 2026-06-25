@@ -1,10 +1,11 @@
 "use client";
 
 import BlueStrip from "@/components/BlueStrip";
-import PostCard from "@/components/PostCard";
-import PostCard2 from "@/components/PostCard2";
+import ListPostGrid from "@/components/ListPostGrid";
 import RegionCategoryTabs from "@/components/RegionCategoryTabs";
 import { Posts, type Post } from "@/lib/api";
+import { postMatchesRegionParams, splitSlideAndFeedPosts } from "@/lib/postCardFormat";
+import { useSlidePosts } from "@/lib/useSlidePosts";
 import {
   type RegionObj,
   selectedRegionsToPostListParams,
@@ -12,18 +13,6 @@ import {
 } from "@/lib/regionUtils";
 import { getSession } from "@/lib/session";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-function orderPostsByCardType(items: Post[]): Post[] {
-  const type1 = items.filter((p) => p.card_type === 1);
-  const type2 = items.filter((p) => p.card_type === 2);
-  const type3 = items.filter((p) => p.card_type === 3);
-  return [...type1, ...type2, ...type3];
-}
-
-function renderListCard(post: Post) {
-  if (post.card_type === 2) return <PostCard2 post={post} />;
-  return <PostCard post={post} />;
-}
 
 export default function RegionJobsPageClient() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -104,7 +93,13 @@ export default function RegionJobsPageClient() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const orderedPosts = useMemo(() => orderPostsByCardType(posts), [posts]);
+  const slideFilter = useCallback(
+    (p: Post) => postMatchesRegionParams(p, regionParams),
+    [regionParams],
+  );
+  const slidePosts = useSlidePosts(slideFilter);
+  const feedItems = useMemo(() => splitSlideAndFeedPosts(posts).feed, [posts]);
+  const isEmpty = posts.length === 0 && slidePosts.length === 0;
 
   return (
     <div className="flex flex-col bg-[#f5f5f5]">
@@ -121,7 +116,7 @@ export default function RegionJobsPageClient() {
         />
       </div>
 
-      <div className="flex flex-col gap-1.5 px-2.5">
+      <div className="flex flex-col gap-1.5">
           {loading && (
             <p className="py-12 text-center text-gray-500">불러오는 중...</p>
           )}
@@ -139,11 +134,11 @@ export default function RegionJobsPageClient() {
             </div>
           )}
 
-          {!loading && !error && posts.length === 0 && (
+          {!loading && !error && isEmpty && (
             <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
           )}
 
-          {!error && orderedPosts.map((post) => <div key={post.id}>{renderListCard(post)}</div>)}
+          {!error && <ListPostGrid slideItems={slidePosts} feedItems={feedItems} />}
 
           {loadingMore && (
             <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>

@@ -1,43 +1,23 @@
 "use client";
 
-import PostCard from "@/components/PostCard";
-import PostCard2 from "@/components/PostCard2";
+import ListPostGrid from "@/components/ListPostGrid";
 import { Posts, UIConfig, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
+import {
+  fetchPostsByIds,
+  postMatchesTitleQuery,
+  splitSlideAndFeedPosts,
+} from "@/lib/postCardFormat";
+import { useSlidePosts } from "@/lib/useSlidePosts";
 import { getSession } from "@/lib/session";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-function orderPostsByCardType(items: Post[]): Post[] {
-  const type1 = items.filter((p) => p.card_type === 1);
-  const type2 = items.filter((p) => p.card_type === 2);
-  const type3 = items.filter((p) => p.card_type === 3);
-  return [...type1, ...type2, ...type3];
-}
-
-function renderListCard(post: Post) {
-  if (post.card_type === 2) return <PostCard2 post={post} />;
-  return <PostCard post={post} />;
-}
-
-async function fetchPostsByIds(ids: number[]) {
-  const out: Post[] = [];
-  const BATCH = 15;
-  for (let i = 0; i < ids.length; i += BATCH) {
-    const slice = ids.slice(i, i + BATCH);
-    const results = await Promise.allSettled(slice.map((id) => Posts.get(Number(id))));
-    results.forEach((r) => {
-      if (r.status === "fulfilled" && r.value) out.push(r.value);
-    });
-  }
-  const byId = new Map(out.map((p) => [Number(p.id), p]));
-  return ids.map((id) => byId.get(id)).filter(Boolean) as Post[];
-}
 
 export default function TextSearchPageClient() {
   const searchParams = useSearchParams();
   const initialQuery = searchParams.get("q") ?? "";
   const [items, setItems] = useState<Post[]>([]);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +60,7 @@ export default function TextSearchPageClient() {
     const q = raw.trim();
     if (!q) return;
 
+    setQuery(q);
     setLoading(true);
     setError(null);
     setSearched(true);
@@ -102,11 +83,27 @@ export default function TextSearchPageClient() {
     void runSearch(q);
   }, [initialQuery, runSearch]);
 
-  const orderedRecommendedItems = useMemo(
-    () => orderPostsByCardType(recommendedItems),
+  const recommendedIds = useMemo(
+    () => new Set(recommendedItems.map((p) => Number(p.id))),
     [recommendedItems],
   );
-  const orderedItems = useMemo(() => orderPostsByCardType(items), [items]);
+  const recommendedSlideFilter = useCallback(
+    (p: Post) => recommendedIds.has(Number(p.id)),
+    [recommendedIds],
+  );
+  const recommendedSlidePosts = useSlidePosts(recommendedSlideFilter);
+  const recommendedFeedItems = useMemo(
+    () => splitSlideAndFeedPosts(recommendedItems).feed,
+    [recommendedItems],
+  );
+
+  const searchSlideFilter = useCallback(
+    (p: Post) => postMatchesTitleQuery(p, query),
+    [query],
+  );
+  const searchSlidePosts = useSlidePosts(searchSlideFilter);
+  const searchFeedItems = useMemo(() => splitSlideAndFeedPosts(items).feed, [items]);
+  const searchIsEmpty = items.length === 0 && searchSlidePosts.length === 0;
 
   return (
     <div className="flex flex-col gap-4">
@@ -124,24 +121,25 @@ export default function TextSearchPageClient() {
           {!loadingRecommended && recommendedEnabled && recommendedItems.length === 0 && (
             <p className="py-4 text-center text-gray-500">등록된 추천 현장이 없습니다.</p>
           )}
-          {!loadingRecommended &&
-            recommendedEnabled &&
-            orderedRecommendedItems.map((post) => (
-              <div key={post.id}>{renderListCard(post)}</div>
-            ))}
+          {!loadingRecommended && recommendedEnabled && (
+            <ListPostGrid
+              slideItems={recommendedSlidePosts}
+              feedItems={recommendedFeedItems}
+            />
+          )}
         </div>
       )}
 
       {loading && <p className="py-8 text-center text-gray-500">검색 중...</p>}
       {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
-      {!loading && searched && items.length === 0 && !error && (
+      {!loading && searched && searchIsEmpty && !error && (
         <p className="py-8 text-center text-gray-500">검색 결과가 없습니다.</p>
       )}
 
-      {!loading && orderedItems.map((post) => (
-        <div key={post.id}>{renderListCard(post)}</div>
-      ))}
+      {!loading && searched && (
+        <ListPostGrid slideItems={searchSlidePosts} feedItems={searchFeedItems} />
+      )}
     </div>
   );
 }

@@ -2,7 +2,9 @@
 
 import PostCard from "@/components/PostCard";
 import PostCard2 from "@/components/PostCard2";
+import PostcardS from "@/components/PostcardS";
 import { Posts, type Post } from "@/lib/api";
+import { isCardTypeS, fetchSlideListPosts } from "@/lib/postCardFormat";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
 import { getSession } from "@/lib/session";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -84,6 +86,7 @@ function buildMarkerSignature(mode: MarkerMode, list: MapMarker[]) {
 }
 
 function renderListCard(post: Post) {
+  if (isCardTypeS(post.card_type)) return <PostcardS post={post} />;
   if (post.card_type === 2) return <PostCard2 post={post} />;
   return <PostCard post={post} />;
 }
@@ -153,6 +156,12 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
 
         if (!nextCursor) break;
       }
+
+      const slideItems = await fetchSlideListPosts({
+        username: username ?? undefined,
+        maxItems: 50,
+      });
+      all = dedupePosts([...all, ...slideItems]);
 
       setMapItems(all);
       if (all.length > 0) setMapItemsCache(all);

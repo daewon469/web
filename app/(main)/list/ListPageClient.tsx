@@ -1,75 +1,29 @@
 "use client";
 
 import BlueStrip from "@/components/BlueStrip";
-import { FeedBannerCard, TopBannerStrip } from "@/components/FeedBanner";
+import { ListBannerSidebar } from "@/components/FeedBanner";
 import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
+import ListPostGrid from "@/components/ListPostGrid";
 import NewsPreview from "@/components/NewsPreview";
-import PostcardSSlider from "@/components/PostcardSSlider";
-import PostCard from "@/components/PostCard";
-import PostCard2 from "@/components/PostCard2";
 import ReferralModal from "@/components/ReferralModal";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
-import { isCardTypeS, resolveSlidePosts } from "@/lib/postCardFormat";
+import {
+  fetchPostsByIds,
+  fetchSlideListPosts,
+  filterSlideListPosts,
+  orderSlidePosts,
+  splitSlideAndFeedPosts,
+} from "@/lib/postCardFormat";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
+import {
+  LIST_BANNER_WIDTH_PX,
+  LIST_PAGE_CONTENT_MAX_PX,
+  LIST_PAGE_CONTENT_PX,
+} from "@/lib/listCardLayout";
 import { getSession } from "@/lib/session";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-type FeedItem =
-  | { kind: "post"; post: Post }
-  | { kind: "banner"; item: UIConfigBannerItem; key: string };
-
-function orderPostsByCardType(items: Post[]): Post[] {
-  const type1 = items.filter((p) => p.card_type === 1);
-  const type2 = items.filter((p) => p.card_type === 2);
-  const type3 = items.filter((p) => p.card_type === 3);
-  return [...type1, ...type2, ...type3];
-}
-
-function orderSlidePosts(items: Post[], slidePostIds: number[]): Post[] {
-  const slide = items.filter((p) => isCardTypeS(p.card_type));
-  if (slidePostIds.length === 0) return slide;
-  const byId = new Map(slide.map((p) => [Number(p.id), p]));
-  const ordered = slidePostIds
-    .map((id) => byId.get(id))
-    .filter(Boolean) as Post[];
-  const rest = slide.filter((p) => !slidePostIds.includes(Number(p.id)));
-  return [...ordered, ...rest];
-}
-
-function splitPostsByCardType(items: Post[]) {
-  const feed = orderPostsByCardType(items.filter((p) => !isCardTypeS(p.card_type)));
-  return feed;
-}
-
-function renderListCard(post: Post) {
-  if (post.card_type === 2) return <PostCard2 post={post} />;
-  return <PostCard post={post} />;
-}
-
-function buildFeed(
-  posts: Post[],
-  bannerEnabled: boolean,
-  interval: number,
-  bannerItems: UIConfigBannerItem[],
-): FeedItem[] {
-  const banners = bannerEnabled
-    ? bannerItems.filter((b) => String(b.image_url ?? "").trim())
-    : [];
-  const out: FeedItem[] = [];
-  let slot = 0;
-  posts.forEach((post, idx) => {
-    out.push({ kind: "post", post });
-    const count = idx + 1;
-    if (banners.length && count % Math.max(1, interval) === 0) {
-      const item = banners[slot % banners.length];
-      out.push({ kind: "banner", item, key: `banner-${post.id}-${slot}` });
-      slot += 1;
-    }
-  });
-  return out;
-}
 
 export default function ListPageClient() {
   const router = useRouter();
@@ -98,7 +52,6 @@ export default function ListPageClient() {
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [slidePostIds, setSlidePostIds] = useState<number[]>([]);
   const [slidePosts, setSlidePosts] = useState<Post[]>([]);
-  const [slideConfigReady, setSlideConfigReady] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -130,25 +83,34 @@ export default function ListPageClient() {
           ),
         ),
       );
-      setSlideConfigReady(true);
     });
   }, []);
 
   useEffect(() => {
-    if (!slideConfigReady) return;
+    if (slidePostIds.length === 0) return;
+    const have = new Set(slidePosts.map((p) => Number(p.id)));
+    const missing = slidePostIds.filter((id) => !have.has(id));
+    if (missing.length === 0) return;
+
     let cancelled = false;
     (async () => {
       try {
-        const items = await resolveSlidePosts(slidePostIds);
-        if (!cancelled) setSlidePosts(items);
+        const fetched = await fetchPostsByIds(missing);
+        const valid = filterSlideListPosts(fetched);
+        if (cancelled || valid.length === 0) return;
+        setSlidePosts((prev) => {
+          const ids = new Set(prev.map((p) => Number(p.id)));
+          const add = valid.filter((p) => !ids.has(Number(p.id)));
+          return add.length > 0 ? [...prev, ...add] : prev;
+        });
       } catch {
-        if (!cancelled) setSlidePosts([]);
+        /* 목록은 이미 표시 중 — 누락분만 조용히 실패 */
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [slideConfigReady, slidePostIds]);
+  }, [slidePostIds, slidePosts]);
 
   const load = useCallback(
     async (reset: boolean) => {
@@ -161,14 +123,27 @@ export default function ListPageClient() {
       setError(null);
       try {
         const { username } = getSession();
-        const { items, next_cursor } = await Posts.list({
+        const listPromise = Posts.list({
           username: username ?? undefined,
           limit: 20,
           cursor: reset ? undefined : cursor,
           status: "published",
         });
+        const slidePromise = reset
+          ? fetchSlideListPosts({
+              username: username ?? undefined,
+              maxItems: 20,
+            })
+          : null;
+
+        const [{ items, next_cursor }, slideItems] = await Promise.all([
+          listPromise,
+          slidePromise ?? Promise.resolve(null),
+        ]);
+
         setPosts((prev) => (reset ? items : [...prev, ...items]));
         setCursor(items.length >= 20 ? next_cursor : undefined);
+        if (slideItems) setSlidePosts(slideItems);
       } catch {
         setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
@@ -186,13 +161,20 @@ export default function ListPageClient() {
     setError(null);
     try {
       const { username } = getSession();
-      const { items, next_cursor } = await Posts.list({
-        username: username ?? undefined,
-        limit: 20,
-        status: "published",
-      });
+      const [{ items, next_cursor }, slideItems] = await Promise.all([
+        Posts.list({
+          username: username ?? undefined,
+          limit: 20,
+          status: "published",
+        }),
+        fetchSlideListPosts({
+          username: username ?? undefined,
+          maxItems: 20,
+        }),
+      ]);
       setPosts(items);
       setCursor(items.length >= 20 ? next_cursor : undefined);
+      setSlidePosts(slideItems);
     } catch {
       setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
@@ -252,17 +234,22 @@ export default function ListPageClient() {
     setReferralModalOpen(true);
   }, [router]);
 
-  const orderedPosts = useMemo(() => splitPostsByCardType(posts), [posts]);
+  const orderedPosts = useMemo(() => splitSlideAndFeedPosts(posts).feed, [posts]);
 
   const postcardS = useMemo(
     () => orderSlidePosts(slidePosts, slidePostIds),
     [slidePosts, slidePostIds],
   );
 
-  const feed = useMemo(
-    () => buildFeed(orderedPosts, feedBanner.enabled, feedBanner.interval, feedBanner.items),
-    [orderedPosts, feedBanner],
+  const headerFeedBanners = useMemo(
+    () =>
+      feedBanner.enabled
+        ? feedBanner.items.filter((b) => String(b.image_url ?? "").trim())
+        : [],
+    [feedBanner],
   );
+
+  const showBannerRow = topBanners.length > 0 || headerFeedBanners.length > 0;
 
   const closeMap = useCallback(() => {
     setMapSearchOpen(false);
@@ -285,64 +272,76 @@ export default function ListPageClient() {
         referralCode={referralCode}
       />
 
-      <div className="-mx-3 flex flex-col lg:mx-0">
+      <div className="relative -mx-3 flex flex-col lg:mx-0">
         <BlueStrip mode="nationwide" />
 
-        {topBanners.length > 0 && (
-          <div className="px-2.5">
-            <TopBannerStrip
-              items={topBanners}
-              onReferralClick={openReferralModal}
-              defaultResizeMode={topBannerResizeMode}
-            />
-          </div>
-        )}
-
-        <div className="flex flex-col gap-1.5 px-2.5">
-          <NewsPreview />
-
-          {!error && postcardS.length > 0 && <PostcardSSlider posts={postcardS} />}
-
-          {loading && !refreshing && (
-            <p className="py-12 text-center text-gray-500">불러오는 중...</p>
-          )}
-
-          {!loading && error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-red-700">
-              {error}
-              <button
-                type="button"
-                onClick={() => refresh()}
-                className="mt-2 block w-full text-sm font-medium text-[#4A6CF7] underline"
+        <div
+          className="relative mx-auto w-full"
+          style={{
+            maxWidth: LIST_PAGE_CONTENT_MAX_PX,
+            paddingLeft: LIST_PAGE_CONTENT_PX,
+            paddingRight: LIST_PAGE_CONTENT_PX,
+          }}
+        >
+          <div className="grid">
+            {showBannerRow && (
+              <aside
+                aria-label="배너"
+                className="z-20 col-start-1 row-start-1 hidden min-[1400px]:block self-start justify-self-start"
+                style={{
+                  width: LIST_BANNER_WIDTH_PX,
+                  marginLeft: "calc((100% - 100vw) / 2)",
+                }}
               >
-                다시 시도
-              </button>
-            </div>
-          )}
-
-          {!loading && !error && posts.length === 0 && (
-            <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
-          )}
-
-          {!error &&
-            feed.map((row) =>
-              row.kind === "post" ? (
-                <div key={row.post.id}>{renderListCard(row.post)}</div>
-              ) : (
-                <FeedBannerCard
-                  key={row.key}
-                  item={row.item}
-                  onReferralClick={openReferralModal}
-                  defaultResizeMode={feedBanner.resize_mode}
-                />
-              ),
+                <div className="flex flex-col gap-1">
+                  <ListBannerSidebar
+                    topItems={topBanners}
+                    feedItems={headerFeedBanners}
+                    topResizeMode={topBannerResizeMode}
+                    feedResizeMode={feedBanner.resize_mode}
+                    onReferralClick={openReferralModal}
+                  />
+                </div>
+              </aside>
             )}
 
-          {loadingMore && (
-            <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>
-          )}
+            <div className="col-start-1 row-start-1 flex min-w-0 flex-col gap-1.5">
+              <NewsPreview />
 
-          {cursor && !loading && !error && <div ref={loadMoreRef} className="h-4" aria-hidden />}
+              {loading && !refreshing && (
+                <p className="py-12 text-center text-gray-500">불러오는 중...</p>
+              )}
+
+              {!loading && error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-red-700">
+                  {error}
+                  <button
+                    type="button"
+                    onClick={() => refresh()}
+                    className="mt-2 block w-full text-sm font-medium text-[#4A6CF7] underline"
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              )}
+
+              {!loading && !error && posts.length === 0 && (
+                <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
+              )}
+
+              {!error && (
+                <ListPostGrid slideItems={postcardS} feedItems={orderedPosts} />
+              )}
+
+              {loadingMore && (
+                <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>
+              )}
+
+              {cursor && !loading && !error && (
+                <div ref={loadMoreRef} className="h-4" aria-hidden />
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

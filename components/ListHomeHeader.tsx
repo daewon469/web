@@ -125,84 +125,86 @@ export default function ListHomeHeader() {
     </button>
   );
 
+  const renderUtilityLinks = () =>
+    utilityLinks.flatMap((link) => {
+      if (link.id === "logout") {
+        if (!isLogin) {
+          return [
+            <Link
+              key={link.id}
+              href="/login"
+              className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
+            >
+              로그인
+            </Link>,
+          ];
+        }
+        return [
+          <button
+            key={link.id}
+            type="button"
+            onClick={handleLogout}
+            className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
+          >
+            {link.label}
+          </button>,
+        ];
+      }
+
+      if (link.requiresLogin) {
+        const node = (
+          <button
+            key={link.id}
+            type="button"
+            onClick={() => handleProtectedNav(link.href)}
+            className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
+          >
+            {link.label}
+          </button>
+        );
+        if (link.id === "myboard") {
+          return [node, renderNotiButton()];
+        }
+        return [node];
+      }
+
+      return [
+        <Link
+          key={link.id}
+          href={link.href}
+          className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
+        >
+          {link.label}
+        </Link>,
+      ];
+    });
+
   return (
     <div className="w-full" style={{ backgroundColor: NAV_BG }}>
-      <div className="px-4 py-2 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-end gap-3 sm:gap-4">
-          {utilityLinks.flatMap((link) => {
-            if (link.id === "logout") {
-              if (!isLogin) {
-                return [
-                  <Link
-                    key={link.id}
-                    href="/login"
-                    className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
-                  >
-                    로그인
-                  </Link>,
-                ];
-              }
-              return [
-                <button
-                  key={link.id}
-                  type="button"
-                  onClick={handleLogout}
-                  className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
-                >
-                  {link.label}
-                </button>,
-              ];
-            }
-
-            if (link.requiresLogin) {
-              const node = (
-                <button
-                  key={link.id}
-                  type="button"
-                  onClick={() => handleProtectedNav(link.href)}
-                  className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
-                >
-                  {link.label}
-                </button>
-              );
-              if (link.id === "myboard") {
-                return [node, renderNotiButton()];
-              }
-              return [node];
-            }
-
-            return [
-              <Link
-                key={link.id}
-                href={link.href}
-                className="text-xs font-medium text-white/85 hover:text-white sm:text-sm"
-              >
-                {link.label}
-              </Link>,
-            ];
-          })}
-        </div>
-      </div>
-
-      <div className="px-4 pb-5 pt-2 sm:px-6">
-        <div className="mx-auto flex max-w-7xl items-center justify-end gap-3 pr-8 sm:pr-12 md:pr-50">
-          <button
-            type="button"
-            onClick={handleLogoClick}
-            className="shrink-0 rounded-xl"
-            aria-label="첫화면"
-          >
-            <Image
-              src="/icon_72.png"
-              alt="분양프로"
-              width={56}
-              height={56}
-              className="rounded-xl"
-              priority
-            />
-          </button>
-          <div className="w-[160px] md:w-[600px] xl:w-[700px]">
-            <TitleSearchBar redirectOnSearch />
+      <div className="px-4 pb-3 pt-1 sm:px-6">
+        <div className="relative left-[-80px] mx-auto max-w-7xl">
+          <div className="mr-[30px] flex translate-x-[80px] items-center justify-end gap-2 sm:gap-3 leading-none">
+            {renderUtilityLinks()}
+          </div>
+          <div className="-mt-3.5 ml-[100px] flex items-center justify-start gap-2 sm:-mt-4">
+            <button
+              type="button"
+              onClick={handleLogoClick}
+              className="shrink-0 rounded-xl"
+              aria-label="첫화면"
+            >
+              <Image
+                src="/icon_72.png"
+                alt="분양프로"
+                width={48}
+                height={48}
+                className="rounded-xl sm:h-14 sm:w-14"
+                priority
+              />
+            </button>
+            <div className="w-[min(100%,240px)] sm:w-[420px] md:w-[560px] lg:w-[640px] xl:w-[550px]">
+              <TitleSearchBar redirectOnSearch />
+            </div>
           </div>
         </div>
       </div>
