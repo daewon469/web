@@ -12,6 +12,7 @@ import {
   fetchPostsByIds,
   fetchSlideListPosts,
   filterSlideListPosts,
+  mergeSlidePostsPreservingLiked,
   orderSlidePosts,
   splitSlideAndFeedPosts,
 } from "@/lib/postCardFormat";
@@ -53,6 +54,11 @@ export default function ListPageClient() {
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [slidePostIds, setSlidePostIds] = useState<number[]>([]);
   const [slidePosts, setSlidePosts] = useState<Post[]>([]);
+  const setSlidePostLiked = useCallback((postId: number, liked: boolean) => {
+    setSlidePosts((prev) =>
+      prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
+    );
+  }, []);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const contentColumnRef = useRef<HTMLDivElement | null>(null);
   const [sidebarBannerVisible, setSidebarBannerVisible] = useState(false);
@@ -98,7 +104,10 @@ export default function ListPageClient() {
     let cancelled = false;
     (async () => {
       try {
-        const fetched = await fetchPostsByIds(missing);
+        const { username } = getSession();
+        const fetched = await fetchPostsByIds(missing, {
+          username: username ?? undefined,
+        });
         const valid = filterSlideListPosts(fetched);
         if (cancelled || valid.length === 0) return;
         setSlidePosts((prev) => {
@@ -146,7 +155,9 @@ export default function ListPageClient() {
 
         setPosts((prev) => (reset ? items : [...prev, ...items]));
         setCursor(items.length >= 20 ? next_cursor : undefined);
-        if (slideItems) setSlidePosts(slideItems);
+        if (slideItems) {
+          setSlidePosts((prev) => mergeSlidePostsPreservingLiked(prev, slideItems));
+        }
       } catch {
         setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
@@ -177,7 +188,7 @@ export default function ListPageClient() {
       ]);
       setPosts(items);
       setCursor(items.length >= 20 ? next_cursor : undefined);
-      setSlidePosts(slideItems);
+      setSlidePosts((prev) => mergeSlidePostsPreservingLiked(prev, slideItems));
     } catch {
       setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
@@ -355,7 +366,11 @@ export default function ListPageClient() {
               )}
 
               {!error && (
-                <ListPostGrid slideItems={postcardS} feedItems={orderedPosts} />
+                <ListPostGrid
+                  slideItems={postcardS}
+                  feedItems={orderedPosts}
+                  onSlidePostLikedChange={setSlidePostLiked}
+                />
               )}
 
               {loadingMore && (

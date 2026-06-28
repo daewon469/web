@@ -97,7 +97,7 @@ export default function RegionJobsPageClient() {
     (p: Post) => postMatchesRegionParams(p, regionParams),
     [regionParams],
   );
-  const slidePosts = useSlidePosts(slideFilter);
+  const { posts: slidePosts, setPostLiked } = useSlidePosts(slideFilter);
   const feedItems = useMemo(() => splitSlideAndFeedPosts(posts).feed, [posts]);
   const isEmpty = posts.length === 0 && slidePosts.length === 0;
 
@@ -138,7 +138,13 @@ export default function RegionJobsPageClient() {
             <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
           )}
 
-          {!error && <ListPostGrid slideItems={slidePosts} feedItems={feedItems} />}
+          {!error && (
+            <ListPostGrid
+              slideItems={slidePosts}
+              feedItems={feedItems}
+              onSlidePostLikedChange={setPostLiked}
+            />
+          )}
 
           {loadingMore && (
             <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>

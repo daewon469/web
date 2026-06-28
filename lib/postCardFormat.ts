@@ -178,12 +178,27 @@ export function formatRoles(post: Post) {
   return roleText + feeText;
 }
 
-export async function fetchPostsByIds(ids: number[]): Promise<Post[]> {
+/** 슬라이드 목록 갱신 시 로컬 liked 상태 유지 */
+export function mergeSlidePostsPreservingLiked(prev: Post[], next: Post[]): Post[] {
+  const likedById = new Map(prev.map((p) => [Number(p.id), !!p.liked]));
+  return next.map((p) => {
+    const id = Number(p.id);
+    if (likedById.get(id)) return { ...p, liked: true };
+    return p;
+  });
+}
+
+export async function fetchPostsByIds(
+  ids: number[],
+  opts?: { username?: string },
+): Promise<Post[]> {
   const out: Post[] = [];
   const BATCH = 15;
   for (let i = 0; i < ids.length; i += BATCH) {
     const slice = ids.slice(i, i + BATCH);
-    const results = await Promise.allSettled(slice.map((id) => Posts.get(Number(id))));
+    const results = await Promise.allSettled(
+      slice.map((id) => Posts.get(Number(id), { username: opts?.username })),
+    );
     results.forEach((r) => {
       if (r.status === "fulfilled" && r.value) out.push(r.value);
     });

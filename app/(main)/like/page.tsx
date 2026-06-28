@@ -21,7 +21,7 @@ export default function LikePage() {
     (p: Post) => likedIds.has(Number(p.id)) || !!p.liked,
     [likedIds],
   );
-  const slidePosts = useSlidePosts(slideFilter);
+  const { posts: slidePosts, setPostLiked } = useSlidePosts(slideFilter);
   const feedItems = useMemo(() => splitSlideAndFeedPosts(items).feed, [items]);
 
   const load = useCallback(async () => {
@@ -63,7 +63,11 @@ export default function LikePage() {
             <p className="py-12 text-center text-gray-500">관심 등록한 현장이 없습니다.</p>
           )}
           {!loading && !error && (
-            <ListPostGrid slideItems={slidePosts} feedItems={feedItems} />
+            <ListPostGrid
+              slideItems={slidePosts}
+              feedItems={feedItems}
+              onSlidePostLikedChange={setPostLiked}
+            />
           )}
         </div>
       </div>

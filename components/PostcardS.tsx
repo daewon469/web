@@ -9,6 +9,7 @@ import Link from "next/link";
 type Props = {
   post: Post;
   showHeart?: boolean;
+  onLikedChange?: (postId: number, liked: boolean) => void;
 };
 
 /** 슬라이드 카드(어두운 배경)용 현장 한마디 색 — 검은색이면 흰색 */
@@ -22,7 +23,7 @@ function resolveSlideHighlightColor(color?: string | null) {
   return raw;
 }
 
-export default function PostcardS({ post, showHeart = true }: Props) {
+export default function PostcardS({ post, showHeart = true, onLikedChange }: Props) {
   const imageUri = resolveMediaUrl(post.image_url);
   const industryProvinceCity = `${post.job_industry ?? ""}/${formatProvinceCity(post.province, post.city)}`;
 
@@ -66,7 +67,9 @@ export default function PostcardS({ post, showHeart = true }: Props) {
         <Heart
           postId={post.id}
           postLiked={post.liked}
-          className="pointer-events-auto absolute right-2 top-2 z-20 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
+          variant="overlay"
+          onChange={(liked) => onLikedChange?.(post.id, liked)}
+          className="pointer-events-auto absolute right-2 top-2 z-20"
         />
       )}
     </div>

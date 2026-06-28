@@ -27,7 +27,7 @@ export default function CustomLikePage() {
     (p: Post) => (customConfig ? postMatchesCustomConfig(p, customConfig) : false),
     [customConfig],
   );
-  const slidePosts = useSlidePosts(slideFilter);
+  const { posts: slidePosts, setPostLiked } = useSlidePosts(slideFilter);
   const feedItems = useMemo(() => splitSlideAndFeedPosts(items).feed, [items]);
 
   const load = useCallback(async () => {
@@ -100,7 +100,11 @@ export default function CustomLikePage() {
           )}
 
           {!loading && !error && hasConfig && (
-            <ListPostGrid slideItems={slidePosts} feedItems={feedItems} />
+            <ListPostGrid
+              slideItems={slidePosts}
+              feedItems={feedItems}
+              onSlidePostLikedChange={setPostLiked}
+            />
           )}
         </div>
       </div>

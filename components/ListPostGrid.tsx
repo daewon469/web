@@ -13,9 +13,10 @@ type Props = {
   /** 첫 화면처럼 S유형을 별도 조회할 때 */
   slideItems?: Post[];
   feedItems?: Post[];
+  onSlidePostLikedChange?: (postId: number, liked: boolean) => void;
 };
 
-export default function ListPostGrid({ items, slideItems, feedItems }: Props) {
+export default function ListPostGrid({ items, slideItems, feedItems, onSlidePostLikedChange }: Props) {
   const { slide, feed } = useMemo(() => {
     if (items) return splitSlideAndFeedPosts(items);
     return { slide: slideItems ?? [], feed: feedItems ?? [] };
@@ -27,7 +28,9 @@ export default function ListPostGrid({ items, slideItems, feedItems }: Props) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      {slide.length > 0 && <PostcardSSlider posts={slide} />}
+      {slide.length > 0 && (
+        <PostcardSSlider posts={slide} onPostLikedChange={onSlidePostLikedChange} />
+      )}
       {feedGroups.map((group) => (
         <div key={`feed-type-${group[0]?.card_type}`} className={LIST_CARD_GRID_CLASS}>
           {group.map((post) => (

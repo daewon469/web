@@ -465,8 +465,10 @@ export const Posts = {
     }
   },
 
-  get: async (id: number): Promise<Post> => {
-    const { data } = await api.get(`/community/posts/${id}`);
+  get: async (id: number, opts?: { username?: string }): Promise<Post> => {
+    const params: Record<string, string> = {};
+    if (opts?.username) params.username = opts.username;
+    const { data } = await api.get(`/community/posts/${id}`, { params });
     return data;
   },
 

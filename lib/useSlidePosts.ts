@@ -5,10 +5,11 @@ import {
   fetchPostsByIds,
   fetchSlideListPosts,
   filterSlideListPosts,
+  mergeSlidePostsPreservingLiked,
   orderSlidePosts,
 } from "@/lib/postCardFormat";
 import { getSession } from "@/lib/session";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 /** 첫 화면과 동일하게 card_type=5 구인글을 별도 조회 (일반 목록 API에는 포함되지 않음) */
 export function useSlidePosts(filter?: (post: Post) => boolean) {
@@ -39,7 +40,9 @@ export function useSlidePosts(filter?: (post: Post) => boolean) {
           username: username ?? undefined,
           maxItems: 50,
         });
-        if (!cancelled) setSlidePosts(fetched);
+        if (!cancelled) {
+          setSlidePosts((prev) => mergeSlidePostsPreservingLiked(prev, fetched));
+        }
       } catch {
         /* 조용히 실패 */
       }
@@ -58,7 +61,10 @@ export function useSlidePosts(filter?: (post: Post) => boolean) {
     let cancelled = false;
     (async () => {
       try {
-        const fetched = await fetchPostsByIds(missing);
+        const { username } = getSession();
+        const fetched = await fetchPostsByIds(missing, {
+          username: username ?? undefined,
+        });
         const valid = filterSlideListPosts(fetched);
         if (cancelled || valid.length === 0) return;
         setSlidePosts((prev) => {
@@ -75,8 +81,16 @@ export function useSlidePosts(filter?: (post: Post) => boolean) {
     };
   }, [slidePostIds, slidePosts]);
 
-  return useMemo(() => {
+  const setPostLiked = useCallback((postId: number, liked: boolean) => {
+    setSlidePosts((prev) =>
+      prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
+    );
+  }, []);
+
+  const posts = useMemo(() => {
     const ordered = orderSlidePosts(slidePosts, slidePostIds);
     return filter ? ordered.filter(filter) : ordered;
   }, [slidePosts, slidePostIds, filter]);
+
+  return { posts, setPostLiked };
 }

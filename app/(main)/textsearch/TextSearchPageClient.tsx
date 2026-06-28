@@ -91,7 +91,8 @@ export default function TextSearchPageClient() {
     (p: Post) => recommendedIds.has(Number(p.id)),
     [recommendedIds],
   );
-  const recommendedSlidePosts = useSlidePosts(recommendedSlideFilter);
+  const { posts: recommendedSlidePosts, setPostLiked: setRecommendedSlideLiked } =
+    useSlidePosts(recommendedSlideFilter);
   const recommendedFeedItems = useMemo(
     () => splitSlideAndFeedPosts(recommendedItems).feed,
     [recommendedItems],
@@ -101,7 +102,8 @@ export default function TextSearchPageClient() {
     (p: Post) => postMatchesTitleQuery(p, query),
     [query],
   );
-  const searchSlidePosts = useSlidePosts(searchSlideFilter);
+  const { posts: searchSlidePosts, setPostLiked: setSearchSlideLiked } =
+    useSlidePosts(searchSlideFilter);
   const searchFeedItems = useMemo(() => splitSlideAndFeedPosts(items).feed, [items]);
   const searchIsEmpty = items.length === 0 && searchSlidePosts.length === 0;
 
@@ -125,6 +127,7 @@ export default function TextSearchPageClient() {
             <ListPostGrid
               slideItems={recommendedSlidePosts}
               feedItems={recommendedFeedItems}
+              onSlidePostLikedChange={setRecommendedSlideLiked}
             />
           )}
         </div>
@@ -138,7 +141,11 @@ export default function TextSearchPageClient() {
       )}
 
       {!loading && searched && (
-        <ListPostGrid slideItems={searchSlidePosts} feedItems={searchFeedItems} />
+        <ListPostGrid
+          slideItems={searchSlidePosts}
+          feedItems={searchFeedItems}
+          onSlidePostLikedChange={setSearchSlideLiked}
+        />
       )}
     </div>
   );
