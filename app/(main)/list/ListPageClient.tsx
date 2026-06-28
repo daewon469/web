@@ -9,11 +9,14 @@ import NewsPreview from "@/components/NewsPreview";
 import ReferralModal from "@/components/ReferralModal";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
 import {
+  fetchLikedPostIds,
   fetchPostsByIds,
   fetchSlideListPosts,
   filterSlideListPosts,
+  mergeSlidePosts,
   normalizePostLiked,
   orderSlidePosts,
+  overlayLikedPosts,
   splitSlideAndFeedPosts,
 } from "@/lib/postCardFormat";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
@@ -28,6 +31,17 @@ import { usePostLikedSync } from "@/lib/usePostLikedSync";
 import { useSlidePostIds } from "@/lib/useSlidePostIds";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+
+function hasSamePostOrderAndLikedState(prev: Post[], next: Post[]) {
+  return (
+    prev.length === next.length &&
+    prev.every((post, index) => {
+      const nextPost = next[index];
+      if (!nextPost || Number(post.id) !== Number(nextPost.id)) return false;
+      return normalizePostLiked(post).liked === normalizePostLiked(nextPost).liked;
+    })
+  );
+}
 
 export default function ListPageClient() {
   const router = useRouter();
@@ -110,21 +124,32 @@ export default function ListPageClient() {
     if (slidePostIds.length === 0) return;
     const have = new Set(slidePosts.map((p) => Number(p.id)));
     const missing = slidePostIds.filter((id) => !have.has(id));
-    if (missing.length === 0) return;
 
     let cancelled = false;
     (async () => {
       try {
         const { username } = getSession();
-        const fetched = await fetchPostsByIds(missing, {
-          username: username ?? undefined,
-        });
-        const valid = filterSlideListPosts(fetched);
-        if (cancelled || valid.length === 0) return;
+        const likedIds = username ? await fetchLikedPostIds(username) : null;
+        const normalizeItems = (value: Post[]) =>
+          likedIds ? overlayLikedPosts(value, likedIds) : value.map(normalizePostLiked);
+        const fetched =
+          missing.length > 0
+            ? await fetchPostsByIds(missing, {
+                username: username ?? undefined,
+              })
+            : [];
+        const valid = normalizeItems(filterSlideListPosts(fetched));
+        if (cancelled) return;
+        if (likedIds) {
+          setPosts((prev) => {
+            const next = overlayLikedPosts(prev, likedIds);
+            return hasSamePostOrderAndLikedState(prev, next) ? prev : next;
+          });
+        }
         setSlidePosts((prev) => {
-          const ids = new Set(prev.map((p) => Number(p.id)));
-          const add = valid.filter((p) => !ids.has(Number(p.id)));
-          return add.length > 0 ? [...prev, ...add] : prev;
+          const overlaid = normalizeItems(prev);
+          const next = valid.length > 0 ? mergeSlidePosts(overlaid, valid) : overlaid;
+          return hasSamePostOrderAndLikedState(prev, next) ? prev : next;
         });
       } catch {
         /* 목록은 이미 표시 중 — 누락분만 조용히 실패 */
@@ -158,17 +183,21 @@ export default function ListPageClient() {
               maxItems: 20,
             })
           : null;
+        const likedPromise = username ? fetchLikedPostIds(username) : Promise.resolve(null);
 
-        const [{ items, next_cursor }, slideItems] = await Promise.all([
+        const [{ items, next_cursor }, slideItems, likedIds] = await Promise.all([
           listPromise,
           slidePromise ?? Promise.resolve(null),
+          likedPromise,
         ]);
+        const normalizeItems = (value: Post[]) =>
+          likedIds ? overlayLikedPosts(value, likedIds) : value.map(normalizePostLiked);
 
         setPosts((prev) =>
-          reset ? items.map(normalizePostLiked) : [...prev, ...items.map(normalizePostLiked)],
+          reset ? normalizeItems(items) : [...prev, ...normalizeItems(items)],
         );
         setCursor(items.length >= 20 ? next_cursor : undefined);
-        if (slideItems) setSlidePosts(slideItems);
+        if (slideItems) setSlidePosts(normalizeItems(slideItems));
       } catch {
         setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
@@ -186,7 +215,7 @@ export default function ListPageClient() {
     setError(null);
     try {
       const { username } = getSession();
-      const [{ items, next_cursor }, slideItems] = await Promise.all([
+      const [{ items, next_cursor }, slideItems, likedIds] = await Promise.all([
         Posts.list({
           username: username ?? undefined,
           limit: 20,
@@ -196,10 +225,13 @@ export default function ListPageClient() {
           username: username ?? undefined,
           maxItems: 20,
         }),
+        username ? fetchLikedPostIds(username) : Promise.resolve(null),
       ]);
-      setPosts(items.map(normalizePostLiked));
+      const normalizeItems = (value: Post[]) =>
+        likedIds ? overlayLikedPosts(value, likedIds) : value.map(normalizePostLiked);
+      setPosts(normalizeItems(items));
       setCursor(items.length >= 20 ? next_cursor : undefined);
-      setSlidePosts(slideItems);
+      setSlidePosts(normalizeItems(slideItems));
     } catch {
       setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
@@ -211,6 +243,38 @@ export default function ListPageClient() {
     setCursor(undefined);
     load(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const reoverlayLikedPosts = async () => {
+      const { username } = getSession();
+      if (!username) return;
+      try {
+        const likedIds = await fetchLikedPostIds(username);
+        setPosts((prev) => overlayLikedPosts(prev, likedIds));
+        setSlidePosts((prev) => overlayLikedPosts(prev, likedIds));
+      } catch {
+        /* 세션 갱신 중 좋아요 동기화 실패는 다음 목록 로드에서 복구 */
+      }
+    };
+
+    window.addEventListener("session-updated", reoverlayLikedPosts);
+    return () => window.removeEventListener("session-updated", reoverlayLikedPosts);
+  }, []);
+
+  useEffect(() => {
+    const reoverlayLikedPostsOnVisible = async () => {
+      if (document.visibilityState !== "visible") return;
+      const { isLogin, username } = getSession();
+      if (!isLogin || !username) return;
+
+      const likedIds = await fetchLikedPostIds(username);
+      setPosts((prev) => overlayLikedPosts(prev, likedIds));
+      setSlidePosts((prev) => overlayLikedPosts(prev, likedIds));
+    };
+
+    document.addEventListener("visibilitychange", reoverlayLikedPostsOnVisible);
+    return () => document.removeEventListener("visibilitychange", reoverlayLikedPostsOnVisible);
+  }, []);
 
   useEffect(() => {
     void ensureKakaoMapsSdk();

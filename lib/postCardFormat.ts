@@ -51,6 +51,18 @@ export function orderSlidePosts(items: Post[], slidePostIds: number[]): Post[] {
   return [...ordered, ...rest];
 }
 
+export function mergeSlidePosts(prev: Post[], incoming: Post[]): Post[] {
+  if (incoming.length === 0) return prev;
+
+  const byId = new Map(prev.map((post) => [Number(post.id), post]));
+  incoming.forEach((post) => byId.set(Number(post.id), post));
+
+  const prevIds = new Set(prev.map((post) => Number(post.id)));
+  return prev
+    .map((post) => byId.get(Number(post.id)) ?? post)
+    .concat(incoming.filter((post) => !prevIds.has(Number(post.id))));
+}
+
 export function postMatchesRegionParams(
   post: Post,
   params: { province?: string; city?: string; regions?: string },
@@ -185,6 +197,22 @@ export function isPostLiked(liked: unknown): boolean {
 
 export function normalizePostLiked<T extends Post>(post: T): T {
   return { ...post, liked: isPostLiked(post.liked) };
+}
+
+export async function fetchLikedPostIds(username: string, limit = 100): Promise<Set<number>> {
+  try {
+    const { items } = await Posts.listLiked({ username, limit });
+    return new Set(items.map((p) => Number(p.id)).filter((id) => Number.isFinite(id)));
+  } catch {
+    return new Set();
+  }
+}
+
+export function overlayLikedPosts(posts: Post[], likedIds: Set<number>): Post[] {
+  return posts.map((post) => {
+    const normalized = normalizePostLiked(post);
+    return likedIds.has(Number(post.id)) ? { ...normalized, liked: true } : normalized;
+  });
 }
 
 export async function fetchPostsByIds(
