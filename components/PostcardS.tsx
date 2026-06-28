@@ -67,7 +67,7 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
         <Heart
           postId={post.id}
           postLiked={post.liked}
-          variant="overlay"
+          size={22}
           onChange={(liked) => onLikedChange?.(post.id, liked)}
           className="pointer-events-auto absolute right-2 top-2 z-20"
         />
