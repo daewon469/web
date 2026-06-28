@@ -24,6 +24,20 @@ export default function LikePage() {
   const { posts: slidePosts, setPostLiked } = useSlidePosts(slideFilter);
   const feedItems = useMemo(() => splitSlideAndFeedPosts(items).feed, [items]);
 
+  const handleLikedChange = useCallback(
+    (postId: number, liked: boolean) => {
+      setPostLiked(postId, liked);
+      if (!liked) {
+        setItems((prev) => prev.filter((p) => Number(p.id) !== postId));
+        return;
+      }
+      setItems((prev) =>
+        prev.map((p) => (Number(p.id) === postId ? { ...p, liked: true } : p)),
+      );
+    },
+    [setPostLiked],
+  );
+
   const load = useCallback(async () => {
     const session = getSession();
     if (!session.isLogin || !session.username) {
@@ -66,7 +80,8 @@ export default function LikePage() {
             <ListPostGrid
               slideItems={slidePosts}
               feedItems={feedItems}
-              onSlidePostLikedChange={setPostLiked}
+              onSlidePostLikedChange={handleLikedChange}
+              onFeedPostLikedChange={handleLikedChange}
             />
           )}
         </div>

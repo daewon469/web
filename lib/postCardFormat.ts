@@ -178,14 +178,13 @@ export function formatRoles(post: Post) {
   return roleText + feeText;
 }
 
-/** 슬라이드 목록 갱신 시 로컬 liked 상태 유지 */
-export function mergeSlidePostsPreservingLiked(prev: Post[], next: Post[]): Post[] {
-  const likedById = new Map(prev.map((p) => [Number(p.id), !!p.liked]));
-  return next.map((p) => {
-    const id = Number(p.id);
-    if (likedById.get(id)) return { ...p, liked: true };
-    return p;
-  });
+/** API liked 필드 정규화 (boolean·숫자·문자열) */
+export function isPostLiked(liked: unknown): boolean {
+  return liked === true || liked === 1 || liked === "1" || liked === "true";
+}
+
+export function normalizePostLiked<T extends Post>(post: T): T {
+  return { ...post, liked: isPostLiked(post.liked) };
 }
 
 export async function fetchPostsByIds(
@@ -200,7 +199,7 @@ export async function fetchPostsByIds(
       slice.map((id) => Posts.get(Number(id), { username: opts?.username })),
     );
     results.forEach((r) => {
-      if (r.status === "fulfilled" && r.value) out.push(r.value);
+      if (r.status === "fulfilled" && r.value) out.push(normalizePostLiked(r.value));
     });
   }
   const byId = new Map(out.map((p) => [Number(p.id), p]));
@@ -218,7 +217,7 @@ export async function fetchSlideListPosts(opts?: {
     status: "published",
     limit: 50,
   });
-  return filterSlideListPosts(items).slice(0, maxItems);
+  return filterSlideListPosts(items).map(normalizePostLiked).slice(0, maxItems);
 }
 
 /** UIConfig slide_post_ids 또는 card_type=5 구인글을 슬라이더용으로 조회 */

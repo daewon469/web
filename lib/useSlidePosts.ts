@@ -5,7 +5,7 @@ import {
   fetchPostsByIds,
   fetchSlideListPosts,
   filterSlideListPosts,
-  mergeSlidePostsPreservingLiked,
+  normalizePostLiked,
   orderSlidePosts,
 } from "@/lib/postCardFormat";
 import { getSession } from "@/lib/session";
@@ -40,9 +40,7 @@ export function useSlidePosts(filter?: (post: Post) => boolean) {
           username: username ?? undefined,
           maxItems: 50,
         });
-        if (!cancelled) {
-          setSlidePosts((prev) => mergeSlidePostsPreservingLiked(prev, fetched));
-        }
+        if (!cancelled) setSlidePosts(fetched);
       } catch {
         /* 조용히 실패 */
       }
@@ -69,7 +67,7 @@ export function useSlidePosts(filter?: (post: Post) => boolean) {
         if (cancelled || valid.length === 0) return;
         setSlidePosts((prev) => {
           const ids = new Set(prev.map((p) => Number(p.id)));
-          const add = valid.filter((p) => !ids.has(Number(p.id)));
+          const add = valid.filter((p) => !ids.has(Number(p.id))).map(normalizePostLiked);
           return add.length > 0 ? [...prev, ...add] : prev;
         });
       } catch {

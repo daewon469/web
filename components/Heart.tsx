@@ -1,6 +1,7 @@
 "use client";
 
 import { Posts } from "@/lib/api";
+import { isPostLiked } from "@/lib/postCardFormat";
 import { getSession } from "@/lib/session";
 import { useEffect, useState } from "react";
 
@@ -11,6 +12,7 @@ type Props = {
   className?: string;
   /** 어두운 카드(5유형) — 흰 테두리/빨간 채움 SVG */
   variant?: "default" | "overlay";
+  /** API 성공 후 부모 post.liked 갱신용 */
   onChange?: (liked: boolean) => void;
 };
 
@@ -55,8 +57,8 @@ export default function Heart({
   onChange,
 }: Props) {
   const [username, setUsername] = useState<string | null>(null);
-  const [favorite, setFavorite] = useState(!!postLiked);
   const [loading, setLoading] = useState(false);
+  const liked = isPostLiked(postLiked);
 
   useEffect(() => {
     const syncSession = () => setUsername(getSession().username);
@@ -69,32 +71,25 @@ export default function Heart({
     };
   }, []);
 
-  useEffect(() => {
-    setFavorite(!!postLiked);
-  }, [postId, postLiked]);
-
   const runToggle = async () => {
     if (loading || !username) {
       if (!username) alert("로그인이 필요합니다.");
       return;
     }
 
-    const next = !favorite;
-    setFavorite(next);
+    const next = !liked;
     setLoading(true);
     try {
       const res = next
         ? await Posts.like(postId, username)
         : await Posts.unlike(postId, username);
       if (res.ok === false) {
-        setFavorite(!next);
-        alert("관심 등록 처리에 실패했습니다.");
+        alert(next ? "관심 등록에 실패했습니다." : "관심 해제에 실패했습니다.");
         return;
       }
       onChange?.(next);
     } catch {
-      setFavorite(!next);
-      alert("관심 등록 처리에 실패했습니다.");
+      alert(next ? "관심 등록에 실패했습니다." : "관심 해제에 실패했습니다.");
     } finally {
       setLoading(false);
     }
@@ -116,11 +111,11 @@ export default function Heart({
       }}
       disabled={loading}
       className={`touch-manipulation select-none ${className ?? ""}`}
-      aria-label={favorite ? "관심 해제" : "관심 등록"}
-      aria-pressed={favorite}
+      aria-label={liked ? "관심 해제" : "관심 등록"}
+      aria-pressed={liked}
       style={variant === "default" ? { fontSize: size, lineHeight: 1 } : undefined}
     >
-      <HeartIcon active={favorite} size={size} variant={variant} />
+      <HeartIcon active={liked} size={size} variant={variant} />
     </button>
   );
 }

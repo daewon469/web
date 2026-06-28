@@ -4,7 +4,7 @@ import BlueStrip from "@/components/BlueStrip";
 import ListPostGrid from "@/components/ListPostGrid";
 import RegionCategoryTabs from "@/components/RegionCategoryTabs";
 import { Posts, type Post } from "@/lib/api";
-import { postMatchesRegionParams, splitSlideAndFeedPosts } from "@/lib/postCardFormat";
+import { normalizePostLiked, postMatchesRegionParams, splitSlideAndFeedPosts } from "@/lib/postCardFormat";
 import { useSlidePosts } from "@/lib/useSlidePosts";
 import {
   type RegionObj,
@@ -56,7 +56,9 @@ export default function RegionJobsPageClient() {
           city: regionParams.city,
           regions: regionParams.regions,
         });
-        setPosts((prev) => (reset ? items : [...prev, ...items]));
+        setPosts((prev) =>
+          reset ? items.map(normalizePostLiked) : [...prev, ...items.map(normalizePostLiked)],
+        );
         setCursor(items.length >= 20 ? next_cursor : undefined);
       } catch {
         setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
@@ -99,6 +101,11 @@ export default function RegionJobsPageClient() {
   );
   const { posts: slidePosts, setPostLiked } = useSlidePosts(slideFilter);
   const feedItems = useMemo(() => splitSlideAndFeedPosts(posts).feed, [posts]);
+  const setFeedPostLiked = useCallback((postId: number, liked: boolean) => {
+    setPosts((prev) =>
+      prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
+    );
+  }, []);
   const isEmpty = posts.length === 0 && slidePosts.length === 0;
 
   return (
@@ -143,6 +150,7 @@ export default function RegionJobsPageClient() {
               slideItems={slidePosts}
               feedItems={feedItems}
               onSlidePostLikedChange={setPostLiked}
+              onFeedPostLikedChange={setFeedPostLiked}
             />
           )}
 

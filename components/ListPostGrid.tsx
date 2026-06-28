@@ -14,9 +14,16 @@ type Props = {
   slideItems?: Post[];
   feedItems?: Post[];
   onSlidePostLikedChange?: (postId: number, liked: boolean) => void;
+  onFeedPostLikedChange?: (postId: number, liked: boolean) => void;
 };
 
-export default function ListPostGrid({ items, slideItems, feedItems, onSlidePostLikedChange }: Props) {
+export default function ListPostGrid({
+  items,
+  slideItems,
+  feedItems,
+  onSlidePostLikedChange,
+  onFeedPostLikedChange,
+}: Props) {
   const { slide, feed } = useMemo(() => {
     if (items) return splitSlideAndFeedPosts(items);
     return { slide: slideItems ?? [], feed: feedItems ?? [] };
@@ -35,7 +42,7 @@ export default function ListPostGrid({ items, slideItems, feedItems, onSlidePost
         <div key={`feed-type-${group[0]?.card_type}`} className={LIST_CARD_GRID_CLASS}>
           {group.map((post) => (
             <div key={post.id} className="h-full min-w-0">
-              <ListFeedCard post={post} grid />
+              <ListFeedCard post={post} grid onLikedChange={onFeedPostLikedChange} />
             </div>
           ))}
         </div>

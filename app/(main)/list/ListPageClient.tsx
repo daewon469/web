@@ -12,7 +12,7 @@ import {
   fetchPostsByIds,
   fetchSlideListPosts,
   filterSlideListPosts,
-  mergeSlidePostsPreservingLiked,
+  normalizePostLiked,
   orderSlidePosts,
   splitSlideAndFeedPosts,
 } from "@/lib/postCardFormat";
@@ -56,6 +56,11 @@ export default function ListPageClient() {
   const [slidePosts, setSlidePosts] = useState<Post[]>([]);
   const setSlidePostLiked = useCallback((postId: number, liked: boolean) => {
     setSlidePosts((prev) =>
+      prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
+    );
+  }, []);
+  const setFeedPostLiked = useCallback((postId: number, liked: boolean) => {
+    setPosts((prev) =>
       prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
     );
   }, []);
@@ -153,11 +158,11 @@ export default function ListPageClient() {
           slidePromise ?? Promise.resolve(null),
         ]);
 
-        setPosts((prev) => (reset ? items : [...prev, ...items]));
+        setPosts((prev) =>
+          reset ? items.map(normalizePostLiked) : [...prev, ...items.map(normalizePostLiked)],
+        );
         setCursor(items.length >= 20 ? next_cursor : undefined);
-        if (slideItems) {
-          setSlidePosts((prev) => mergeSlidePostsPreservingLiked(prev, slideItems));
-        }
+        if (slideItems) setSlidePosts(slideItems);
       } catch {
         setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
@@ -186,9 +191,9 @@ export default function ListPageClient() {
           maxItems: 20,
         }),
       ]);
-      setPosts(items);
+      setPosts(items.map(normalizePostLiked));
       setCursor(items.length >= 20 ? next_cursor : undefined);
-      setSlidePosts((prev) => mergeSlidePostsPreservingLiked(prev, slideItems));
+      setSlidePosts(slideItems);
     } catch {
       setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
@@ -370,6 +375,7 @@ export default function ListPageClient() {
                   slideItems={postcardS}
                   feedItems={orderedPosts}
                   onSlidePostLikedChange={setSlidePostLiked}
+                  onFeedPostLikedChange={setFeedPostLiked}
                 />
               )}
 

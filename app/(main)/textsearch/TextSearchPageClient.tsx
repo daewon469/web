@@ -5,6 +5,7 @@ import { Posts, UIConfig, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import {
   fetchPostsByIds,
+  normalizePostLiked,
   postMatchesTitleQuery,
   splitSlideAndFeedPosts,
 } from "@/lib/postCardFormat";
@@ -49,7 +50,10 @@ export default function TextSearchPageClient() {
           setRecommendedItems([]);
           return;
         }
-        setRecommendedItems(await fetchPostsByIds(ids));
+        const { username } = getSession();
+        setRecommendedItems(
+          await fetchPostsByIds(ids, { username: username ?? undefined }),
+        );
       } finally {
         setLoadingRecommended(false);
       }
@@ -67,7 +71,7 @@ export default function TextSearchPageClient() {
     try {
       const { username } = getSession();
       const { items: found } = await Posts.searchTitle(q, { username: username ?? undefined });
-      setItems(found);
+      setItems(found.map(normalizePostLiked));
     } catch (err: unknown) {
       setError(getApiErrorMessage(err, "검색에 실패했습니다."));
       setItems([]);
@@ -98,6 +102,12 @@ export default function TextSearchPageClient() {
     [recommendedItems],
   );
 
+  const setRecommendedFeedLiked = useCallback((postId: number, liked: boolean) => {
+    setRecommendedItems((prev) =>
+      prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
+    );
+  }, []);
+
   const searchSlideFilter = useCallback(
     (p: Post) => postMatchesTitleQuery(p, query),
     [query],
@@ -105,6 +115,11 @@ export default function TextSearchPageClient() {
   const { posts: searchSlidePosts, setPostLiked: setSearchSlideLiked } =
     useSlidePosts(searchSlideFilter);
   const searchFeedItems = useMemo(() => splitSlideAndFeedPosts(items).feed, [items]);
+  const setSearchFeedLiked = useCallback((postId: number, liked: boolean) => {
+    setItems((prev) =>
+      prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
+    );
+  }, []);
   const searchIsEmpty = items.length === 0 && searchSlidePosts.length === 0;
 
   return (
@@ -128,6 +143,7 @@ export default function TextSearchPageClient() {
               slideItems={recommendedSlidePosts}
               feedItems={recommendedFeedItems}
               onSlidePostLikedChange={setRecommendedSlideLiked}
+              onFeedPostLikedChange={setRecommendedFeedLiked}
             />
           )}
         </div>
@@ -145,6 +161,7 @@ export default function TextSearchPageClient() {
           slideItems={searchSlidePosts}
           feedItems={searchFeedItems}
           onSlidePostLikedChange={setSearchSlideLiked}
+          onFeedPostLikedChange={setSearchFeedLiked}
         />
       )}
     </div>

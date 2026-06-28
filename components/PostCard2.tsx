@@ -81,11 +81,13 @@ function Type2ListRow({
   imageUri,
   industryProvinceCity,
   showHeart,
+  onLikedChange,
 }: {
   post: Post;
   imageUri: string | null;
   industryProvinceCity: string;
   showHeart: boolean;
+  onLikedChange?: (liked: boolean) => void;
 }) {
   return (
     <>
@@ -93,6 +95,7 @@ function Type2ListRow({
         <Heart
           postId={post.id}
           postLiked={post.liked}
+          onChange={onLikedChange}
           size={20}
           className="absolute right-1 top-1/2 z-10 -translate-y-1/2"
         />
@@ -119,15 +122,18 @@ export default function PostCard2({
   compact = false,
   dense = false,
   grid = false,
+  onLikedChange,
 }: {
   post: Post;
   showHeart?: boolean;
   compact?: boolean;
   dense?: boolean;
   grid?: boolean;
+  onLikedChange?: (postId: number, liked: boolean) => void;
 }) {
   const imageUri = resolveMediaUrl(post.image_url);
   const industryProvinceCity = `${post.job_industry ?? ""}/${formatProvinceCity(post.province, post.city)}`;
+  const handleLikedChange = (liked: boolean) => onLikedChange?.(post.id, liked);
 
   if (grid) {
     return (
@@ -140,6 +146,7 @@ export default function PostCard2({
           imageUri={imageUri}
           industryProvinceCity={industryProvinceCity}
           showHeart={showHeart}
+          onLikedChange={handleLikedChange}
         />
       </Link>
     );
@@ -155,6 +162,7 @@ export default function PostCard2({
           <Heart
             postId={post.id}
             postLiked={post.liked}
+            onChange={handleLikedChange}
             size={14}
             className="absolute right-0.5 top-0.5 z-10"
           />
@@ -190,6 +198,7 @@ export default function PostCard2({
           <Heart
             postId={post.id}
             postLiked={post.liked}
+            onChange={handleLikedChange}
             size={16}
             className="absolute right-1 top-1 z-10"
           />
@@ -225,6 +234,7 @@ export default function PostCard2({
         imageUri={imageUri}
         industryProvinceCity={industryProvinceCity}
         showHeart={showHeart}
+        onLikedChange={handleLikedChange}
       />
     </Link>
   );

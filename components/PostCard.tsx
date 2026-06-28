@@ -81,11 +81,13 @@ function Type1ListRow({
   imageUri,
   industryProvinceCity,
   showHeart,
+  onLikedChange,
 }: {
   post: Post;
   imageUri: string | null;
   industryProvinceCity: string;
   showHeart: boolean;
+  onLikedChange?: (liked: boolean) => void;
 }) {
   return (
     <>
@@ -93,6 +95,7 @@ function Type1ListRow({
         <Heart
           postId={post.id}
           postLiked={post.liked}
+          onChange={onLikedChange}
           className="absolute right-2 top-12 z-10"
         />
       )}
@@ -128,14 +131,17 @@ export default function PostCard({
   showHeart = true,
   compact = false,
   grid = false,
+  onLikedChange,
 }: {
   post: Post;
   showHeart?: boolean;
   compact?: boolean;
   grid?: boolean;
+  onLikedChange?: (postId: number, liked: boolean) => void;
 }) {
   const imageUri = resolveMediaUrl(post.image_url);
   const industryProvinceCity = `${post.job_industry ?? ""}/${formatProvinceCity(post.province, post.city)}`;
+  const handleLikedChange = (liked: boolean) => onLikedChange?.(post.id, liked);
 
   if (grid) {
     return (
@@ -148,6 +154,7 @@ export default function PostCard({
           imageUri={imageUri}
           industryProvinceCity={industryProvinceCity}
           showHeart={showHeart}
+          onLikedChange={handleLikedChange}
         />
       </Link>
     );
@@ -164,6 +171,7 @@ export default function PostCard({
           <Heart
             postId={post.id}
             postLiked={post.liked}
+            onChange={handleLikedChange}
             size={18}
             className="absolute right-1 top-1 z-10"
           />
@@ -207,6 +215,7 @@ export default function PostCard({
         imageUri={imageUri}
         industryProvinceCity={industryProvinceCity}
         showHeart={showHeart}
+        onLikedChange={handleLikedChange}
       />
     </Link>
   );

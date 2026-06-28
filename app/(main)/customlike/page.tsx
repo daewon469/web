@@ -29,6 +29,11 @@ export default function CustomLikePage() {
   );
   const { posts: slidePosts, setPostLiked } = useSlidePosts(slideFilter);
   const feedItems = useMemo(() => splitSlideAndFeedPosts(items).feed, [items]);
+  const setFeedPostLiked = useCallback((postId: number, liked: boolean) => {
+    setItems((prev) =>
+      prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
+    );
+  }, []);
 
   const load = useCallback(async () => {
     const session = getSession();
@@ -104,6 +109,7 @@ export default function CustomLikePage() {
               slideItems={slidePosts}
               feedItems={feedItems}
               onSlidePostLikedChange={setPostLiked}
+              onFeedPostLikedChange={setFeedPostLiked}
             />
           )}
         </div>
