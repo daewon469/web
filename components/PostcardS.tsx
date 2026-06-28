@@ -27,19 +27,11 @@ export default function PostcardS({ post, showHeart = true }: Props) {
   const industryProvinceCity = `${post.job_industry ?? ""}/${formatProvinceCity(post.province, post.city)}`;
 
   return (
-    <Link
-      href={`/${post.id}`}
-      className="relative block w-full overflow-hidden rounded-xl border border-black bg-black shadow-md transition-shadow hover:shadow-lg"
-      style={{ height: LIST_CARD_HEIGHT_TYPE_S }}
-    >
-      {showHeart && (
-        <Heart
-          postId={post.id}
-          postLiked={post.liked}
-          className="absolute right-2 top-2 z-10"
-        />
-      )}
-
+    <div className="relative w-full" style={{ height: LIST_CARD_HEIGHT_TYPE_S }}>
+      <Link
+        href={`/${post.id}`}
+        className="absolute inset-0 overflow-hidden rounded-xl border border-black bg-black shadow-md transition-shadow hover:shadow-lg"
+      >
       {imageUri ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={imageUri} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -69,6 +61,14 @@ export default function PostcardS({ post, showHeart = true }: Props) {
         <p className="truncate text-[15px] font-bold text-[#7eb8ff]">{industryProvinceCity}</p>
         <p className="mt-0.5 truncate text-[15px] font-bold text-[#ffb4b4]">{formatRoles(post)}</p>
       </div>
-    </Link>
+      </Link>
+      {showHeart && (
+        <Heart
+          postId={post.id}
+          postLiked={post.liked}
+          className="pointer-events-auto absolute right-2 top-2 z-20 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
+        />
+      )}
+    </div>
   );
 }

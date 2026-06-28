@@ -4,7 +4,7 @@ import ListFeedCard from "@/components/ListFeedCard";
 import PostcardSSlider from "@/components/PostcardSSlider";
 import type { Post } from "@/lib/api";
 import { LIST_CARD_GRID_CLASS } from "@/lib/listCardLayout";
-import { splitSlideAndFeedPosts } from "@/lib/postCardFormat";
+import { groupFeedByCardType, splitSlideAndFeedPosts } from "@/lib/postCardFormat";
 import { useMemo } from "react";
 
 type Props = {
@@ -21,20 +21,22 @@ export default function ListPostGrid({ items, slideItems, feedItems }: Props) {
     return { slide: slideItems ?? [], feed: feedItems ?? [] };
   }, [items, slideItems, feedItems]);
 
+  const feedGroups = useMemo(() => groupFeedByCardType(feed), [feed]);
+
   if (slide.length === 0 && feed.length === 0) return null;
 
   return (
     <div className="flex flex-col gap-1.5">
       {slide.length > 0 && <PostcardSSlider posts={slide} />}
-      {feed.length > 0 && (
-        <div className={LIST_CARD_GRID_CLASS}>
-          {feed.map((post) => (
+      {feedGroups.map((group) => (
+        <div key={`feed-type-${group[0]?.card_type}`} className={LIST_CARD_GRID_CLASS}>
+          {group.map((post) => (
             <div key={post.id} className="h-full min-w-0">
               <ListFeedCard post={post} grid />
             </div>
           ))}
         </div>
-      )}
+      ))}
     </div>
   );
 }

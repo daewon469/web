@@ -26,6 +26,13 @@ export function orderPostsByCardType(items: Post[]): Post[] {
   return [...type1, ...type2, ...type3];
 }
 
+/** 1·2·3유형을 각각 별도 3열 그리드로 렌더할 때 사용 */
+export function groupFeedByCardType(items: Post[]): Post[][] {
+  return [1, 2, 3]
+    .map((type) => items.filter((p) => Number(p.card_type) === type))
+    .filter((group) => group.length > 0);
+}
+
 /** S유형(슬라이드)과 1·2·3유형 피드를 분리 */
 export function splitSlideAndFeedPosts(items: Post[]) {
   const slide = filterSlideListPosts(items);
