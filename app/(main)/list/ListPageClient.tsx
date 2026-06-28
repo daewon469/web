@@ -24,6 +24,8 @@ import {
   LIST_PAGE_CONTENT_PX,
 } from "@/lib/listCardLayout";
 import { getSession } from "@/lib/session";
+import { usePostLikedSync } from "@/lib/usePostLikedSync";
+import { useSlidePostIds } from "@/lib/useSlidePostIds";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
@@ -52,7 +54,7 @@ export default function ListPageClient() {
   }>({ enabled: false, interval: 10, items: [], resize_mode: "contain" });
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
-  const [slidePostIds, setSlidePostIds] = useState<number[]>([]);
+  const slidePostIds = useSlidePostIds();
   const [slidePosts, setSlidePosts] = useState<Post[]>([]);
   const setSlidePostLiked = useCallback((postId: number, liked: boolean) => {
     setSlidePosts((prev) =>
@@ -64,6 +66,19 @@ export default function ListPageClient() {
       prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
     );
   }, []);
+
+  /** 관심현장 등 다른 페이지에서 해제한 항목 반영 */
+  usePostLikedSync(
+    useCallback((postId, liked) => {
+      setPosts((prev) =>
+        prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
+      );
+      setSlidePosts((prev) =>
+        prev.map((p) => (Number(p.id) === postId ? { ...p, liked } : p)),
+      );
+    }, []),
+  );
+
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const contentColumnRef = useRef<HTMLDivElement | null>(null);
   const [sidebarBannerVisible, setSidebarBannerVisible] = useState(false);
@@ -88,15 +103,6 @@ export default function ListPageClient() {
           return rm === "cover" || rm === "stretch" ? rm : "contain";
         })(),
       });
-      setSlidePostIds(
-        Array.from(
-          new Set(
-            (res.config.slide_posts?.post_ids ?? [])
-              .map((v) => Number(v))
-              .filter((n) => Number.isFinite(n) && n > 0),
-          ),
-        ),
-      );
     });
   }, []);
 

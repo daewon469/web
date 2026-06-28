@@ -2,6 +2,7 @@
 
 import { Posts } from "@/lib/api";
 import { isPostLiked } from "@/lib/postCardFormat";
+import { dispatchPostLikedChange } from "@/lib/postLikedSync";
 import { getSession } from "@/lib/session";
 import { useEffect, useState } from "react";
 
@@ -88,6 +89,7 @@ export default function Heart({
         return;
       }
       onChange?.(next);
+      dispatchPostLikedChange(postId, next);
     } catch {
       alert(next ? "관심 등록에 실패했습니다." : "관심 해제에 실패했습니다.");
     } finally {
