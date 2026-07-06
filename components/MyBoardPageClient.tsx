@@ -1,6 +1,7 @@
 "use client";
 
 import ReferralModal from "@/components/ReferralModal";
+import NewsPreview from "@/components/NewsPreview";
 import { API_URL, Auth, Referral } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession, setLoggedOut } from "@/lib/session";
@@ -212,6 +213,8 @@ export default function MyBoardPageClient() {
           </Link>
         </div>
       </section>
+
+      <NewsPreview />
 
       <SectionCard title="1. 포인트 관리">
         <Row

@@ -3,6 +3,10 @@
 import TitleSearchBar from "@/components/TitleSearchBar";
 import { Auth, Points } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
+import {
+  LIST_PAGE_CONTENT_MAX_PX,
+  listHomeSearchWidthCss,
+} from "@/lib/listCardLayout";
 import { isListHomePath, isListMapOpen, LIST_HOME_PATH } from "@/lib/paths";
 import { getSession } from "@/lib/session";
 import Image from "next/image";
@@ -177,8 +181,11 @@ export default function ListHomeSearchRow() {
   const showAttendance = isLogin && !attendanceClaimed;
 
   return (
-    <div className="flex justify-center py-2">
-      <div className="flex items-center gap-2 sm:gap-2.5">
+    <div
+      className="mx-auto w-full py-2"
+      style={{ maxWidth: LIST_PAGE_CONTENT_MAX_PX }}
+    >
+      <div className="flex w-full items-center justify-center gap-2 sm:gap-2.5">
         <button
           type="button"
           onClick={handleLogoClick}
@@ -195,7 +202,10 @@ export default function ListHomeSearchRow() {
           />
         </button>
 
-        <div className="w-40 shrink-0 sm:w-48 md:w-56">
+        <div
+          className="shrink-0"
+          style={{ width: listHomeSearchWidthCss("100%") }}
+        >
           <TitleSearchBar redirectOnSearch />
         </div>
 

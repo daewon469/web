@@ -2,7 +2,7 @@
 
 import { CATEGORY_BAR_BLEED_CLASS } from "@/lib/categoryNav";
 import Link from "next/link";
-import { type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 type Props = {
   mode: "nationwide" | "region" | "custom" | "like";
@@ -14,6 +14,10 @@ const TICKER_LINES = [
   "포인트는 유료전환 시 캐시처럼 사용됩니다.",
   "추천인 인맥 100명 달성 시 1,000,000p 지급.",
 ];
+
+const TICKER_HEIGHT = 22;
+const TICKER_DWELL_MS = 4500;
+const TICKER_TRANSITION_MS = 600;
 
 function spacedChars(text: string) {
   return Array.from(text).join(" ");
@@ -27,6 +31,89 @@ function BlueStripShell({ children }: { children: ReactNode }) {
         className={`pointer-events-none absolute inset-y-0 bg-[#4A6CF7] ${CATEGORY_BAR_BLEED_CLASS}`}
       />
       <div className="relative h-[22px]">{children}</div>
+    </div>
+  );
+}
+
+function NationwideTicker() {
+  const [index, setIndex] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const indexRef = useRef(0);
+  const animatingRef = useRef(false);
+  const dwellTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const current = TICKER_LINES[index % TICKER_LINES.length] ?? "";
+  const next = TICKER_LINES[(index + 1) % TICKER_LINES.length] ?? current;
+
+  useEffect(() => {
+    if (TICKER_LINES.length <= 1) return;
+
+    let cancelled = false;
+    indexRef.current = 0;
+    setIndex(0);
+    setOffsetY(0);
+
+    const clearTimers = () => {
+      if (dwellTimerRef.current) clearTimeout(dwellTimerRef.current);
+      if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
+      dwellTimerRef.current = null;
+      transitionTimerRef.current = null;
+    };
+
+    const runStep = () => {
+      if (cancelled) return;
+      dwellTimerRef.current = setTimeout(() => {
+        if (cancelled || animatingRef.current) return;
+        animatingRef.current = true;
+        setAnimating(true);
+        setOffsetY(-TICKER_HEIGHT);
+
+        transitionTimerRef.current = setTimeout(() => {
+          if (cancelled) return;
+          animatingRef.current = false;
+          setAnimating(false);
+          setOffsetY(0);
+          const nextIndex = (indexRef.current + 1) % TICKER_LINES.length;
+          indexRef.current = nextIndex;
+          setIndex(nextIndex);
+          runStep();
+        }, TICKER_TRANSITION_MS);
+      }, TICKER_DWELL_MS);
+    };
+
+    runStep();
+
+    return () => {
+      cancelled = true;
+      animatingRef.current = false;
+      clearTimers();
+    };
+  }, []);
+
+  return (
+    <div className="relative h-[22px] overflow-hidden px-4">
+      <div
+        className="flex flex-col"
+        style={{
+          transform: `translateY(${offsetY}px)`,
+          transition: animating
+            ? `transform ${TICKER_TRANSITION_MS}ms linear`
+            : "none",
+        }}
+      >
+        <div className="flex h-[22px] shrink-0 items-center">
+          <span className="truncate text-left text-[15px] font-extrabold leading-tight text-white">
+            ※ {current}
+          </span>
+        </div>
+        <div className="flex h-[22px] shrink-0 items-center">
+          <span className="truncate text-left text-[15px] font-extrabold leading-tight text-white">
+            ※ {next}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -85,39 +172,7 @@ export default function BlueStrip({ mode, regionLabel, onResetRegion }: Props) {
 
   return (
     <BlueStripShell>
-      <div className="relative h-[22px] overflow-hidden px-4">
-        <div className="blue-strip-ticker flex flex-col">
-          {[...TICKER_LINES, TICKER_LINES[0]].map((line, idx) => (
-            <div key={idx} className="flex h-[22px] shrink-0 items-center">
-              <span className="truncate text-left text-[15px] font-extrabold leading-tight text-white">
-                ※ {line}
-              </span>
-            </div>
-          ))}
-        </div>
-        <style jsx>{`
-          .blue-strip-ticker {
-            animation: blue-strip-scroll 16s cubic-bezier(0.33, 1, 0.68, 1) infinite;
-          }
-          @keyframes blue-strip-scroll {
-            0%,
-            28% {
-              transform: translateY(0);
-            }
-            33%,
-            61% {
-              transform: translateY(-22px);
-            }
-            66%,
-            94% {
-              transform: translateY(-44px);
-            }
-            100% {
-              transform: translateY(0);
-            }
-          }
-        `}</style>
-      </div>
+      <NationwideTicker />
     </BlueStripShell>
   );
 }
