@@ -526,27 +526,27 @@ export default function WritePageClient() {
           />
         </div>
 
-        {/* 모델하우스 / 현장사업지 */}
+        {/* 모델하우스 · 현장사업지 */}
         <div className={formFullClass}>
-          <MapLocationField
-            label="모델하우스 주소"
-            placeholder="주소 입력 또는 지도를 터치하세요"
-            value={workplace}
-            onChange={setWorkplace}
-            pickerKind="work"
-            peerLocation={business}
-          />
-        </div>
-        <div className={formFullClass}>
-          <MapLocationField
-            label="현장사업지 주소"
-            placeholder="주소 입력 또는 지도를 터치하세요"
-            value={business}
-            onChange={setBusiness}
-            pickerKind="business"
-            peerLocation={workplace}
-            showSameAsPeer
-          />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <MapLocationField
+              label="모델하우스 주소"
+              placeholder="주소 입력 또는 지도를 터치하세요"
+              value={workplace}
+              onChange={setWorkplace}
+              pickerKind="work"
+              peerLocation={business}
+            />
+            <MapLocationField
+              label="현장사업지 주소"
+              placeholder="주소 입력 또는 지도를 터치하세요"
+              value={business}
+              onChange={setBusiness}
+              pickerKind="business"
+              peerLocation={workplace}
+              showSameAsPeer
+            />
+          </div>
         </div>
 
         {error && (

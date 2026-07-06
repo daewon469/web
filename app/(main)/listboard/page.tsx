@@ -87,11 +87,11 @@ export default function ListBoardPage() {
       try {
         setLoading(true);
         const [newsRes, comRes] = await Promise.all([
-          Posts.listByType(2, { status: "published", limit: 30 }),
-          Posts.listByType(3, { status: "published", limit: 50 }),
+          Posts.listByType(2, { status: "published", limit: 15 }),
+          Posts.listByType(3, { status: "published", limit: 15 }),
         ]);
-        setNews(newsRes.items.slice(0, 7));
-        setCommunity(comRes.items.slice(0, 8));
+        setNews(newsRes.items.slice(0, 15));
+        setCommunity(comRes.items.slice(0, 15));
       } finally {
         setLoading(false);
       }
