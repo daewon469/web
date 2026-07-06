@@ -6,8 +6,7 @@ import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
 import ListHomeSearchRow from "@/components/ListHomeSearchRow";
 import ListPostGrid from "@/components/ListPostGrid";
-import PostcardSSlider from "@/components/PostcardSSlider";
-import RegionViewPanel from "@/components/RegionViewPanel";
+import RegionCategoryTabs from "@/components/RegionCategoryTabs";
 import ReferralModal from "@/components/ReferralModal";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
 import {
@@ -391,22 +390,12 @@ export default function ListPageClient() {
           }}
         >
           <div className="flex min-w-0 flex-col gap-1.5">
-            <RegionViewPanel
+            <RegionCategoryTabs
               selectedRegions={selectedRegions}
               onChangeRegions={setSelectedRegions}
             />
 
             <ListHomeSearchRow />
-
-            {!error && postcardS.length > 0 && (
-              <PostcardSSlider
-                posts={postcardS}
-                variant="carousel"
-                autoPlayMs={2000}
-                maxItems={3}
-                onPostLikedChange={setSlidePostLiked}
-              />
-            )}
 
             {showTopBanners && (
               <ListHomeTopBannerRow
@@ -440,7 +429,9 @@ export default function ListPageClient() {
 
             {!error && (
               <ListPostGrid
+                slideItems={postcardS}
                 feedItems={orderedPosts}
+                onSlidePostLikedChange={setSlidePostLiked}
                 onFeedPostLikedChange={setFeedPostLiked}
               />
             )}
