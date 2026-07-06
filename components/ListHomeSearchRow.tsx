@@ -177,30 +177,28 @@ export default function ListHomeSearchRow() {
   const showAttendance = isLogin && !attendanceClaimed;
 
   return (
-    <div className="relative flex min-h-[52px] items-center py-2">
-      <button
-        type="button"
-        onClick={handleLogoClick}
-        className="relative z-10 shrink-0 rounded-xl"
-        aria-label="첫화면"
-      >
-        <Image
-          src="/icon_72.png"
-          alt="분양프로"
-          width={44}
-          height={44}
-          className="rounded-xl sm:h-12 sm:w-12"
-          priority
-        />
-      </button>
+    <div className="flex justify-center py-2">
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        <button
+          type="button"
+          onClick={handleLogoClick}
+          className="shrink-0 rounded-xl"
+          aria-label="첫화면"
+        >
+          <Image
+            src="/icon_72.png"
+            alt="분양프로"
+            width={44}
+            height={44}
+            className="rounded-xl sm:h-12 sm:w-12"
+            priority
+          />
+        </button>
 
-      <div className="pointer-events-none absolute inset-x-0 flex justify-center px-28 sm:px-36">
-        <div className="pointer-events-auto w-1/3 min-w-[160px] max-w-sm">
+        <div className="w-40 shrink-0 sm:w-48 md:w-56">
           <TitleSearchBar redirectOnSearch />
         </div>
-      </div>
 
-      <div className="relative z-10 ml-auto flex shrink-0 items-center gap-2.5">
         <MobileCustomButton onClick={() => void handleCustomView()} />
         {showAttendance && (
           <MobileAttendanceButton
