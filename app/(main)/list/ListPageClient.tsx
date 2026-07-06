@@ -1,14 +1,15 @@
 "use client";
 
 import BlueStrip from "@/components/BlueStrip";
-import { ListHomeTopBannerRow } from "@/components/FeedBanner";
+import { ListHomeWebTopBannerCarousel } from "@/components/FeedBanner";
 import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
 import ListHomeSearchRow from "@/components/ListHomeSearchRow";
-import ListPostGrid from "@/components/ListPostGrid";
+import ListPostGrid, { type WebFeedBannerConfig } from "@/components/ListPostGrid";
+import PostcardSSlider from "@/components/PostcardSSlider";
 import RegionCategoryTabs from "@/components/RegionCategoryTabs";
 import ReferralModal from "@/components/ReferralModal";
-import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
+import { Auth, Posts, UIConfig, type Post, type UIConfigWebBannerSection } from "@/lib/api";
 import {
   fetchLikedPostIds,
   fetchPostsByIds,
@@ -61,10 +62,24 @@ export default function ListPageClient() {
   const [mapSearchOpen, setMapSearchOpen] = useState(false);
   const openMapParam = searchParams.get("openMap");
   const mapOpenFromUrl = openMapParam === "1" || openMapParam === "true";
-  const [topBanners, setTopBanners] = useState<UIConfigBannerItem[]>([]);
-  const [topBannerResizeMode, setTopBannerResizeMode] = useState<
-    "contain" | "cover" | "stretch"
-  >("contain");
+  const [webTopBanner, setWebTopBanner] = useState<UIConfigWebBannerSection>({
+    enabled: true,
+    items: [],
+    cols_per_row: 3,
+    rotation_count: 3,
+    height: 160,
+    resize_mode: "contain",
+    auto_play_ms: 4000,
+  });
+  const [webFeedBanner, setWebFeedBanner] = useState<UIConfigWebBannerSection>({
+    enabled: true,
+    items: [],
+    cols_per_row: 3,
+    interval_rows: 3,
+    rotation_count: 3,
+    height: 160,
+    resize_mode: "contain",
+  });
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [selectedRegions, setSelectedRegions] = useState<RegionObj[]>([
@@ -120,14 +135,36 @@ export default function ListPageClient() {
   useEffect(() => {
     UIConfig.get().then((res) => {
       if (res.status !== 0) return;
-      const tb = res.config.top_banner;
-      const enabled = tb?.enabled !== false;
-      const items = (tb?.items ?? []).filter((b) => String(b.image_url ?? "").trim());
-      setTopBanners(enabled ? items : []);
-      setTopBannerResizeMode((() => {
-        const rm = String(tb?.resize_mode ?? "contain");
-        return rm === "cover" || rm === "stretch" ? rm : "contain";
-      })());
+      const wt = res.config.web_top_banner;
+      if (wt) {
+        setWebTopBanner({
+          enabled: wt.enabled !== false,
+          items: (wt.items ?? []).filter((b) => String(b.image_url ?? "").trim()),
+          cols_per_row: 3,
+          rotation_count: wt.rotation_count === 5 ? 5 : 3,
+          height: wt.height ?? 160,
+          resize_mode:
+            wt.resize_mode === "cover" || wt.resize_mode === "stretch"
+              ? wt.resize_mode
+              : "contain",
+          auto_play_ms: wt.auto_play_ms ?? 4000,
+        });
+      }
+      const wb = res.config.web_banner;
+      if (wb) {
+        setWebFeedBanner({
+          enabled: wb.enabled !== false,
+          items: (wb.items ?? []).filter((b) => String(b.image_url ?? "").trim()),
+          cols_per_row: 3,
+          interval_rows: wb.interval_rows === 5 ? 5 : 3,
+          rotation_count: wb.rotation_count === 5 ? 5 : 3,
+          height: wb.height ?? 160,
+          resize_mode:
+            wb.resize_mode === "cover" || wb.resize_mode === "stretch"
+              ? wb.resize_mode
+              : "contain",
+        });
+      }
     });
   }, []);
 
@@ -349,7 +386,22 @@ export default function ListPageClient() {
     return ordered.filter((p) => postMatchesRegionParams(p, regionParams));
   }, [slidePosts, slidePostIds, isNationwide, regionParams]);
 
-  const showTopBanners = topBanners.length > 0;
+  const showWebTopBanners =
+    webTopBanner.enabled && webTopBanner.items.some((b) => String(b.image_url ?? "").trim());
+
+  const feedBannerConfig = useMemo<WebFeedBannerConfig | undefined>(() => {
+    if (!webFeedBanner.enabled) return undefined;
+    if (!webFeedBanner.items.some((b) => String(b.image_url ?? "").trim())) return undefined;
+    return {
+      enabled: true,
+      items: webFeedBanner.items,
+      intervalRows: webFeedBanner.interval_rows === 5 ? 5 : 3,
+      rotationCount: webFeedBanner.rotation_count === 5 ? 5 : 3,
+      resizeMode: webFeedBanner.resize_mode,
+      maxHeight: webFeedBanner.height ?? 160,
+      onReferralClick: openReferralModal,
+    };
+  }, [webFeedBanner, openReferralModal]);
 
   const closeMap = useCallback(() => {
     setMapSearchOpen(false);
@@ -397,11 +449,18 @@ export default function ListPageClient() {
 
             <ListHomeSearchRow />
 
-            {showTopBanners && (
-              <ListHomeTopBannerRow
-                items={topBanners}
-                defaultResizeMode={topBannerResizeMode}
-                maxItems={3}
+            {!error && postcardS.length > 0 && (
+              <PostcardSSlider posts={postcardS} onPostLikedChange={setSlidePostLiked} />
+            )}
+
+            {showWebTopBanners && (
+              <ListHomeWebTopBannerCarousel
+                items={webTopBanner.items}
+                rotationCount={webTopBanner.rotation_count === 5 ? 5 : 3}
+                colsPerRow={3}
+                autoPlayMs={webTopBanner.auto_play_ms ?? 4000}
+                defaultResizeMode={webTopBanner.resize_mode}
+                maxHeight={webTopBanner.height ?? 160}
                 onReferralClick={openReferralModal}
               />
             )}
@@ -429,9 +488,9 @@ export default function ListPageClient() {
 
             {!error && (
               <ListPostGrid
-                slideItems={postcardS}
                 feedItems={orderedPosts}
-                onSlidePostLikedChange={setSlidePostLiked}
+                showSlides={false}
+                webFeedBanner={feedBannerConfig}
                 onFeedPostLikedChange={setFeedPostLiked}
               />
             )}

@@ -335,8 +335,10 @@ export default function MyBoardPageClient() {
             href="/adminusers"
           />
           <Row label="분양대행 문의 확인" href="/list7" />
-          <Row label="상단배너 관리" href="/topbanneradmin" />
-          <Row label="하단배너 관리" href="/banneradmin" />
+          <Row label="상단배너 관리 (모바일)" href="/topbanneradmin" />
+          <Row label="하단배너 관리 (모바일)" href="/banneradmin" />
+          <Row label="데스크탑 상단배너 관리" href="/webtopbanneradmin" />
+          <Row label="데스크탑 하단배너 관리" href="/webbanneradmin" />
           <Row label="팝업창 관리" href="/popupadmin" />
           <Row label="엑셀 다운로드" onClick={handleExportUsersExcel} />
         </SectionCard>

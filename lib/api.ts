@@ -802,6 +802,17 @@ export type UIConfigBannerItem = {
   resize_mode?: "contain" | "cover" | "stretch";
 };
 
+export type UIConfigWebBannerSection = {
+  enabled: boolean;
+  items: UIConfigBannerItem[];
+  cols_per_row?: number;
+  rotation_count?: 3 | 5;
+  interval_rows?: 3 | 5;
+  height?: number;
+  resize_mode?: "contain" | "cover" | "stretch";
+  auto_play_ms?: number;
+};
+
 export type UIConfigResponse = {
   status: 0 | 1 | 3 | 8;
   config: {
@@ -818,6 +829,8 @@ export type UIConfigResponse = {
       height?: number;
       resize_mode?: "contain" | "cover" | "stretch";
     };
+    web_top_banner?: UIConfigWebBannerSection;
+    web_banner?: UIConfigWebBannerSection;
     popup: {
       enabled: boolean;
       image_url: string | null;
@@ -839,6 +852,24 @@ export type UIConfigResponse = {
 const defaultUIConfig = (): UIConfigResponse["config"] => ({
   banner: { enabled: true, interval_posts: 10, items: [], height: 110, resize_mode: "contain" },
   top_banner: { enabled: true, items: [], height: 70, resize_mode: "contain" },
+  web_top_banner: {
+    enabled: true,
+    items: [],
+    cols_per_row: 3,
+    rotation_count: 3,
+    height: 160,
+    resize_mode: "contain",
+    auto_play_ms: 4000,
+  },
+  web_banner: {
+    enabled: true,
+    items: [],
+    cols_per_row: 3,
+    interval_rows: 3,
+    rotation_count: 3,
+    height: 160,
+    resize_mode: "contain",
+  },
   popup: {
     enabled: true,
     image_url: null,
