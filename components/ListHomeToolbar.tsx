@@ -2,10 +2,10 @@
 
 import NavIcon, { type NavIconName } from "@/components/NavIcon";
 import { Auth } from "@/lib/api";
-import { isListHomePath, LIST_HOME_PATH } from "@/lib/paths";
+import { isListHomePath, isListMapOpen, LIST_HOME_PATH } from "@/lib/paths";
 import { getSession } from "@/lib/session";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 const TOP_BG = "#0B1B3A";
@@ -87,8 +87,10 @@ function TabButton({
 
 export default function ListHomeToolbar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(false);
+  const mapOpen = isListMapOpen(searchParams);
 
   const reloadSession = useCallback(() => {
     setIsLogin(getSession().isLogin);
@@ -169,9 +171,48 @@ export default function ListHomeToolbar() {
   };
 
   const isTopActive = (tab: (typeof topTabs)[number]) => {
-    if (tab.id === "home") return isListHomePath(pathname);
+    if (tab.id === "home") return isListHomePath(pathname) && !mapOpen;
+    if (tab.id === "myboard") {
+      return isLogin
+        ? pathname === "/myboard" || pathname.startsWith("/myboard/")
+        : pathname === "/check2" || pathname.startsWith("/check2/");
+    }
+    if (tab.id === "ad") {
+      if (!isLogin) return pathname === "/login";
+      return pathname === "/list4" || pathname.startsWith("/list4/");
+    }
+    if (tab.id === "write") {
+      return pathname === "/write" || pathname.startsWith("/write/");
+    }
     if ("href" in tab && tab.href) {
       return pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+    }
+    return false;
+  };
+
+  const isBottomActive = (tab: (typeof bottomTabs)[number]) => {
+    if (tab.id === "map") return mapOpen;
+    if (tab.id === "search") {
+      return pathname === "/textsearch" || pathname.startsWith("/textsearch/");
+    }
+    if (tab.id === "area") {
+      return (
+        pathname === "/areasite" ||
+        pathname.startsWith("/areasite/") ||
+        pathname === "/arealike" ||
+        pathname.startsWith("/arealike/")
+      );
+    }
+    if (tab.id === "custom") {
+      return (
+        pathname === "/customsite" ||
+        pathname.startsWith("/customsite/") ||
+        pathname === "/customlike" ||
+        pathname.startsWith("/customlike/")
+      );
+    }
+    if (tab.id === "like") {
+      return pathname === "/like" || pathname.startsWith("/like/");
     }
     return false;
   };
@@ -220,6 +261,7 @@ export default function ListHomeToolbar() {
               label={tab.label}
               color={BOTTOM_FG}
               mutedOpacity={0.7}
+              active={isBottomActive(tab)}
               onClick={() => void handleBottomTab(tab)}
             />
           ))}
