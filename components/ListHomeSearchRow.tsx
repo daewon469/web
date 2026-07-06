@@ -9,12 +9,68 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+const OUTLINE_TEXT_SHADOW =
+  "0 1px 0 #000, 1px 0 0 #000, -1px 0 0 #000, 0 -1px 0 #000, 1px 1px 0 #000, -1px -1px 0 #000";
+
+function MobileCustomButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="맞춤 보기"
+      className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-full border border-black/25 bg-[#2F6BFF] shadow-[0_4px_6px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-90 active:opacity-90"
+    >
+      <span className="text-center text-[13px] font-black leading-[14px] text-white [text-shadow:0_1px_1px_rgba(0,0,0,0.35)]">
+        맞춤
+      </span>
+      <span className="text-center text-[13px] font-black leading-[14px] text-white [text-shadow:0_1px_1px_rgba(0,0,0,0.35)]">
+        보기
+      </span>
+    </button>
+  );
+}
+
+function MobileAttendanceButton({
+  amount,
+  loading,
+  onClick,
+}: {
+  amount: number;
+  loading: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={loading}
+      aria-label="출석체크"
+      className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-full border border-black/25 bg-[#E53935] shadow-[0_4px_8px_rgba(0,0,0,0.25)] transition-opacity hover:opacity-90 active:opacity-90 disabled:opacity-70"
+    >
+      <span
+        className="text-center text-sm font-black leading-[15px] text-[#FFD400]"
+        style={{ textShadow: OUTLINE_TEXT_SHADOW }}
+      >
+        출첵
+      </span>
+      <span
+        className="mt-0.5 text-center text-xs font-black leading-[13px] text-[#FFD400]"
+        style={{ textShadow: OUTLINE_TEXT_SHADOW }}
+      >
+        {loading ? "..." : amount.toLocaleString("ko-KR")}
+      </span>
+    </button>
+  );
+}
+
 export default function ListHomeSearchRow() {
   const router = useRouter();
   const pathname = usePathname();
   const [isLogin, setIsLogin] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [attendanceClaimed, setAttendanceClaimed] = useState(false);
+  const [attendanceAmount, setAttendanceAmount] = useState(200);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [claiming, setClaiming] = useState(false);
 
   const reloadSession = useCallback(() => {
@@ -28,11 +84,15 @@ export default function ListHomeSearchRow() {
       setAttendanceClaimed(false);
       return;
     }
+    setAttendanceLoading(true);
     try {
       const res = await Points.attendanceStatus(username);
       setAttendanceClaimed(!!res.claimed);
+      setAttendanceAmount(res.amount ?? 200);
     } catch {
       setAttendanceClaimed(false);
+    } finally {
+      setAttendanceLoading(false);
     }
   }, [username]);
 
@@ -102,7 +162,10 @@ export default function ListHomeSearchRow() {
       const res = await Points.attendanceClaim(username);
       if (res.status === 0) {
         setAttendanceClaimed(true);
-        alert(`출석체크 완료! 포인트가 지급되었습니다.`);
+        alert(`출석체크 완료! 포인트 ${res.amount ?? attendanceAmount}점이 지급되었습니다.`);
+      } else if (res.status === 2) {
+        setAttendanceClaimed(true);
+        alert("오늘은 이미 출석체크를 완료했습니다.");
       }
     } catch (e: unknown) {
       alert(getApiErrorMessage(e, "출석체크에 실패했습니다."));
@@ -111,12 +174,14 @@ export default function ListHomeSearchRow() {
     }
   };
 
+  const showAttendance = isLogin && !attendanceClaimed;
+
   return (
-    <div className="flex items-center gap-2 py-2 sm:gap-3">
+    <div className="relative flex min-h-[52px] items-center py-2">
       <button
         type="button"
         onClick={handleLogoClick}
-        className="shrink-0 rounded-xl"
+        className="relative z-10 shrink-0 rounded-xl"
         aria-label="첫화면"
       >
         <Image
@@ -129,28 +194,22 @@ export default function ListHomeSearchRow() {
         />
       </button>
 
-      <div className="min-w-0 flex-1">
-        <TitleSearchBar redirectOnSearch />
+      <div className="pointer-events-none absolute inset-x-0 flex justify-center px-28 sm:px-36">
+        <div className="pointer-events-auto w-1/3 min-w-[160px] max-w-sm">
+          <TitleSearchBar redirectOnSearch />
+        </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => void handleCustomView()}
-        className="shrink-0 rounded-lg border border-[#4A6CF7] bg-white px-2 py-1.5 text-xs font-bold text-[#4A6CF7] sm:px-3 sm:text-sm"
-      >
-        맞춤보기
-      </button>
-
-      {isLogin && !attendanceClaimed && (
-        <button
-          type="button"
-          onClick={() => void handleAttendance()}
-          disabled={claiming}
-          className="shrink-0 rounded-lg bg-[#4A6CF7] px-2 py-1.5 text-xs font-bold text-white disabled:opacity-60 sm:px-3 sm:text-sm"
-        >
-          {claiming ? "처리중" : "출석체크"}
-        </button>
-      )}
+      <div className="relative z-10 ml-auto flex shrink-0 items-center gap-2.5">
+        <MobileCustomButton onClick={() => void handleCustomView()} />
+        {showAttendance && (
+          <MobileAttendanceButton
+            amount={attendanceAmount}
+            loading={attendanceLoading || claiming}
+            onClick={() => void handleAttendance()}
+          />
+        )}
+      </div>
     </div>
   );
 }

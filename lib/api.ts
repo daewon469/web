@@ -58,6 +58,8 @@ export type PointLedgerResponse = {
 export type AttendanceStatusResponse = {
   status: number;
   claimed: boolean;
+  amount?: number;
+  point_balance?: number;
 };
 
 export type CashLedgerItem = {
