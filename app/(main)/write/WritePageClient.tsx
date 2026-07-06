@@ -43,6 +43,10 @@ const inputClass =
 
 const blueLabelClass = "mb-1.5 block text-[15px] font-bold text-[#4A6CF7]";
 
+const formGridClass = "grid grid-cols-1 gap-4 md:grid-cols-2";
+
+const formFullClass = "md:col-span-2";
+
 function normalizeTokingColor(value: unknown) {
   const raw = String(value ?? "").trim();
   if (!raw) return "#111111";
@@ -280,7 +284,7 @@ export default function WritePageClient() {
   }
 
   return (
-    <div className="rounded-2xl border border-black bg-white p-4">
+    <div className="mx-auto max-w-4xl rounded-2xl border border-black bg-white p-4">
       <h1 className="mb-2 text-xl font-black text-[#0B1B3A]">
         {isEdit ? "구인글 수정" : "구인글 등록"}
       </h1>
@@ -291,10 +295,10 @@ export default function WritePageClient() {
           e.preventDefault();
           submit("published");
         }}
-        className="flex flex-col gap-4"
+        className={`${formGridClass} gap-y-4`}
       >
         {/* 소개 이미지 */}
-        <div>
+        <div className={formFullClass}>
           <label className="mb-3 mt-2 block text-[15px] font-bold">소개 이미지</label>
           <div className="relative mb-2 overflow-hidden rounded-xl bg-[#f2f2f2]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -331,7 +335,7 @@ export default function WritePageClient() {
           </button>
         </div>
 
-        {/* 제목 */}
+        {/* 제목 · 지역 */}
         <div>
           <label className="mb-2 block text-[15px] font-bold">제목 (필수)</label>
           <input
@@ -342,8 +346,19 @@ export default function WritePageClient() {
           />
         </div>
 
-        {/* 현장 한마디 */}
         <div>
+          <label className="mb-2 block text-[15px] font-bold">지역</label>
+          <button
+            type="button"
+            onClick={() => setRegionModalOpen(true)}
+            className={`${inputClass} text-left ${!regionLabel ? "text-gray-500" : ""}`}
+          >
+            {regionLabel || "지역을 선택하세요"}
+          </button>
+        </div>
+
+        {/* 현장 한마디 */}
+        <div className={formFullClass}>
           <label className="mb-2 block text-base font-bold">현장 한마디</label>
           <div className="mb-2.5 flex flex-wrap gap-2.5">
             {TOKING_COLORS.map((c) => (
@@ -371,7 +386,7 @@ export default function WritePageClient() {
         </div>
 
         {/* 업종 */}
-        <div>
+        <div className={formFullClass}>
           <label className="mb-2 block text-[15px] font-bold">업종</label>
           <TableGrid
             items={WRITE_INDUSTRY_OPTIONS}
@@ -383,20 +398,8 @@ export default function WritePageClient() {
           />
         </div>
 
-        {/* 지역 */}
-        <div>
-          <label className="mb-2 block text-[15px] font-bold">지역</label>
-          <button
-            type="button"
-            onClick={() => setRegionModalOpen(true)}
-            className={`${inputClass} text-left ${!regionLabel ? "text-gray-500" : ""}`}
-          >
-            {regionLabel || "지역을 선택하세요"}
-          </button>
-        </div>
-
         {/* 모집 */}
-        <div>
+        <div className={formFullClass}>
           <label className="mb-2 block text-[15px] font-bold">모집</label>
           <TableGrid
             items={WRITE_ROLE_OPTIONS}
@@ -406,43 +409,47 @@ export default function WritePageClient() {
               setRoles((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]))
             }
           />
-          {roles.map((role) =>
-            role === "기타" ? (
-              <div key={role} className="mt-3">
-                <label className={blueLabelClass}>직접입력</label>
-                <input
-                  type="text"
-                  value={otherRoleName}
-                  onChange={(e) => setOtherRoleName(e.target.value)}
-                  placeholder="예) 층별, 기본급"
-                  className={`${inputClass} mb-2`}
-                />
-                <label className={blueLabelClass}>수수료</label>
-                <input
-                  type="text"
-                  value={fees["기타"] ?? ""}
-                  onChange={(e) => setFees((prev) => ({ ...prev, 기타: e.target.value }))}
-                  placeholder="예) 300~500, 3%"
-                  disabled={!otherRoleName.trim()}
-                  className={inputClass}
-                />
-              </div>
-            ) : (
-              <div key={role} className="mt-3">
-                <label className={blueLabelClass}>{roleFeeLabel(role)}</label>
-                <input
-                  type="text"
-                  value={fees[role] ?? ""}
-                  onChange={(e) => setFees((prev) => ({ ...prev, [role]: e.target.value }))}
-                  placeholder="예) 300~500, 3%"
-                  className={inputClass}
-                />
-              </div>
-            ),
+          {roles.length > 0 && (
+            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {roles.map((role) =>
+                role === "기타" ? (
+                  <div key={role} className="md:col-span-2">
+                    <label className={blueLabelClass}>직접입력</label>
+                    <input
+                      type="text"
+                      value={otherRoleName}
+                      onChange={(e) => setOtherRoleName(e.target.value)}
+                      placeholder="예) 층별, 기본급"
+                      className={`${inputClass} mb-2`}
+                    />
+                    <label className={blueLabelClass}>수수료</label>
+                    <input
+                      type="text"
+                      value={fees["기타"] ?? ""}
+                      onChange={(e) => setFees((prev) => ({ ...prev, 기타: e.target.value }))}
+                      placeholder="예) 300~500, 3%"
+                      disabled={!otherRoleName.trim()}
+                      className={inputClass}
+                    />
+                  </div>
+                ) : (
+                  <div key={role}>
+                    <label className={blueLabelClass}>{roleFeeLabel(role)}</label>
+                    <input
+                      type="text"
+                      value={fees[role] ?? ""}
+                      onChange={(e) => setFees((prev) => ({ ...prev, [role]: e.target.value }))}
+                      placeholder="예) 300~500, 3%"
+                      className={inputClass}
+                    />
+                  </div>
+                ),
+              )}
+            </div>
           )}
         </div>
 
-        {/* 시행사 / 시공사 / 신탁사 / 대행사 */}
+        {/* 시행사 · 시공사 · 신탁사 · 대행사 */}
         <div>
           <label className="mb-2 block text-[15px] font-bold">시행사</label>
           <input
@@ -485,7 +492,7 @@ export default function WritePageClient() {
         </div>
 
         {/* 상세 내용 */}
-        <div>
+        <div className={formFullClass}>
           <label className="mb-2 block text-[15px] font-bold">상세 내용 (필수)</label>
           <textarea
             ref={contentRef}
@@ -497,7 +504,7 @@ export default function WritePageClient() {
           />
         </div>
 
-        {/* 담당자 / 연락처 */}
+        {/* 담당자 · 연락처 */}
         <div>
           <label className="mb-2 block text-[15px] font-bold">담당자</label>
           <input
@@ -520,27 +527,35 @@ export default function WritePageClient() {
         </div>
 
         {/* 모델하우스 / 현장사업지 */}
-        <MapLocationField
-          label="모델하우스 주소"
-          placeholder="주소 입력 또는 지도를 터치하세요"
-          value={workplace}
-          onChange={setWorkplace}
-          pickerKind="work"
-          peerLocation={business}
-        />
-        <MapLocationField
-          label="현장사업지 주소"
-          placeholder="주소 입력 또는 지도를 터치하세요"
-          value={business}
-          onChange={setBusiness}
-          pickerKind="business"
-          peerLocation={workplace}
-          showSameAsPeer
-        />
+        <div className={formFullClass}>
+          <MapLocationField
+            label="모델하우스 주소"
+            placeholder="주소 입력 또는 지도를 터치하세요"
+            value={workplace}
+            onChange={setWorkplace}
+            pickerKind="work"
+            peerLocation={business}
+          />
+        </div>
+        <div className={formFullClass}>
+          <MapLocationField
+            label="현장사업지 주소"
+            placeholder="주소 입력 또는 지도를 터치하세요"
+            value={business}
+            onChange={setBusiness}
+            pickerKind="business"
+            peerLocation={workplace}
+            showSameAsPeer
+          />
+        </div>
 
-        {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && (
+          <p className={`rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ${formFullClass}`}>
+            {error}
+          </p>
+        )}
 
-        <div className="flex gap-2">
+        <div className={`flex gap-2 ${formFullClass}`}>
           <button
             type="button"
             disabled={submitting}
