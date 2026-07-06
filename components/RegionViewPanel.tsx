@@ -89,7 +89,7 @@ export default function RegionViewPanel({ selectedRegions, onChangeRegions }: Pr
     <>
       <div className="rounded-[14px] border border-black bg-[#f9f9f9] px-1.5 pb-0.5 pt-0">
         <div className="flex min-h-[35px] items-center justify-between px-1">
-          <span className="pl-2 text-base font-semibold text-black">지역 보기</span>
+          <span className="pl-2 text-base font-semibold text-black">지역 현장</span>
           <button
             type="button"
             onClick={() => setModalOpen(true)}

@@ -126,6 +126,38 @@ function TopBannerItem({
   return <BannerShell className={shellClass} href={link || undefined}>{inner}</BannerShell>;
 }
 
+export function ListHomeTopBannerRow({
+  items,
+  onReferralClick,
+  defaultResizeMode = "contain",
+  maxItems = 3,
+}: {
+  items: UIConfigBannerItem[];
+  onReferralClick?: () => void;
+  defaultResizeMode?: "contain" | "cover" | "stretch";
+  maxItems?: number;
+}) {
+  const slots = items
+    .filter((it) => String(it.image_url ?? "").trim())
+    .slice(0, maxItems);
+
+  if (slots.length === 0) return null;
+
+  return (
+    <div className="grid grid-cols-3 gap-1.5">
+      {slots.map((item, idx) => (
+        <TopBannerItem
+          key={`home-top-banner-${idx}`}
+          item={item}
+          onReferralClick={onReferralClick}
+          defaultResizeMode={defaultResizeMode}
+          shellClassName="block w-full overflow-hidden border border-black bg-[#FFF6D2] shadow-sm"
+        />
+      ))}
+    </div>
+  );
+}
+
 export function TopBannerStrip({
   items,
   onReferralClick,

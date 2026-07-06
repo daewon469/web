@@ -1,11 +1,13 @@
 "use client";
 
 import BlueStrip from "@/components/BlueStrip";
-import { ListBannerSidebar } from "@/components/FeedBanner";
+import { ListHomeTopBannerRow } from "@/components/FeedBanner";
 import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
+import ListHomeSearchRow from "@/components/ListHomeSearchRow";
 import ListPostGrid from "@/components/ListPostGrid";
-import NewsPreview from "@/components/NewsPreview";
+import PostcardSSlider from "@/components/PostcardSSlider";
+import RegionViewPanel from "@/components/RegionViewPanel";
 import ReferralModal from "@/components/ReferralModal";
 import { Auth, Posts, UIConfig, type Post, type UIConfigBannerItem } from "@/lib/api";
 import {
@@ -17,20 +19,24 @@ import {
   normalizePostLiked,
   orderSlidePosts,
   overlayLikedPosts,
+  postMatchesRegionParams,
   splitSlideAndFeedPosts,
 } from "@/lib/postCardFormat";
 import { ensureKakaoMapsSdk } from "@/lib/kakaoMaps";
 import {
-  hasListBannerGutter,
-  LIST_BANNER_WIDTH_PX,
   LIST_PAGE_CONTENT_MAX_PX,
   LIST_PAGE_CONTENT_PX,
 } from "@/lib/listCardLayout";
+import {
+  type RegionObj,
+  selectedRegionsToPostListParams,
+  toProvinceShort,
+} from "@/lib/regionUtils";
 import { getSession } from "@/lib/session";
 import { usePostLikedSync } from "@/lib/usePostLikedSync";
 import { useSlidePostIds } from "@/lib/useSlidePostIds";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 function hasSamePostOrderAndLikedState(prev: Post[], next: Post[]) {
   return (
@@ -60,14 +66,11 @@ export default function ListPageClient() {
   const [topBannerResizeMode, setTopBannerResizeMode] = useState<
     "contain" | "cover" | "stretch"
   >("contain");
-  const [feedBanner, setFeedBanner] = useState<{
-    enabled: boolean;
-    interval: number;
-    items: UIConfigBannerItem[];
-    resize_mode: "contain" | "cover" | "stretch";
-  }>({ enabled: false, interval: 10, items: [], resize_mode: "contain" });
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [selectedRegions, setSelectedRegions] = useState<RegionObj[]>([
+    { province: "전체", city: "전체" },
+  ]);
   const slidePostIds = useSlidePostIds();
   const [slidePosts, setSlidePosts] = useState<Post[]>([]);
   const setSlidePostLiked = useCallback((postId: number, liked: boolean) => {
@@ -94,8 +97,26 @@ export default function ListPageClient() {
   );
 
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const contentColumnRef = useRef<HTMLDivElement | null>(null);
-  const [sidebarBannerVisible, setSidebarBannerVisible] = useState(false);
+
+  const regionParams = useMemo(
+    () => selectedRegionsToPostListParams(selectedRegions),
+    [selectedRegions],
+  );
+  const isNationwide = useMemo(
+    () => selectedRegions.some((r) => r.province === "전체"),
+    [selectedRegions],
+  );
+  const regionStripLabel = useMemo(() => {
+    if (isNationwide) return undefined;
+    const first = selectedRegions.find((r) => r.province !== "전체");
+    if (!first) return undefined;
+    return toProvinceShort(first.province);
+  }, [isNationwide, selectedRegions]);
+
+  const resetRegionFilter = useCallback(() => {
+    setSelectedRegions([{ province: "전체", city: "전체" }]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     UIConfig.get().then((res) => {
@@ -108,15 +129,6 @@ export default function ListPageClient() {
         const rm = String(tb?.resize_mode ?? "contain");
         return rm === "cover" || rm === "stretch" ? rm : "contain";
       })());
-      setFeedBanner({
-        enabled: !!res.config.banner?.enabled,
-        interval: Number(res.config.banner?.interval_posts ?? 10) || 10,
-        items: res.config.banner?.items ?? [],
-        resize_mode: (() => {
-          const rm = String(res.config.banner?.resize_mode ?? "contain");
-          return rm === "cover" || rm === "stretch" ? rm : "contain";
-        })(),
-      });
     });
   }, []);
 
@@ -176,6 +188,9 @@ export default function ListPageClient() {
           limit: 20,
           cursor: reset ? undefined : cursor,
           status: "published",
+          province: regionParams.province,
+          city: regionParams.city,
+          regions: regionParams.regions,
         });
         const slidePromise = reset
           ? fetchSlideListPosts({
@@ -206,7 +221,7 @@ export default function ListPageClient() {
         setRefreshing(false);
       }
     },
-    [cursor, refreshing],
+    [cursor, refreshing, regionParams],
   );
 
   const refresh = useCallback(async () => {
@@ -220,6 +235,9 @@ export default function ListPageClient() {
           username: username ?? undefined,
           limit: 20,
           status: "published",
+          province: regionParams.province,
+          city: regionParams.city,
+          regions: regionParams.regions,
         }),
         fetchSlideListPosts({
           username: username ?? undefined,
@@ -237,12 +255,13 @@ export default function ListPageClient() {
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [regionParams]);
 
   useEffect(() => {
     setCursor(undefined);
     load(true);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [regionParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const reoverlayLikedPosts = async () => {
@@ -325,39 +344,13 @@ export default function ListPageClient() {
 
   const orderedPosts = useMemo(() => splitSlideAndFeedPosts(posts).feed, [posts]);
 
-  const postcardS = useMemo(
-    () => orderSlidePosts(slidePosts, slidePostIds),
-    [slidePosts, slidePostIds],
-  );
+  const postcardS = useMemo(() => {
+    const ordered = orderSlidePosts(slidePosts, slidePostIds);
+    if (isNationwide) return ordered;
+    return ordered.filter((p) => postMatchesRegionParams(p, regionParams));
+  }, [slidePosts, slidePostIds, isNationwide, regionParams]);
 
-  const headerFeedBanners = useMemo(
-    () =>
-      feedBanner.enabled
-        ? feedBanner.items.filter((b) => String(b.image_url ?? "").trim())
-        : [],
-    [feedBanner],
-  );
-
-  const showBannerRow = topBanners.length > 0 || headerFeedBanners.length > 0;
-
-  useLayoutEffect(() => {
-    if (!showBannerRow) {
-      setSidebarBannerVisible(false);
-      return;
-    }
-    const el = contentColumnRef.current;
-    if (!el) return;
-
-    const update = () => {
-      setSidebarBannerVisible(hasListBannerGutter(el.getBoundingClientRect().left));
-    };
-
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(document.documentElement);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [showBannerRow]);
+  const showTopBanners = topBanners.length > 0;
 
   const closeMap = useCallback(() => {
     setMapSearchOpen(false);
@@ -381,7 +374,13 @@ export default function ListPageClient() {
       />
 
       <div className="relative -mx-3 flex flex-col lg:mx-0">
-        <BlueStrip mode="nationwide" />
+        <div className="-mx-3 lg:mx-0">
+          <BlueStrip
+            mode={isNationwide ? "nationwide" : "region"}
+            regionLabel={regionStripLabel}
+            onResetRegion={resetRegionFilter}
+          />
+        </div>
 
         <div
           className="relative mx-auto w-full"
@@ -391,72 +390,68 @@ export default function ListPageClient() {
             paddingRight: LIST_PAGE_CONTENT_PX,
           }}
         >
-          <div className="grid">
-            {showBannerRow && sidebarBannerVisible && (
-              <aside
-                aria-label="배너"
-                className="z-20 col-start-1 row-start-1 block self-start justify-self-start"
-                style={{
-                  width: LIST_BANNER_WIDTH_PX,
-                  marginLeft: "calc((100% - 100vw) / 2)",
-                }}
-              >
-                <div className="flex flex-col gap-1">
-                  <ListBannerSidebar
-                    topItems={topBanners}
-                    feedItems={headerFeedBanners}
-                    topResizeMode={topBannerResizeMode}
-                    feedResizeMode={feedBanner.resize_mode}
-                    onReferralClick={openReferralModal}
-                  />
-                </div>
-              </aside>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <RegionViewPanel
+              selectedRegions={selectedRegions}
+              onChangeRegions={setSelectedRegions}
+            />
+
+            <ListHomeSearchRow />
+
+            {!error && postcardS.length > 0 && (
+              <PostcardSSlider
+                posts={postcardS}
+                variant="carousel"
+                autoPlayMs={2000}
+                maxItems={3}
+                onPostLikedChange={setSlidePostLiked}
+              />
             )}
 
-            <div
-              ref={contentColumnRef}
-              className="col-start-1 row-start-1 flex min-w-0 flex-col gap-1.5"
-            >
-              <NewsPreview />
+            {showTopBanners && (
+              <ListHomeTopBannerRow
+                items={topBanners}
+                defaultResizeMode={topBannerResizeMode}
+                maxItems={3}
+                onReferralClick={openReferralModal}
+              />
+            )}
 
-              {loading && !refreshing && (
-                <p className="py-12 text-center text-gray-500">불러오는 중...</p>
-              )}
+            {loading && !refreshing && (
+              <p className="py-12 text-center text-gray-500">불러오는 중...</p>
+            )}
 
-              {!loading && error && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-red-700">
-                  {error}
-                  <button
-                    type="button"
-                    onClick={() => refresh()}
-                    className="mt-2 block w-full text-sm font-medium text-[#4A6CF7] underline"
-                  >
-                    다시 시도
-                  </button>
-                </div>
-              )}
+            {!loading && error && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-red-700">
+                {error}
+                <button
+                  type="button"
+                  onClick={() => refresh()}
+                  className="mt-2 block w-full text-sm font-medium text-[#4A6CF7] underline"
+                >
+                  다시 시도
+                </button>
+              </div>
+            )}
 
-              {!loading && !error && posts.length === 0 && (
-                <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
-              )}
+            {!loading && !error && posts.length === 0 && postcardS.length === 0 && (
+              <p className="py-12 text-center text-gray-500">등록된 구인글이 없습니다.</p>
+            )}
 
-              {!error && (
-                <ListPostGrid
-                  slideItems={postcardS}
-                  feedItems={orderedPosts}
-                  onSlidePostLikedChange={setSlidePostLiked}
-                  onFeedPostLikedChange={setFeedPostLiked}
-                />
-              )}
+            {!error && (
+              <ListPostGrid
+                feedItems={orderedPosts}
+                onFeedPostLikedChange={setFeedPostLiked}
+              />
+            )}
 
-              {loadingMore && (
-                <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>
-              )}
+            {loadingMore && (
+              <p className="py-4 text-center text-sm text-gray-500">더 불러오는 중...</p>
+            )}
 
-              {cursor && !loading && !error && (
-                <div ref={loadMoreRef} className="h-4" aria-hidden />
-              )}
-            </div>
+            {cursor && !loading && !error && (
+              <div ref={loadMoreRef} className="h-4" aria-hidden />
+            )}
           </div>
         </div>
       </div>
