@@ -52,11 +52,15 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
       </div>
 
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-white/95 via-white/80 to-transparent px-2.5 pb-2.5 pt-8"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-white via-white/95 to-transparent px-2.5 pb-2.5 pt-10"
         aria-hidden
       >
-        <p className="truncate text-[15px] font-bold text-[#2F6BFF]">{industryProvinceCity}</p>
-        <p className="mt-1 truncate text-[15px] font-bold text-[#E53935]">{formatRoles(post)}</p>
+        <p className="truncate text-[15px] font-extrabold text-[#0B57D0] drop-shadow-sm">
+          {industryProvinceCity}
+        </p>
+        <p className="mt-1 truncate text-[15px] font-extrabold text-[#C62828] drop-shadow-sm">
+          {formatRoles(post)}
+        </p>
       </div>
       </Link>
       {showHeart && (

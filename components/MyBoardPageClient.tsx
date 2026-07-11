@@ -452,45 +452,49 @@ export default function MyBoardPageClient() {
         </SectionCard>
       </div>
 
-      {/* 6~7 나란히 */}
+      {/* 6~7: 1~5와 동일한 카드 너비(5열 기준 1칸) */}
       {(isAdmin || isOwner) && (
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
           {isAdmin && (
-            <SectionCard title="6. 관리자 메뉴">
-              <Row label="공지사항 관리" href="/mypage5" />
-              <Row label="문의 및 건의사항 확인" href="/list6" />
-              <Row
-                label={
-                  <>
-                    회원 관리 <span className="font-normal text-[#666]">(관리자용)</span>
-                  </>
-                }
-                href="/adminusers"
-              />
-              <Row label="제목검색 추천현장 관리" href="/titlesearchadmin" />
-              <Row label="슬라이드 현장 관리" href="/slidepostsadmin" />
-              <Row label="오늘의 현황" href="/todaystatus" />
-            </SectionCard>
+            <div className="min-w-0 w-full sm:w-[calc(50%-0.3125rem)] lg:w-[calc((100%-2.5rem)/5)]">
+              <SectionCard title="6. 관리자 메뉴">
+                <Row label="공지사항 관리" href="/mypage5" />
+                <Row label="문의 및 건의사항 확인" href="/list6" />
+                <Row
+                  label={
+                    <>
+                      회원 관리 <span className="font-normal text-[#666]">(관리자용)</span>
+                    </>
+                  }
+                  href="/adminusers"
+                />
+                <Row label="제목검색 추천현장 관리" href="/titlesearchadmin" />
+                <Row label="슬라이드 현장 관리" href="/slidepostsadmin" />
+                <Row label="오늘의 현황" href="/todaystatus" />
+              </SectionCard>
+            </div>
           )}
 
           {isOwner && (
-            <SectionCard title="7. 오너 메뉴">
-              <Row
-                label={
-                  <>
-                    회원 관리 <span className="font-normal text-[#666]">(오너용)</span>
-                  </>
-                }
-                href="/adminusers"
-              />
-              <Row label="분양대행 문의 확인" href="/list7" />
-              <Row label="상단배너 관리 (모바일)" href="/topbanneradmin" />
-              <Row label="하단배너 관리 (모바일)" href="/banneradmin" />
-              <Row label="데스크탑 상단배너 관리" href="/webtopbanneradmin" />
-              <Row label="데스크탑 하단배너 관리" href="/webbanneradmin" />
-              <Row label="팝업창 관리" href="/popupadmin" />
-              <Row label="엑셀 다운로드" onClick={handleExportUsersExcel} />
-            </SectionCard>
+            <div className="min-w-0 w-full sm:w-[calc(50%-0.3125rem)] lg:w-[calc((100%-2.5rem)/5)]">
+              <SectionCard title="7. 오너 메뉴">
+                <Row
+                  label={
+                    <>
+                      회원 관리 <span className="font-normal text-[#666]">(오너용)</span>
+                    </>
+                  }
+                  href="/adminusers"
+                />
+                <Row label="분양대행 문의 확인" href="/list7" />
+                <Row label="상단배너 관리 (모바일)" href="/topbanneradmin" />
+                <Row label="하단배너 관리 (모바일)" href="/banneradmin" />
+                <Row label="데스크탑 상단배너 관리" href="/webtopbanneradmin" />
+                <Row label="데스크탑 하단배너 관리" href="/webbanneradmin" />
+                <Row label="팝업창 관리" href="/popupadmin" />
+                <Row label="엑셀 다운로드" onClick={handleExportUsersExcel} />
+              </SectionCard>
+            </div>
           )}
         </div>
       )}
