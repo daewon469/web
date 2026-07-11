@@ -94,7 +94,7 @@ export default function RegionCategoryTabs({ selectedRegions, onChangeRegions }:
                 className="relative w-3 shrink-0 self-stretch overflow-hidden sm:w-4"
               >
                 <span
-                  className="absolute left-1/2 top-1/2 block h-[160%] w-[2px] -translate-x-1/2 -translate-y-1/2 bg-black"
+                  className="absolute left-1/2 top-1/2 block h-[160%] w-[2px] -translate-x-1/2 -translate-y-1/2 bg-[#0B1B3A]"
                   style={{ transform: "translate(-50%, -50%) rotate(28deg)" }}
                 />
               </div>
