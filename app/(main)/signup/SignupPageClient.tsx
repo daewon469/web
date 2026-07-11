@@ -52,6 +52,9 @@ export default function SignupPageClient() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const [usernameCheckMsg, setUsernameCheckMsg] = useState<string | null>(null);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
 
   const phoneChanged =
     isEditMode && phoneDigits(phoneNumber) !== phoneDigits(originalPhoneNumber);
@@ -135,6 +138,50 @@ export default function SignupPageClient() {
       setError(getApiErrorMessage(e, "인증에 실패했습니다. 다시 시도해주세요."));
     } finally {
       setVerifyingCode(false);
+    }
+  };
+
+  const checkUsernameDuplicate = async () => {
+    const name = username.trim();
+    if (!name) {
+      setUsernameCheckMsg("닉네임을 입력해 주세요.");
+      setUsernameAvailable(false);
+      return;
+    }
+    if (name.length < 2) {
+      setUsernameCheckMsg("닉네임은 최소 2글자 이상이어야 합니다.");
+      setUsernameAvailable(false);
+      return;
+    }
+    if (isEditMode && originalUsername && name === originalUsername.trim()) {
+      setUsernameAvailable(true);
+      setUsernameCheckMsg("현재 사용 중인 닉네임입니다.");
+      return;
+    }
+    setError(null);
+    try {
+      setCheckingUsername(true);
+      const res = await Auth.checkUsername(
+        name,
+        isEditMode ? originalUsername || undefined : undefined,
+      );
+      if (res.status === 0 && res.available) {
+        setUsernameAvailable(true);
+        setUsernameCheckMsg("사용 가능한 닉네임입니다.");
+        return;
+      }
+      if (res.status === 2) {
+        setUsernameAvailable(false);
+        setUsernameCheckMsg(res.detail || "닉네임 형식이 올바르지 않습니다.");
+        return;
+      }
+      setUsernameAvailable(false);
+      setUsernameCheckMsg("이미 사용 중인 닉네임입니다.");
+    } catch (e: unknown) {
+      setUsernameAvailable(null);
+      setUsernameCheckMsg(getApiErrorMessage(e, "중복확인에 실패했습니다."));
+    } finally {
+      setCheckingUsername(false);
     }
   };
 
@@ -243,13 +290,36 @@ export default function SignupPageClient() {
       <form onSubmit={submit} className="flex flex-col gap-4">
         <div>
           <label className="mb-2 block pl-1 text-[15px]">※ 닉네임 (한글가능)</label>
-          <input
-            type="text"
-            placeholder="닉네임을 입력해 주세요."
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className={inputClass}
-          />
+          <div className="flex items-center rounded-xl border border-black bg-[#f9f9f9]">
+            <input
+              type="text"
+              placeholder="닉네임을 입력해 주세요."
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setUsernameAvailable(null);
+                setUsernameCheckMsg(null);
+              }}
+              className="flex-1 bg-transparent px-3 py-3 outline-none"
+            />
+            <button
+              type="button"
+              onClick={checkUsernameDuplicate}
+              disabled={checkingUsername || !username.trim()}
+              className="shrink-0 border-l border-black px-3 py-2 text-sm font-bold text-[#4A6CF7] disabled:opacity-50"
+            >
+              {checkingUsername ? "확인중" : usernameAvailable ? "완료" : "중복확인"}
+            </button>
+          </div>
+          {usernameCheckMsg && (
+            <p
+              className={`mt-1.5 pl-1 text-xs ${
+                usernameAvailable ? "text-[#2F6BFF]" : "text-red-600"
+              }`}
+            >
+              {usernameCheckMsg}
+            </p>
+          )}
         </div>
 
         <div>

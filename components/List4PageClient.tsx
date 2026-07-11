@@ -44,16 +44,16 @@ function AdCardTitleOnly({ item }: { item: Post }) {
   return (
     <Link
       href={`/${item.id}`}
-      className="block h-full rounded-xl border border-black bg-white px-2.5 py-3"
+      className="block h-full rounded-lg border border-black bg-white px-1.5 py-2"
     >
       {companyName && (
-        <p className="truncate text-[17px] font-semibold" style={{ color: PRIMARY }}>
+        <p className="truncate text-[13px] font-semibold" style={{ color: PRIMARY }}>
           {companyName}
         </p>
       )}
       <p
-        className={`line-clamp-2 text-[19px] font-bold leading-snug text-[#222] ${
-          companyName ? "mt-1" : ""
+        className={`line-clamp-2 text-[14px] font-bold leading-snug text-[#222] ${
+          companyName ? "mt-0.5" : ""
         }`}
       >
         {item.title}
@@ -69,29 +69,29 @@ function AdCardSlim({ item }: { item: Post }) {
   return (
     <Link
       href={`/${item.id}`}
-      className="block h-full overflow-hidden rounded-[14px] border border-black bg-white"
+      className="block h-full overflow-hidden rounded-lg border border-black bg-white"
     >
       {imageUri ? (
         <Image
           src={imageUri}
           alt=""
-          width={400}
-          height={300}
-          className="block aspect-[4/3] w-full bg-[#DDD] object-cover"
+          width={320}
+          height={200}
+          className="block aspect-[8/5] w-full bg-[#DDD] object-cover"
           unoptimized
         />
       ) : (
-        <div className="aspect-[4/3] w-full bg-[#DDD]" />
+        <div className="aspect-[8/5] w-full bg-[#DDD]" />
       )}
-      <div className="flex flex-col justify-center px-2.5 py-2.5">
+      <div className="flex flex-col justify-center px-1.5 py-1.5">
         {companyName && (
-          <p className="truncate text-[17px] font-semibold" style={{ color: PRIMARY }}>
+          <p className="truncate text-[13px] font-semibold" style={{ color: PRIMARY }}>
             {companyName}
           </p>
         )}
         <p
-          className={`line-clamp-2 text-[19px] font-bold leading-snug text-[#222] ${
-            companyName ? "mt-1" : ""
+          className={`line-clamp-2 text-[14px] font-bold leading-snug text-[#222] ${
+            companyName ? "mt-0.5" : ""
           }`}
         >
           {item.title}
@@ -109,7 +109,7 @@ function CategoryTabs({
   onChange: (c: Category) => void;
 }) {
   return (
-    <CategoryBarShell stickyTopClass="top-[6.25rem] z-40 lg:top-11">
+    <CategoryBarShell stickyTopClass="top-14 z-40">
       {MAIN_CATEGORIES.map((c) => (
         <CategoryTabButton
           key={c}
@@ -287,7 +287,7 @@ export default function List4PageClient() {
           <p className="py-12 text-center text-gray-500">광고가 없습니다.</p>
         )}
 
-        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
           {activeItems.map((item) =>
             item.card_type === 3 ? (
               <AdCardTitleOnly key={item.id} item={item} />

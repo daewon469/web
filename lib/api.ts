@@ -357,6 +357,22 @@ export const Auth = {
     return data;
   },
 
+  checkUsername: async (
+    username: string,
+    exclude?: string,
+  ): Promise<{ status: number; available: boolean; detail?: string }> => {
+    const { data } = await api.get<{ status: number; available: boolean; detail?: string }>(
+      "/community/username/check",
+      {
+        params: {
+          username: username.trim(),
+          ...(exclude?.trim() ? { exclude: exclude.trim() } : {}),
+        },
+      },
+    );
+    return data ?? { status: 1, available: false };
+  },
+
   logOut: () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("isLogin", "false");

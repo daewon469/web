@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 const TOP_BG = "#0B1B3A";
 const BOTTOM_BG = "#EEF3FF";
 const BOTTOM_FG = "#1A2B5F";
-const TAB_ICON_SIZE = 22;
+const TAB_ICON_SIZE = 23;
 
 const topTabs = [
   { id: "write", label: "구인등록", icon: "create" as const, href: "/write", requiresLogin: true },
@@ -49,10 +49,10 @@ function TabButton({
   const textColor = active ? color : color;
   const opacity = active ? 1 : mutedOpacity;
   const className =
-    "flex flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-1 transition-opacity hover:opacity-90";
+    "flex w-[52px] shrink-0 flex-col items-center justify-center gap-0 px-0 py-1 transition-opacity hover:opacity-90 sm:w-[58px]";
   const content = (
     <>
-      <span className="flex h-[24px] items-center justify-center" style={{ color: textColor, opacity }}>
+      <span className="flex h-[26px] items-center justify-center" style={{ color: textColor, opacity }}>
         <NavIcon name={icon} size={TAB_ICON_SIZE} className="text-current" />
       </span>
       <span
@@ -219,52 +219,64 @@ export default function ListHomeToolbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-black">
-      <div className="flex h-14 w-full items-stretch">
-        <div className="flex min-w-0 flex-[1_1_50%] items-stretch" style={{ backgroundColor: TOP_BG }}>
-          {topTabs.map((tab) => {
-            const label =
-              tab.id === "ad" && !isLogin
-                ? "로그인"
-                : tab.id === "myboard" && !isLogin
-                  ? tab.loginLabel
-                  : tab.label;
-            const icon =
-              tab.id === "ad" && !isLogin ? ("log-in" as const) : tab.icon;
-            return (
+      <div className="relative flex h-14 w-full justify-center">
+        <div
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-1/2"
+          style={{ backgroundColor: TOP_BG }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-y-0 right-0 w-1/2"
+          style={{ backgroundColor: BOTTOM_BG }}
+        />
+        <div className="relative z-10 flex h-14 max-w-[640px] items-stretch justify-center">
+          <div className="flex items-stretch" style={{ backgroundColor: TOP_BG }}>
+            {topTabs.map((tab) => {
+              const label =
+                tab.id === "ad" && !isLogin
+                  ? "로그인"
+                  : tab.id === "myboard" && !isLogin
+                    ? tab.loginLabel
+                    : tab.label;
+              const icon =
+                tab.id === "ad" && !isLogin ? ("log-in" as const) : tab.icon;
+              return (
+                <TabButton
+                  key={tab.id}
+                  icon={icon}
+                  label={label}
+                  active={isTopActive(tab)}
+                  onClick={() => handleTopTab(tab)}
+                />
+              );
+            })}
+          </div>
+
+          <div
+            className="relative w-3 shrink-0 sm:w-4"
+            aria-hidden
+            style={{
+              background: `linear-gradient(to bottom right, ${TOP_BG} 49%, #000 49%, #000 51%, ${BOTTOM_BG} 51%)`,
+            }}
+          />
+
+          <div
+            className="flex items-stretch border-t border-[#d8e2ff]"
+            style={{ backgroundColor: BOTTOM_BG }}
+          >
+            {bottomTabs.map((tab) => (
               <TabButton
                 key={tab.id}
-                icon={icon}
-                label={label}
-                active={isTopActive(tab)}
-                onClick={() => handleTopTab(tab)}
+                icon={tab.icon}
+                label={tab.label}
+                color={BOTTOM_FG}
+                mutedOpacity={0.7}
+                active={isBottomActive(tab)}
+                onClick={() => void handleBottomTab(tab)}
               />
-            );
-          })}
-        </div>
-
-        <div
-          className="relative w-5 shrink-0 sm:w-6"
-          aria-hidden
-          style={{
-            background: `linear-gradient(to bottom right, ${TOP_BG} 49%, #000 49%, #000 51%, ${BOTTOM_BG} 51%)`,
-          }}
-        />
-
-        <div
-          className="flex min-w-0 flex-[1_1_50%] items-stretch border-t border-[#d8e2ff]"
-          style={{ backgroundColor: BOTTOM_BG }}
-        >
-          {bottomTabs.map((tab) => (
-            <TabButton
-              key={tab.id}
-              icon={tab.icon}
-              label={tab.label}
-              color={BOTTOM_FG}
-              mutedOpacity={0.7}
-              active={isBottomActive(tab)}
-              onClick={() => void handleBottomTab(tab)}
-            />
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </header>

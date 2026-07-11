@@ -358,15 +358,19 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
 
   return createPortal(
     <div
-      className={open ? "fixed inset-0 z-[200] flex flex-col bg-white" : "hidden"}
+      className={
+        open
+          ? "fixed inset-x-0 bottom-0 top-14 z-40 flex flex-col bg-white"
+          : "hidden"
+      }
       aria-hidden={!open}
     >
-      <div className="relative z-10 flex h-12 shrink-0 items-center justify-between border-b border-gray-200 bg-[#0B1B3A] px-4">
-        <span className="font-bold text-white">지도검색</span>
+      <div className="relative z-10 flex h-10 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
+        <span className="text-sm font-bold text-gray-900">지도검색</span>
         <button
           type="button"
           onClick={handleClose}
-          className="relative z-20 rounded px-2 py-1 font-bold text-white hover:bg-white/10"
+          className="relative z-20 rounded px-2 py-1 text-sm font-bold text-[#2F6BFF] hover:bg-[#EEF3FF]"
         >
           닫기
         </button>

@@ -9,18 +9,11 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function objectFitClass(mode: "contain" | "cover" | "stretch") {
-  if (mode === "cover") return "object-cover";
-  if (mode === "stretch") return "object-fill";
-  return "object-contain";
-}
-
 export default function HomePopup() {
   const [visible, setVisible] = useState(false);
   const [config, setConfig] = useState<{
     image_url: string | null;
     link_url: string | null;
-    resize_mode?: "contain" | "cover" | "stretch";
   } | null>(null);
 
   useEffect(() => {
@@ -40,11 +33,6 @@ export default function HomePopup() {
   const src = resolveMediaUrl(config.image_url);
   if (!src) return null;
 
-  const resizeMode = (() => {
-    const rm = String(config.resize_mode ?? "contain");
-    return rm === "cover" || rm === "stretch" ? rm : "contain";
-  })() as "contain" | "cover" | "stretch";
-
   const hideToday = () => {
     localStorage.setItem(POPUP_HIDE_KEY, todayKey());
     setVisible(false);
@@ -57,7 +45,7 @@ export default function HomePopup() {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-[min(100%,32rem)] rounded-xl bg-white p-2 shadow-xl sm:max-w-lg lg:max-w-xl">
+      <div className="relative inline-flex max-h-[85vh] max-w-[min(100%,36rem)] flex-col items-center rounded-xl bg-white p-2 shadow-xl">
         <button
           type="button"
           onClick={() => setVisible(false)}
@@ -65,12 +53,12 @@ export default function HomePopup() {
         >
           닫기
         </button>
-        <button type="button" onClick={onImageClick} className="block w-full">
+        <button type="button" onClick={onImageClick} className="block max-h-[75vh]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
             alt=""
-            className={`block h-auto max-h-[75vh] w-full rounded-lg bg-[#f2f2f2] ${objectFitClass(resizeMode)}`}
+            className="block h-auto max-h-[75vh] w-auto max-w-full rounded-lg bg-[#f2f2f2] object-contain"
           />
         </button>
         <button

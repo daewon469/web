@@ -15,9 +15,10 @@ const TICKER_LINES = [
   "추천인 인맥 100명 달성 시 1,000,000p 지급.",
 ];
 
-const TICKER_HEIGHT = 22;
+const TICKER_HEIGHT = 18;
 const TICKER_DWELL_MS = 4500;
 const TICKER_TRANSITION_MS = 600;
+const TEXT_CLASS = "text-[12px] font-semibold leading-none text-white";
 
 function spacedChars(text: string) {
   return Array.from(text).join(" ");
@@ -25,12 +26,12 @@ function spacedChars(text: string) {
 
 function BlueStripShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative h-[22px]">
+    <div className="sticky top-14 z-40 h-[18px]">
       <div
         aria-hidden
         className={`pointer-events-none absolute inset-y-0 bg-[#4A6CF7] ${CATEGORY_BAR_BLEED_CLASS}`}
       />
-      <div className="relative h-[22px]">{children}</div>
+      <div className="relative h-[18px]">{children}</div>
     </div>
   );
 }
@@ -93,7 +94,7 @@ function NationwideTicker() {
   }, []);
 
   return (
-    <div className="relative h-[22px] overflow-hidden px-4">
+    <div className="relative h-[18px] overflow-hidden px-4">
       <div
         className="flex flex-col"
         style={{
@@ -103,15 +104,11 @@ function NationwideTicker() {
             : "none",
         }}
       >
-        <div className="flex h-[22px] shrink-0 items-center">
-          <span className="truncate text-left text-[15px] font-extrabold leading-tight text-white">
-            ※ {current}
-          </span>
+        <div className="flex h-[18px] shrink-0 items-center">
+          <span className={`truncate text-left ${TEXT_CLASS}`}>※ {current}</span>
         </div>
-        <div className="flex h-[22px] shrink-0 items-center">
-          <span className="truncate text-left text-[15px] font-extrabold leading-tight text-white">
-            ※ {next}
-          </span>
+        <div className="flex h-[18px] shrink-0 items-center">
+          <span className={`truncate text-left ${TEXT_CLASS}`}>※ {next}</span>
         </div>
       </div>
     </div>
@@ -122,10 +119,8 @@ export default function BlueStrip({ mode, regionLabel, onResetRegion }: Props) {
   if (mode === "like") {
     return (
       <BlueStripShell>
-        <div className="flex h-[22px] items-center px-4">
-          <span className="text-[15px] font-extrabold leading-tight text-white">
-            ※ &apos;관 심 현 장&apos; 을 보고 계십니다.
-          </span>
+        <div className="flex h-[18px] items-center px-4">
+          <span className={TEXT_CLASS}>※ &apos;관 심 현 장&apos; 을 보고 계십니다.</span>
         </div>
       </BlueStripShell>
     );
@@ -134,14 +129,11 @@ export default function BlueStrip({ mode, regionLabel, onResetRegion }: Props) {
   if (mode === "custom") {
     return (
       <BlueStripShell>
-        <div className="flex h-[22px] items-center justify-between px-4">
-          <span className="min-w-0 truncate text-[15px] font-extrabold leading-tight text-white">
+        <div className="flex h-[18px] items-center justify-between px-4">
+          <span className={`min-w-0 truncate ${TEXT_CLASS}`}>
             ※ &apos;맞 춤 저 장&apos; 을 보고 계십니다.
           </span>
-          <Link
-            href="/customsite"
-            className="shrink-0 text-[15px] font-extrabold leading-tight text-white"
-          >
+          <Link href="/customsite" className={`shrink-0 ${TEXT_CLASS}`}>
             맞춤설정 하기
           </Link>
         </div>
@@ -154,14 +146,12 @@ export default function BlueStrip({ mode, regionLabel, onResetRegion }: Props) {
     const message = spacedChars(`${label}현장입니다`);
     return (
       <BlueStripShell>
-        <div className="flex h-[22px] items-center justify-between px-4">
-          <span className="text-center text-[15px] font-extrabold leading-tight text-white">
-            ※ &apos;{message}.&apos;
-          </span>
+        <div className="flex h-[18px] items-center justify-between px-4">
+          <span className={`text-center ${TEXT_CLASS}`}>※ &apos;{message}.&apos;</span>
           <button
             type="button"
             onClick={onResetRegion}
-            className="text-[15px] font-extrabold leading-tight text-white"
+            className={TEXT_CLASS}
           >
             전체지역 보기
           </button>

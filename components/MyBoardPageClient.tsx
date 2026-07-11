@@ -1,8 +1,8 @@
 "use client";
 
 import ReferralModal from "@/components/ReferralModal";
-import NewsPreview from "@/components/NewsPreview";
-import { API_URL, Auth, Referral } from "@/lib/api";
+import UserGradeBadge from "@/components/UserGradeBadge";
+import { API_URL, Auth, Posts, Referral, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession, setLoggedOut } from "@/lib/session";
 import { getUserGradeLabel } from "@/lib/userGrade";
@@ -20,10 +20,22 @@ type Summary = {
   posts: { type1: number; type3: number; type4: number; type6?: number };
 };
 
+function formatPostDateTime(d: unknown) {
+  const dt = new Date(String(d ?? ""));
+  if (Number.isNaN(dt.getTime())) return "";
+  const date = dt.toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit" });
+  const time = dt.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  return `${date} ${time}`;
+}
+
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-black bg-white p-4 shadow-sm">
-      <h2 className="mb-2 text-lg font-bold text-[#111]">{title}</h2>
+    <section className="flex min-h-0 min-w-0 flex-col rounded-xl border border-black bg-white p-3 shadow-sm">
+      <h2 className="mb-1.5 shrink-0 text-[15px] font-bold text-[#111] sm:text-base">{title}</h2>
       <div className="flex flex-col">{children}</div>
     </section>
   );
@@ -31,26 +43,17 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 
 function Row({
   label,
-  sub,
   href,
   onClick,
 }: {
   label: ReactNode;
-  sub?: ReactNode;
   href?: string;
   onClick?: () => void;
 }) {
   const className =
-    "flex w-full items-center justify-between border-t border-[#ddd] py-2.5 text-left text-[15px] font-bold text-[#111] hover:bg-gray-50";
+    "flex w-full items-start justify-between gap-1 border-t border-[#ddd] py-2 text-left text-[13px] font-bold leading-snug text-[#111] hover:bg-gray-50 sm:text-[14px]";
 
-  const content = (
-    <>
-      <span>{label}</span>
-      {sub != null && sub !== "" && (
-        <span className="text-sm font-normal text-[#666]">{sub}</span>
-      )}
-    </>
-  );
+  const content = <span className="min-w-0">{label}</span>;
 
   if (onClick) {
     return (
@@ -67,6 +70,91 @@ function Row({
   );
 }
 
+function BoardPreviewCard({
+  title,
+  moreHref,
+  emptyText,
+  items,
+  resolveHref,
+}: {
+  title: ReactNode;
+  moreHref: string;
+  emptyText: string;
+  items: Post[];
+  resolveHref: (post: Post) => { href: string; external?: boolean };
+}) {
+  return (
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <h2 className="text-base font-bold text-black sm:text-lg">{title}</h2>
+        <Link
+          href={moreHref}
+          className="flex shrink-0 items-center text-xs font-medium text-[#4A6CF7] sm:text-sm"
+        >
+          더보기
+          <span aria-hidden className="ml-0.5">
+            ›
+          </span>
+        </Link>
+      </div>
+      <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-black bg-white">
+        {items.length === 0 ? (
+          <p className="px-2.5 py-3 text-[12px] text-[#666]">{emptyText}</p>
+        ) : (
+          items.map((post) => {
+            const { href, external } = resolveHref(post);
+            const row = (
+              <div className="flex h-7 items-center border-b border-[#ddd] px-2 last:border-b-0">
+                <span className="mr-1.5 h-1 w-1 shrink-0 rounded-full bg-black" aria-hidden />
+                <span className="flex-1 truncate text-[13px] text-black sm:text-[14px]">
+                  {post.title}
+                </span>
+                <span className="ml-1.5 shrink-0 text-[10px] text-[#666]">
+                  {formatPostDateTime((post as Post & { created_at?: string }).created_at)}
+                </span>
+              </div>
+            );
+            if (external) {
+              return (
+                <a
+                  key={post.id}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block hover:bg-gray-50"
+                >
+                  {row}
+                </a>
+              );
+            }
+            return (
+              <Link key={post.id} href={href} className="block hover:bg-gray-50">
+                {row}
+              </Link>
+            );
+          })
+        )}
+      </div>
+    </section>
+  );
+}
+
+function StarIcon({ className = "", color = "currentColor" }: { className?: string; color?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill={color} aria-hidden>
+      <path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14 2 9.27l7.1-1.01L12 2z" />
+    </svg>
+  );
+}
+
+function WalletIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="#4A6CF7" aria-hidden>
+      <path d="M21 7H3a1 1 0 0 0-1 1v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1zm-1 9h-4a2 2 0 0 1 0-4h4v4zm0-6h-4a4 4 0 0 0 0 8h4v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9h17v1zM3 5h15v1H3V5z" />
+    </svg>
+  );
+}
+
 export default function MyBoardPageClient() {
   const router = useRouter();
   const [username, setUsername] = useState<string | null>(null);
@@ -77,6 +165,8 @@ export default function MyBoardPageClient() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
   const [referralModalOpen, setReferralModalOpen] = useState(false);
+  const [news, setNews] = useState<Post[]>([]);
+  const [community, setCommunity] = useState<Post[]>([]);
 
   useEffect(() => {
     const session = getSession();
@@ -88,7 +178,11 @@ export default function MyBoardPageClient() {
 
     (async () => {
       try {
-        const res = await Auth.getMyPageSummary(session.username!);
+        const [res, newsRes, comRes] = await Promise.all([
+          Auth.getMyPageSummary(session.username!),
+          Posts.listByType(2, { status: "published", limit: 6 }).catch(() => ({ items: [] as Post[] })),
+          Posts.listByType(3, { status: "published", limit: 6 }).catch(() => ({ items: [] as Post[] })),
+        ]);
         if (res.status !== 0) {
           setError("회원 정보를 불러올 수 없습니다.");
           return;
@@ -104,6 +198,8 @@ export default function MyBoardPageClient() {
         });
         setIsAdmin(!!res.admin_acknowledged);
         setIsOwner(!!res.is_owner);
+        setNews((newsRes.items ?? []).slice(0, 6));
+        setCommunity((comRes.items ?? []).slice(0, 6));
 
         try {
           const count = await Referral.networkCount(session.username!, { max_depth: 20 });
@@ -172,6 +268,7 @@ export default function MyBoardPageClient() {
   }
 
   const inquiryCount = summary.posts.type6 ?? 0;
+  const referralCode = summary.referral_code || "없음";
 
   return (
     <div className="flex flex-col gap-2.5 pb-6">
@@ -181,170 +278,221 @@ export default function MyBoardPageClient() {
         referralCode={summary.referral_code}
       />
 
-      {/* 내 정보 카드 */}
-      <section className="rounded-2xl border border-black bg-white p-5 shadow-sm">
-        <div className="mb-4">
-          <p className="text-xl font-bold text-[#111]">{username}</p>
-          <p className="mt-1 text-xs text-[#666]">
-            회원등급: {getUserGradeLabel(summary.user_grade)}
-          </p>
-          <p className="text-xs text-[#666]">
-            가입일: {summary.signup_date || "정보 없음"}
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 border-t border-[#ddd] pt-4">
-          <Link
-            href="/points"
-            className="flex items-center justify-between rounded-[10px] border border-[#ddd] bg-[#f8f9fa] p-3"
-          >
-            <span className="text-[17px] font-bold text-black">포인트</span>
-            <span className="text-lg font-bold text-black">
-              {summary.point_balance.toLocaleString()}점
-            </span>
-          </Link>
-          <Link
-            href="/cash"
-            className="flex items-center justify-between rounded-[10px] border border-[#ddd] bg-[#f8f9fa] p-3"
-          >
-            <span className="text-base font-bold text-black">캐시</span>
-            <span className="text-lg font-bold text-black">
-              {summary.cash_balance.toLocaleString()}원
-            </span>
-          </Link>
-        </div>
-      </section>
+      {/* 상단: 사용자 카드 + 분양뉴스/수다 */}
+      <div className="flex flex-col gap-2.5 lg:flex-row lg:items-stretch">
+        <section className="rounded-2xl border border-black bg-white p-5 shadow-sm lg:w-[340px] lg:shrink-0">
+          <div className="mb-4 flex items-center">
+            <div className="mr-3">
+              <UserGradeBadge
+                grade={summary.user_grade}
+                size={56}
+                bgColor={summary.user_grade === -1 ? undefined : "#f8f9fa"}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-baseline">
+                <p className="text-xl font-bold text-[#111]">{username}</p>
+                <p className="ml-1 text-[13px] text-[#666]">
+                  ({getUserGradeLabel(summary.user_grade)})
+                </p>
+              </div>
+              <div className="mt-1 flex items-center">
+                <StarIcon color="#4A6CF7" className="shrink-0" />
+                <p className="ml-1 text-[13px] font-medium text-[#666]">
+                  추천인코드 {referralCode}
+                </p>
+              </div>
+            </div>
+          </div>
 
-      <NewsPreview />
-
-      <SectionCard title="1. 포인트 관리">
-        <Row
-          label={
-            <>
-              추천하기{" "}
-              <span className="font-normal text-[#666]">
-                (추천인코드 {summary.referral_code || "없음"})
+          <div className="flex flex-col gap-3 border-t border-[#ddd] pt-4">
+            <Link
+              href="/points"
+              className="flex items-center justify-between rounded-[10px] border border-[#ddd] bg-[#f8f9fa] p-3"
+            >
+              <span className="flex items-center gap-1.5 text-[17px] font-bold text-black">
+                <StarIcon color="#FFD700" />
+                포인트
               </span>
-            </>
-          }
-          onClick={() => setReferralModalOpen(true)}
-        />
-        <Row
-          label={
-            <>
-              내가 추천한 회원{" "}
-              <span className="font-normal text-[#666]">({summary.referral_count}명)</span>
-            </>
-          }
-          href="/referrals"
-        />
-        <Row label="추천인 랭킹" href="/referralranking" />
-        <Row
-          label={
-            <>
-              나의 추천인 인맥{" "}
-              <span className="font-normal text-[#666]">({referralNetworkCount}명)</span>
-            </>
-          }
-          href="/referralnetwork"
-        />
-        <Row label="적립/사용 내역" href="/points" />
-      </SectionCard>
+              <span className="text-lg font-bold text-black">
+                {summary.point_balance.toLocaleString()}점
+              </span>
+            </Link>
+            <Link
+              href="/cash"
+              className="flex items-center justify-between rounded-[10px] border border-[#ddd] bg-[#f8f9fa] p-3"
+            >
+              <span className="flex items-center gap-1.5 text-base font-bold text-black">
+                <WalletIcon />
+                캐시
+              </span>
+              <span className="text-lg font-bold text-black">
+                {summary.cash_balance.toLocaleString()}원
+              </span>
+            </Link>
+          </div>
+        </section>
 
-      <SectionCard title="2. 캐시 관리">
-        <Row label="캐시 충전" href="/payment/toss" />
-        <Row label="충전/사용 내역" href="/cash" />
-      </SectionCard>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <BoardPreviewCard
+            title="분양 뉴스"
+            moreHref="/list2"
+            emptyText="아직 등록된 분양 뉴스가 없습니다."
+            items={news}
+            resolveHref={(post) => ({
+              href: post.agent?.trim() || `/${post.id}`,
+              external: Boolean(post.agent?.trim()),
+            })}
+          />
+          <BoardPreviewCard
+            title={
+              <>
+                분<span className="text-sm">양인</span> 수<span className="text-sm">다</span>
+              </>
+            }
+            moreHref="/list3"
+            emptyText="아직 등록된 커뮤니티 글이 없습니다."
+            items={community}
+            resolveHref={(post) => ({ href: `/${post.id}` })}
+          />
+        </div>
+      </div>
 
-      <SectionCard title="3. 글 관리">
-        <Row
-          label={
-            <>
-              내 구인글 <span className="font-normal text-[#666]">({summary.posts.type1})</span>
-            </>
-          }
-          href="/mypage"
-        />
-        <Row
-          label={
-            <>
-              내 수다글 <span className="font-normal text-[#666]">({summary.posts.type3})</span>
-            </>
-          }
-          href="/mypage3"
-        />
-        <Row
-          label={
-            <>
-              내 광고글 <span className="font-normal text-[#666]">({summary.posts.type4})</span>
-            </>
-          }
-          href="/mypage4"
-        />
-        <Row
-          label={
-            <>
-              내 문의글 <span className="font-normal text-[#666]">({inquiryCount})</span>
-            </>
-          }
-          href="/mypage6"
-        />
-        <Row label="내 알림 내역" href="/noti" />
-      </SectionCard>
-
-      <SectionCard title="4. 설정">
-        <Row label="내 정보 수정" href="/signup?mode=edit" />
-        <Row label="지역저장 설정" href="/areasite" />
-        <Row label="맞춤저장 설정" href="/customsite" />
-        <Row label="푸시알림 설정" onClick={handlePushSettings} />
-      </SectionCard>
-
-      <SectionCard title="5. 고객센터">
-        <Row label="공지사항" href="/list5" />
-        <Row label="문의 및 건의사항" href="/write6" />
-        <Row
-          label="(주)대원파트너스 분양대행 문의"
-          href={`/write7?presetTitle=${encodeURIComponent("(주)대원파트너스 분양대행 문의")}`}
-        />
-        <Row label="로그아웃" onClick={handleLogout} />
-        <Row label="회원탈퇴" onClick={handleDeleteAccount} />
-      </SectionCard>
-
-      {isAdmin && (
-        <SectionCard title="6. 관리자 메뉴">
-          <Row label="공지사항 관리" href="/mypage5" />
-          <Row label="문의 및 건의사항 확인" href="/list6" />
+      {/* 1~5 나란히 */}
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+        <SectionCard title="1. 포인트 관리">
           <Row
             label={
               <>
-                회원 관리 <span className="font-normal text-[#666]">(관리자용)</span>
+                추천하기{" "}
+                <span className="font-normal text-[#666]">(코드 {referralCode})</span>
               </>
             }
-            href="/adminusers"
+            onClick={() => setReferralModalOpen(true)}
           />
-          <Row label="제목검색 추천현장 관리" href="/titlesearchadmin" />
-          <Row label="슬라이드 현장 관리" href="/slidepostsadmin" />
-          <Row label="오늘의 현황" href="/todaystatus" />
-        </SectionCard>
-      )}
-
-      {isOwner && (
-        <SectionCard title="7. 오너 메뉴">
           <Row
             label={
               <>
-                회원 관리 <span className="font-normal text-[#666]">(오너용)</span>
+                내가 추천한 회원{" "}
+                <span className="font-normal text-[#666]">({summary.referral_count}명)</span>
               </>
             }
-            href="/adminusers"
+            href="/referrals"
           />
-          <Row label="분양대행 문의 확인" href="/list7" />
-          <Row label="상단배너 관리 (모바일)" href="/topbanneradmin" />
-          <Row label="하단배너 관리 (모바일)" href="/banneradmin" />
-          <Row label="데스크탑 상단배너 관리" href="/webtopbanneradmin" />
-          <Row label="데스크탑 하단배너 관리" href="/webbanneradmin" />
-          <Row label="팝업창 관리" href="/popupadmin" />
-          <Row label="엑셀 다운로드" onClick={handleExportUsersExcel} />
+          <Row label="추천인 랭킹" href="/referralranking" />
+          <Row
+            label={
+              <>
+                나의 추천인 인맥{" "}
+                <span className="font-normal text-[#666]">({referralNetworkCount}명)</span>
+              </>
+            }
+            href="/referralnetwork"
+          />
+          <Row label="적립/사용 내역" href="/points" />
         </SectionCard>
+
+        <SectionCard title="2. 캐시 관리">
+          <Row label="캐시 충전" href="/payment/toss" />
+          <Row label="충전/사용 내역" href="/cash" />
+        </SectionCard>
+
+        <SectionCard title="3. 글 관리">
+          <Row
+            label={
+              <>
+                내 구인글 <span className="font-normal text-[#666]">({summary.posts.type1})</span>
+              </>
+            }
+            href="/mypage"
+          />
+          <Row
+            label={
+              <>
+                내 수다글 <span className="font-normal text-[#666]">({summary.posts.type3})</span>
+              </>
+            }
+            href="/mypage3"
+          />
+          <Row
+            label={
+              <>
+                내 광고글 <span className="font-normal text-[#666]">({summary.posts.type4})</span>
+              </>
+            }
+            href="/mypage4"
+          />
+          <Row
+            label={
+              <>
+                내 문의글 <span className="font-normal text-[#666]">({inquiryCount})</span>
+              </>
+            }
+            href="/mypage6"
+          />
+          <Row label="내 알림 내역" href="/noti" />
+        </SectionCard>
+
+        <SectionCard title="4. 설정">
+          <Row label="내 정보 수정" href="/signup?mode=edit" />
+          <Row label="지역저장 설정" href="/areasite" />
+          <Row label="맞춤저장 설정" href="/customsite" />
+          <Row label="푸시알림 설정" onClick={handlePushSettings} />
+        </SectionCard>
+
+        <SectionCard title="5. 고객센터">
+          <Row label="공지사항" href="/list5" />
+          <Row label="문의 및 건의사항" href="/write6" />
+          <Row
+            label="분양대행 문의"
+            href={`/write7?presetTitle=${encodeURIComponent("(주)대원파트너스 분양대행 문의")}`}
+          />
+          <Row label="로그아웃" onClick={handleLogout} />
+          <Row label="회원탈퇴" onClick={handleDeleteAccount} />
+        </SectionCard>
+      </div>
+
+      {/* 6~7 나란히 */}
+      {(isAdmin || isOwner) && (
+        <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+          {isAdmin && (
+            <SectionCard title="6. 관리자 메뉴">
+              <Row label="공지사항 관리" href="/mypage5" />
+              <Row label="문의 및 건의사항 확인" href="/list6" />
+              <Row
+                label={
+                  <>
+                    회원 관리 <span className="font-normal text-[#666]">(관리자용)</span>
+                  </>
+                }
+                href="/adminusers"
+              />
+              <Row label="제목검색 추천현장 관리" href="/titlesearchadmin" />
+              <Row label="슬라이드 현장 관리" href="/slidepostsadmin" />
+              <Row label="오늘의 현황" href="/todaystatus" />
+            </SectionCard>
+          )}
+
+          {isOwner && (
+            <SectionCard title="7. 오너 메뉴">
+              <Row
+                label={
+                  <>
+                    회원 관리 <span className="font-normal text-[#666]">(오너용)</span>
+                  </>
+                }
+                href="/adminusers"
+              />
+              <Row label="분양대행 문의 확인" href="/list7" />
+              <Row label="상단배너 관리 (모바일)" href="/topbanneradmin" />
+              <Row label="하단배너 관리 (모바일)" href="/banneradmin" />
+              <Row label="데스크탑 상단배너 관리" href="/webtopbanneradmin" />
+              <Row label="데스크탑 하단배너 관리" href="/webbanneradmin" />
+              <Row label="팝업창 관리" href="/popupadmin" />
+              <Row label="엑셀 다운로드" onClick={handleExportUsersExcel} />
+            </SectionCard>
+          )}
+        </div>
       )}
 
       <footer className="px-4 py-5 text-center text-[11px] leading-4 text-[#666]">

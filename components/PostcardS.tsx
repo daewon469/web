@@ -12,14 +12,10 @@ type Props = {
   onLikedChange?: (postId: number, liked: boolean) => void;
 };
 
-/** 슬라이드 카드(어두운 배경)용 현장 한마디 색 — 검은색이면 흰색 */
+/** 밝은 메쉬 위 현장 한마디 — 미지정 시 검정 */
 function resolveSlideHighlightColor(color?: string | null) {
   const raw = String(color ?? "").trim();
-  if (!raw) return "#fff";
-  const lower = raw.toLowerCase();
-  if (lower === "black" || lower === "#000" || lower === "#000000" || lower === "#111111") {
-    return "#fff";
-  }
+  if (!raw) return "#111";
   return raw;
 }
 
@@ -41,13 +37,13 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
       )}
 
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-black/90 via-black/55 to-transparent px-2 pb-4 pt-1.5"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-white/90 via-white/55 to-transparent px-2 pb-4 pt-1.5"
         aria-hidden
       >
-        <p className="line-clamp-2 text-base font-bold leading-snug text-white">{post.title}</p>
+        <p className="line-clamp-2 text-base font-bold leading-snug text-black">{post.title}</p>
         {post.highlight_content ? (
           <p
-            className="mt-0.5 line-clamp-1 text-[15px] font-bold leading-snug"
+            className="mt-0 line-clamp-1 text-[15px] font-bold leading-snug"
             style={{ color: resolveSlideHighlightColor(post.highlight_color) }}
           >
             {post.highlight_content}
@@ -56,11 +52,11 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
       </div>
 
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-black/92 via-black/60 to-transparent px-2 pb-1.5 pt-4"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-white/92 via-white/60 to-transparent px-2 pb-1.5 pt-4"
         aria-hidden
       >
         <p className="truncate text-[15px] font-bold text-[#7eb8ff]">{industryProvinceCity}</p>
-        <p className="mt-0.5 truncate text-[15px] font-bold text-[#ffb4b4]">{formatRoles(post)}</p>
+        <p className="mt-0 truncate text-[15px] font-bold text-[#ffb4b4]">{formatRoles(post)}</p>
       </div>
       </Link>
       {showHeart && (
