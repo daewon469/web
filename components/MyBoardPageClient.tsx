@@ -454,7 +454,7 @@ export default function MyBoardPageClient() {
 
       {/* 6~7 나란히 */}
       {(isAdmin || isOwner) && (
-        <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
           {isAdmin && (
             <SectionCard title="6. 관리자 메뉴">
               <Row label="공지사항 관리" href="/mypage5" />

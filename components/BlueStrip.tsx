@@ -18,7 +18,7 @@ const TICKER_LINES = [
 const TICKER_HEIGHT = 18;
 const TICKER_DWELL_MS = 4500;
 const TICKER_TRANSITION_MS = 600;
-const TEXT_CLASS = "text-[12px] font-semibold leading-none text-white";
+const TEXT_CLASS = "text-[12px] font-normal leading-none text-white";
 
 function spacedChars(text: string) {
   return Array.from(text).join(" ");

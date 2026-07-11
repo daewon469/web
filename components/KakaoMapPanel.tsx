@@ -365,19 +365,16 @@ export default function KakaoMapPanel({ open, onClose }: Props) {
       }
       aria-hidden={!open}
     >
-      <div className="relative z-10 flex h-10 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4">
-        <span className="text-sm font-bold text-gray-900">지도검색</span>
+      <div className="relative min-h-0 flex-1">
+        <div ref={mapRef} className="absolute inset-0" />
+
         <button
           type="button"
           onClick={handleClose}
-          className="relative z-20 rounded px-2 py-1 text-sm font-bold text-[#2F6BFF] hover:bg-[#EEF3FF]"
+          className="absolute right-3 top-3 z-20 rounded-[10px] border border-gray-200 bg-white px-3 py-2 text-sm font-bold text-[#2F6BFF] shadow-sm hover:bg-[#EEF3FF]"
         >
           닫기
         </button>
-      </div>
-
-      <div className="relative min-h-0 flex-1">
-        <div ref={mapRef} className="absolute inset-0" />
 
         {mapLoading && mapItems.length === 0 && (
           <div className="pointer-events-none absolute inset-x-0 top-[18px] z-10 flex justify-center">

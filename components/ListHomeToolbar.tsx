@@ -49,7 +49,7 @@ function TabButton({
   const textColor = active ? color : color;
   const opacity = active ? 1 : mutedOpacity;
   const className =
-    "flex w-[52px] shrink-0 flex-col items-center justify-center gap-0 px-0 py-1 transition-opacity hover:opacity-90 sm:w-[58px]";
+    "flex w-[68px] shrink-0 flex-col items-center justify-center gap-0 px-0 py-1 transition-opacity hover:opacity-90 sm:w-[76px]";
   const content = (
     <>
       <span className="flex h-[26px] items-center justify-center" style={{ color: textColor, opacity }}>
@@ -115,7 +115,7 @@ export default function ListHomeToolbar() {
 
   const handleTopTab = (tab: (typeof topTabs)[number]) => {
     if (tab.id === "partner") {
-      alert("업데이트 예정입니다.");
+      router.push("/list4");
       return;
     }
     if (tab.id === "write") {
@@ -136,7 +136,7 @@ export default function ListHomeToolbar() {
         router.push("/login");
         return;
       }
-      router.push("/list4");
+      alert("업데이트 예정입니다.");
       return;
     }
     if (tab.id === "myboard") {
@@ -172,6 +172,9 @@ export default function ListHomeToolbar() {
 
   const isTopActive = (tab: (typeof topTabs)[number]) => {
     if (tab.id === "home") return isListHomePath(pathname) && !mapOpen;
+    if (tab.id === "partner") {
+      return pathname === "/list4" || pathname.startsWith("/list4/");
+    }
     if (tab.id === "myboard") {
       return isLogin
         ? pathname === "/myboard" || pathname.startsWith("/myboard/")
@@ -179,7 +182,7 @@ export default function ListHomeToolbar() {
     }
     if (tab.id === "ad") {
       if (!isLogin) return pathname === "/login";
-      return pathname === "/list4" || pathname.startsWith("/list4/");
+      return false;
     }
     if (tab.id === "write") {
       return pathname === "/write" || pathname.startsWith("/write/");
@@ -230,7 +233,7 @@ export default function ListHomeToolbar() {
           className="absolute inset-y-0 right-0 w-1/2"
           style={{ backgroundColor: BOTTOM_BG }}
         />
-        <div className="relative z-10 flex h-14 max-w-[640px] items-stretch justify-center">
+        <div className="relative z-10 flex h-14 max-w-[780px] items-stretch justify-center">
           <div className="flex items-stretch" style={{ backgroundColor: TOP_BG }}>
             {topTabs.map((tab) => {
               const label =

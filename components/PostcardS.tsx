@@ -37,13 +37,13 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
       )}
 
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-white/90 via-white/55 to-transparent px-2 pb-4 pt-1.5"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-white/95 via-white/80 to-transparent px-2.5 pb-8 pt-2.5"
         aria-hidden
       >
         <p className="line-clamp-2 text-base font-bold leading-snug text-black">{post.title}</p>
         {post.highlight_content ? (
           <p
-            className="mt-0 line-clamp-1 text-[15px] font-bold leading-snug"
+            className="mt-1 line-clamp-1 text-[15px] font-bold leading-snug"
             style={{ color: resolveSlideHighlightColor(post.highlight_color) }}
           >
             {post.highlight_content}
@@ -52,11 +52,11 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
       </div>
 
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-white/92 via-white/60 to-transparent px-2 pb-1.5 pt-4"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-white/95 via-white/80 to-transparent px-2.5 pb-2.5 pt-8"
         aria-hidden
       >
-        <p className="truncate text-[15px] font-bold text-[#7eb8ff]">{industryProvinceCity}</p>
-        <p className="mt-0 truncate text-[15px] font-bold text-[#ffb4b4]">{formatRoles(post)}</p>
+        <p className="truncate text-[15px] font-bold text-[#2F6BFF]">{industryProvinceCity}</p>
+        <p className="mt-1 truncate text-[15px] font-bold text-[#E53935]">{formatRoles(post)}</p>
       </div>
       </Link>
       {showHeart && (
