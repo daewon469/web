@@ -288,9 +288,9 @@ export default function MyBoardPageClient() {
         referralCode={summary.referral_code}
       />
 
-      {/* 상단: 사용자 카드 + 분양뉴스/수다 */}
+      {/* 상단: 사용자 카드 + 분양뉴스/수다 (5:5) */}
       <div className="flex flex-col gap-2.5 lg:flex-row lg:items-stretch">
-        <section className="rounded-2xl border border-black bg-white px-5 pb-3 pt-5 shadow-sm lg:w-[340px] lg:shrink-0">
+        <section className="min-w-0 flex-1 rounded-2xl border border-black bg-white px-5 pb-3 pt-5 shadow-sm">
           <div className="mb-3 flex items-center">
             <div className="mr-3">
               <UserGradeBadge
