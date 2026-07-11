@@ -91,12 +91,13 @@ export default function RegionCategoryTabs({ selectedRegions, onChangeRegions }:
             {SLASH_AFTER.has(label) ? (
               <div
                 aria-hidden
-                className="relative w-3 shrink-0 self-stretch sm:w-4"
-                style={{
-                  background:
-                    "linear-gradient(to bottom right, #fff 49%, #000 49%, #000 51%, #fff 51%)",
-                }}
-              />
+                className="relative w-3 shrink-0 self-stretch overflow-hidden sm:w-4"
+              >
+                <span
+                  className="absolute left-1/2 top-1/2 block h-[160%] w-[2px] -translate-x-1/2 -translate-y-1/2 bg-black"
+                  style={{ transform: "translate(-50%, -50%) rotate(28deg)" }}
+                />
+              </div>
             ) : null}
           </Fragment>
         ))}
