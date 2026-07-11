@@ -60,10 +60,10 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
         aria-hidden
       >
         <div className="flex flex-col gap-0">
-          <p className="truncate text-[15px] font-bold leading-tight text-black">
+          <p className="truncate text-[15px] font-bold leading-tight text-[#0B57D0]">
             {industryProvinceCity}
           </p>
-          <p className="truncate text-[15px] font-bold leading-tight text-black">
+          <p className="truncate text-[15px] font-bold leading-tight text-[#C62828]">
             {formatRoles(post)}
           </p>
         </div>

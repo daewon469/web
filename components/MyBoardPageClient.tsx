@@ -32,11 +32,21 @@ function formatPostDateTime(d: unknown) {
   return `${date} ${time}`;
 }
 
-function SectionCard({ title, children }: { title: string; children: ReactNode }) {
+function SectionCard({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <section className="flex min-h-0 min-w-0 flex-col rounded-xl border border-black bg-white p-3 shadow-sm">
+    <section
+      className={`flex min-h-0 min-w-0 flex-col rounded-xl border border-black bg-white p-3 shadow-sm ${className}`}
+    >
       <h2 className="mb-1.5 shrink-0 text-[15px] font-bold text-[#111] sm:text-base">{title}</h2>
-      <div className="flex flex-col">{children}</div>
+      <div className="flex flex-1 flex-col">{children}</div>
     </section>
   );
 }
@@ -180,8 +190,8 @@ export default function MyBoardPageClient() {
       try {
         const [res, newsRes, comRes] = await Promise.all([
           Auth.getMyPageSummary(session.username!),
-          Posts.listByType(2, { status: "published", limit: 6 }).catch(() => ({ items: [] as Post[] })),
-          Posts.listByType(3, { status: "published", limit: 6 }).catch(() => ({ items: [] as Post[] })),
+          Posts.listByType(2, { status: "published", limit: 3 }).catch(() => ({ items: [] as Post[] })),
+          Posts.listByType(3, { status: "published", limit: 3 }).catch(() => ({ items: [] as Post[] })),
         ]);
         if (res.status !== 0) {
           setError("회원 정보를 불러올 수 없습니다.");
@@ -198,8 +208,8 @@ export default function MyBoardPageClient() {
         });
         setIsAdmin(!!res.admin_acknowledged);
         setIsOwner(!!res.is_owner);
-        setNews((newsRes.items ?? []).slice(0, 6));
-        setCommunity((comRes.items ?? []).slice(0, 6));
+        setNews((newsRes.items ?? []).slice(0, 3));
+        setCommunity((comRes.items ?? []).slice(0, 3));
 
         try {
           const count = await Referral.networkCount(session.username!, { max_depth: 20 });
@@ -280,8 +290,8 @@ export default function MyBoardPageClient() {
 
       {/* 상단: 사용자 카드 + 분양뉴스/수다 */}
       <div className="flex flex-col gap-2.5 lg:flex-row lg:items-stretch">
-        <section className="rounded-2xl border border-black bg-white p-5 shadow-sm lg:w-[340px] lg:shrink-0">
-          <div className="mb-4 flex items-center">
+        <section className="rounded-2xl border border-black bg-white px-5 pb-3 pt-5 shadow-sm lg:w-[340px] lg:shrink-0">
+          <div className="mb-3 flex items-center">
             <div className="mr-3">
               <UserGradeBadge
                 grade={summary.user_grade}
@@ -305,7 +315,7 @@ export default function MyBoardPageClient() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 border-t border-[#ddd] pt-4">
+          <div className="flex flex-col gap-2 border-t border-[#ddd] pt-3">
             <Link
               href="/points"
               className="flex items-center justify-between rounded-[10px] border border-[#ddd] bg-[#f8f9fa] p-3"
@@ -452,12 +462,12 @@ export default function MyBoardPageClient() {
         </SectionCard>
       </div>
 
-      {/* 6~7: 1~5와 동일한 카드 너비(5열 기준 1칸) */}
+      {/* 6~7: 1~5와 동일한 카드 너비(5열 기준 1칸), 높이 맞춤 */}
       {(isAdmin || isOwner) && (
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch">
           {isAdmin && (
-            <div className="min-w-0 w-full sm:w-[calc(50%-0.3125rem)] lg:w-[calc((100%-2.5rem)/5)]">
-              <SectionCard title="6. 관리자 메뉴">
+            <div className="flex min-w-0 w-full sm:w-[calc(50%-0.3125rem)] lg:w-[calc((100%-2.5rem)/5)]">
+              <SectionCard title="6. 관리자 메뉴" className="h-full w-full">
                 <Row label="공지사항 관리" href="/mypage5" />
                 <Row label="문의 및 건의사항 확인" href="/list6" />
                 <Row
@@ -476,8 +486,8 @@ export default function MyBoardPageClient() {
           )}
 
           {isOwner && (
-            <div className="min-w-0 w-full sm:w-[calc(50%-0.3125rem)] lg:w-[calc((100%-2.5rem)/5)]">
-              <SectionCard title="7. 오너 메뉴">
+            <div className="flex min-w-0 w-full sm:w-[calc(50%-0.3125rem)] lg:w-[calc((100%-2.5rem)/5)]">
+              <SectionCard title="7. 오너 메뉴" className="h-full w-full">
                 <Row
                   label={
                     <>
