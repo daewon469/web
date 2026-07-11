@@ -118,7 +118,7 @@ export default function CustomSitePage() {
   }
 
   return (
-    <div className="rounded-2xl border border-black bg-white p-4">
+    <div className="mx-auto w-full max-w-xl rounded-2xl border border-black bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
         <div>
           <h1 className="text-lg font-black">맞춤저장 설정</h1>

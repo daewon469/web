@@ -154,6 +154,9 @@ export default function MyTypePostsClient({
             className="rounded-2xl border border-black bg-white p-4 shadow-sm"
           >
             <h2 className="text-base font-bold">{item.title}</h2>
+            <p className="mt-1 text-sm font-medium text-[#4A6CF7]">
+              작성자 {item.author?.username ?? "-"}
+            </p>
             <p className="mt-1 line-clamp-2 text-sm text-gray-700">
               {item.content.replace(/<[^>]+>/g, "")}
             </p>

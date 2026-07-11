@@ -187,9 +187,6 @@ export default function ListHomeToolbar() {
     if (tab.id === "write") {
       return pathname === "/write" || pathname.startsWith("/write/");
     }
-    if ("href" in tab && tab.href) {
-      return pathname === tab.href || pathname.startsWith(`${tab.href}/`);
-    }
     return false;
   };
 
