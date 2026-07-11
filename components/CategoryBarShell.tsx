@@ -22,7 +22,7 @@ export default function CategoryBarShell({
         aria-hidden
         className={`pointer-events-none absolute inset-y-0 border-b border-[#E1E4EA] bg-white ${CATEGORY_BAR_BLEED_CLASS}`}
       />
-      <div className="relative flex items-center">{children}</div>
+      <div className="relative flex items-stretch">{children}</div>
     </div>
   );
 }

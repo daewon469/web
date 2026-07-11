@@ -27,7 +27,7 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
     <div className="relative w-full" style={{ height: LIST_CARD_HEIGHT_TYPE_S }}>
       <Link
         href={`/${post.id}`}
-        className="absolute inset-0 overflow-hidden rounded-xl border border-black bg-black shadow-md transition-shadow hover:shadow-lg"
+        className="absolute inset-0 overflow-hidden rounded-xl border border-black bg-black"
       >
       {imageUri ? (
         // eslint-disable-next-line @next/next/no-img-element
@@ -36,31 +36,37 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
         <div className="absolute inset-0 bg-neutral-800" />
       )}
 
+      {/* 상단: 텍스트 위로 밀착, 메쉬는 얇게 → 중앙 이미지 확보 */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-white/95 via-white/80 to-transparent px-2.5 pb-8 pt-2.5"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-white via-white/90 to-transparent px-2 pb-5 pt-1.5"
         aria-hidden
       >
-        <p className="line-clamp-2 text-base font-bold leading-snug text-black">{post.title}</p>
-        {post.highlight_content ? (
-          <p
-            className="mt-1 line-clamp-1 text-[15px] font-bold leading-snug"
-            style={{ color: resolveSlideHighlightColor(post.highlight_color) }}
-          >
-            {post.highlight_content}
-          </p>
-        ) : null}
+        <div className="flex flex-col gap-0">
+          <p className="line-clamp-2 text-base font-bold leading-tight text-black">{post.title}</p>
+          {post.highlight_content ? (
+            <p
+              className="line-clamp-1 text-[15px] font-bold leading-tight"
+              style={{ color: resolveSlideHighlightColor(post.highlight_color) }}
+            >
+              {post.highlight_content}
+            </p>
+          ) : null}
+        </div>
       </div>
 
+      {/* 하단: 텍스트 아래로 밀착, 두 줄 간격 최소 */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-white via-white/95 to-transparent px-2.5 pb-2.5 pt-10"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-white via-white/90 to-transparent px-2 pb-1.5 pt-5"
         aria-hidden
       >
-        <p className="truncate text-[15px] font-extrabold text-[#0B57D0] drop-shadow-sm">
-          {industryProvinceCity}
-        </p>
-        <p className="mt-1 truncate text-[15px] font-extrabold text-[#C62828] drop-shadow-sm">
-          {formatRoles(post)}
-        </p>
+        <div className="flex flex-col gap-0">
+          <p className="truncate text-[15px] font-bold leading-tight text-black">
+            {industryProvinceCity}
+          </p>
+          <p className="truncate text-[15px] font-bold leading-tight text-black">
+            {formatRoles(post)}
+          </p>
+        </div>
       </div>
       </Link>
       {showHeart && (

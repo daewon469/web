@@ -89,12 +89,12 @@ export default function RegionCategoryTabs({ selectedRegions, onChangeRegions }:
               className="min-w-0 px-0 [&_span]:whitespace-nowrap [&_span]:text-[11px] sm:[&_span]:text-[14px]"
             />
             {SLASH_AFTER.has(label) ? (
-              <span
+              <div
                 aria-hidden
-                className="relative mx-0.5 h-[1.65rem] w-2.5 shrink-0 self-center sm:mx-1 sm:h-7 sm:w-3"
+                className="relative w-3 shrink-0 self-stretch sm:w-4"
                 style={{
                   background:
-                    "linear-gradient(to bottom right, transparent 46%, #999 46%, #999 54%, transparent 54%)",
+                    "linear-gradient(to bottom right, #fff 49%, #000 49%, #000 51%, #fff 51%)",
                 }}
               />
             ) : null}
