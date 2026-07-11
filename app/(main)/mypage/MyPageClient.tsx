@@ -148,7 +148,7 @@ export default function MyPageClient() {
           >
             <h2 className="text-base font-bold">{item.title}</h2>
             <p className="mt-1 text-sm font-medium text-[#4A6CF7]">
-              작성자 {item.author?.username ?? "-"}
+              {item.author?.username ?? "-"}
             </p>
             <p className="mt-1 line-clamp-2 text-sm text-gray-700">{item.content.replace(/<[^>]+>/g, "")}</p>
             <p className="mt-2 text-xs text-gray-500">
