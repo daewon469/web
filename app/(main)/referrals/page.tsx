@@ -5,7 +5,6 @@ import { Auth, Referral } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { formatKstDatetime } from "@/lib/ledgerFormat";
 import { getSession } from "@/lib/session";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -52,15 +51,6 @@ export default function ReferralsPage() {
           <span className="rounded-full border border-black bg-[#EEF4FF] px-3 py-1 text-sm font-extrabold text-[#4A6CF7]">
             {referralCount}명
           </span>
-        </div>
-        <div className="mt-3 flex gap-2">
-          <Link href="/referralranking" className="text-sm font-bold text-[#4A6CF7] underline">
-            추천 랭킹
-          </Link>
-          <span className="text-gray-300">|</span>
-          <Link href="/referralnetwork" className="text-sm font-bold text-[#4A6CF7] underline">
-            추천 인맥
-          </Link>
         </div>
       </div>
 

@@ -3,7 +3,6 @@
 import ReferralBonusTable from "@/components/ReferralBonusTable";
 import { Referral } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 function maskNickname(value: string) {
@@ -34,10 +33,6 @@ export default function ReferralRankingPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/referrals" className="text-sm text-[#4A6CF7]">
-        ← 내 추천 목록
-      </Link>
-
       <div className="rounded-2xl border border-black bg-white p-4">
         <h1 className="text-lg font-bold">추천인 랭킹</h1>
       </div>
