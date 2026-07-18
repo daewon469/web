@@ -2,13 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 const APEX_HOST = "daewon469.com";
 const MOBILE_WWW_HOST = "www.daewon469.com";
+const BUNYANGPRO_HOST = "www.bunyangpro.net";
+const PLAY_STORE_URL =
+  "https://play.google.com/store/apps/details?id=com.smartgauge.bunyangpro&hl=ko";
 
 function hostname(req: NextRequest) {
   return (req.headers.get("host") ?? "").split(":")[0].toLowerCase();
 }
 
 function isMobileUserAgent(ua: string) {
-  return /Android|iPhone|iPod|Mobile|IEMobile|Opera Mini/i.test(ua);
+  return /Android|iPhone|iPad|iPod|Mobile|IEMobile|Opera Mini/i.test(ua);
 }
 
 function isLocalHost(host: string) {
@@ -19,10 +22,15 @@ export function middleware(req: NextRequest) {
   const host = hostname(req);
 
   if (isLocalHost(host)) return NextResponse.next();
+
+  const ua = req.headers.get("user-agent") ?? "";
+  if (host === BUNYANGPRO_HOST && isMobileUserAgent(ua)) {
+    return NextResponse.redirect(PLAY_STORE_URL, 302);
+  }
+
   if (host === MOBILE_WWW_HOST) return NextResponse.next();
   if (host !== APEX_HOST) return NextResponse.next();
 
-  const ua = req.headers.get("user-agent") ?? "";
   if (!isMobileUserAgent(ua)) return NextResponse.next();
 
   const url = req.nextUrl.clone();

@@ -3,7 +3,6 @@
 import { Referral } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -23,6 +22,7 @@ export default function ReferralNetworkPage() {
     { nickname: string; depth: number; signup_date?: string | null }[]
   >([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [rewardGranted, setRewardGranted] = useState<boolean | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
 
   const load = useCallback(
@@ -39,6 +39,7 @@ export default function ReferralNetworkPage() {
         });
         if (res.status !== 0) throw new Error("서버 응답 오류");
         setTotalCount(Number(res.total_count ?? 0));
+        setRewardGranted(typeof res.reward?.granted === "boolean" ? res.reward.granted : null);
         setNextCursor(res.next_cursor ?? null);
         const next = res.items ?? [];
         setItems((prev) => (mode === "more" ? [...prev, ...next] : next));
@@ -65,15 +66,30 @@ export default function ReferralNetworkPage() {
     if (username) load("initial");
   }, [username, load]);
 
+  const showReward = totalCount >= 100;
+
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/referrals" className="text-sm text-[#4A6CF7]">
-        ← 내 추천 목록
-      </Link>
-
       <div className="rounded-2xl border border-black bg-white p-4">
-        <h1 className="text-lg font-bold">추천 인맥</h1>
-        <p className="mt-1 text-sm text-gray-600">총 {totalCount}명</p>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-lg font-extrabold text-[#111]">나의 추천인 인맥</h1>
+          <span className="rounded-full border border-black bg-[#EEF4FF] px-3 py-1 text-sm font-extrabold text-[#4A6CF7]">
+            총 {totalCount}명
+          </span>
+        </div>
+        <p className="mt-2 text-center text-sm font-extrabold text-[#111]">
+          👥 인맥 <span className="font-black text-[#4A6CF7]">100명</span> 달성 시{" "}
+          <span className="font-black text-[#DC2626]">1,000,000p</span> 지급 🎉
+        </p>
+        {showReward && (
+          <p
+            className={`mt-2 text-right text-sm font-black ${
+              rewardGranted ? "text-[#1B8A3A]" : "text-[#B45309]"
+            }`}
+          >
+            {rewardGranted ? "100만 포인트 지급 완료" : "100만 포인트 지급 대기"}
+          </p>
+        )}
       </div>
 
       {loading && <p className="py-8 text-center text-gray-500">불러오는 중...</p>}
@@ -83,24 +99,36 @@ export default function ReferralNetworkPage() {
         <p className="py-8 text-center text-gray-500">인맥 데이터가 없습니다.</p>
       )}
 
-      <div className="overflow-hidden rounded-2xl border border-black bg-white">
-        {items.map((it, idx) => (
-          <div
-            key={`${it.nickname}-${it.depth}-${idx}`}
-            className={`flex items-center justify-between px-4 py-3 ${
-              idx < items.length - 1 ? "border-b border-gray-200" : ""
-            }`}
-          >
-            <div>
-              <span className="font-bold">{maskNickname(it.nickname)}</span>
-              <span className="ml-2 text-xs text-[#4A6CF7]">{it.depth}단계</span>
-            </div>
-            <span className="text-xs text-gray-500">
-              {it.signup_date ? String(it.signup_date).slice(0, 10) : ""}
-            </span>
+      {!loading && !error && items.length > 0 && (
+        <div className="overflow-hidden rounded-2xl border border-black bg-white">
+          <div className="flex items-center border-b border-[#ddd] bg-[#F8F9FA] px-4 py-3 text-[13px] font-black text-[#4A6CF7]">
+            <span className="w-[18px]" aria-hidden />
+            <span className="flex-1">닉네임</span>
+            <span className="w-[90px] text-right">인맥단계</span>
           </div>
-        ))}
-      </div>
+          {items.map((it, idx) => (
+            <div
+              key={`${it.nickname}-${it.depth}-${idx}`}
+              className={`px-4 py-3 ${idx > 0 ? "border-t border-[#ddd]" : ""}`}
+            >
+              <div className="flex items-center">
+                <span className="w-[18px] text-[13px] font-black">※</span>
+                <span className="flex-1 text-[15px] font-semibold">
+                  {maskNickname(it.nickname)}
+                </span>
+                <span className="w-[90px] text-right text-[15px] font-bold">
+                  {it.depth}단계
+                </span>
+              </div>
+              {it.signup_date && (
+                <p className="ml-[18px] mt-1 text-xs font-semibold text-gray-500">
+                  가입일: {String(it.signup_date).slice(0, 10)}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {nextCursor && !loadingMore && (
         <button

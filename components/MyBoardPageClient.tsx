@@ -118,14 +118,14 @@ function BoardPreviewCard({
           </span>
         </Link>
       </div>
-      <div className="min-h-0 flex-1 overflow-hidden">
+      <div className="min-h-0 flex-1 divide-y divide-[#ddd] overflow-hidden">
         {items.length === 0 ? (
           <p className="px-2.5 py-3 text-[12px] text-[#666]">{emptyText}</p>
         ) : (
           items.map((post) => {
             const { href, external } = resolveHref(post);
             const row = (
-              <div className="flex h-7 items-center border-b border-[#ddd] px-2 last:border-b-0">
+              <div className="flex h-7 items-center px-2">
                 <span className="mr-1.5 h-1 w-1 shrink-0 rounded-full bg-black" aria-hidden />
                 <span className="flex-1 truncate text-[13px] text-black sm:text-[14px]">
                   {post.title}

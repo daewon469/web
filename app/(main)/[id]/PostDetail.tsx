@@ -90,7 +90,11 @@ export default function PostDetail({ id }: { id: number }) {
   const imageUri = resolveMediaUrl(post.image_url);
 
   return (
-    <article className="rounded-xl bg-white p-4 shadow-sm">
+    <article
+      className={`rounded-xl bg-white p-4 shadow-sm ${
+        Number(post.post_type) === 3 ? "mx-auto w-full max-w-4xl" : ""
+      }`}
+    >
       <div className="mb-4 flex items-center justify-between">
         <Link href={backHref} className="text-sm text-[#4A6CF7]">
           ← 목록으로

@@ -87,6 +87,7 @@ export default function RegionCategoryTabs({ selectedRegions, onChangeRegions }:
               label={label}
               onClick={() => selectQuickRegion(label)}
               className="min-w-0 px-0 [&_span]:whitespace-nowrap [&_span]:text-[11px] sm:[&_span]:text-[14px]"
+              labelClassName="font-semibold text-black"
             />
             {SLASH_AFTER.has(label) ? (
               <div

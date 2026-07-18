@@ -23,7 +23,7 @@ const mobile = (value: string) => {
 const phoneDigits = (value: string) => value.replace(/[^0-9]/g, "");
 
 const inputClass =
-  "w-full rounded-xl border border-black bg-[#f9f9f9] px-3 py-3 outline-none focus:ring-2 focus:ring-[#4A6CF7]";
+  "w-full rounded-xl border border-black bg-[#f9f9f9] px-3 py-3 text-sm font-normal outline-none focus:ring-2 focus:ring-[#4A6CF7]";
 
 export default function SignupPageClient() {
   const router = useRouter();
@@ -283,13 +283,13 @@ export default function SignupPageClient() {
 
   return (
     <div className="mx-auto max-w-md rounded-xl bg-white p-6 shadow-sm">
-      <h1 className="mb-6 text-center text-2xl font-bold text-[#0B1B3A]">
+      <h1 className="mb-6 text-center text-xl font-semibold text-[#0B1B3A]">
         {isEditMode ? "내 정보 수정" : "회원가입"}
       </h1>
 
       <form onSubmit={submit} className="flex flex-col gap-4">
         <div>
-          <label className="mb-2 block pl-1 text-[15px]">※ 닉네임 (한글가능)</label>
+          <label className="mb-2 block pl-1 text-sm font-normal">※ 닉네임 (한글가능)</label>
           <div className="flex items-center rounded-xl border border-black bg-[#f9f9f9]">
             <input
               type="text"
@@ -300,13 +300,13 @@ export default function SignupPageClient() {
                 setUsernameAvailable(null);
                 setUsernameCheckMsg(null);
               }}
-              className="flex-1 bg-transparent px-3 py-3 outline-none"
+              className="flex-1 bg-transparent px-3 py-3 text-sm font-normal outline-none"
             />
             <button
               type="button"
               onClick={checkUsernameDuplicate}
               disabled={checkingUsername || !username.trim()}
-              className="shrink-0 border-l border-black px-3 py-2 text-sm font-bold text-[#4A6CF7] disabled:opacity-50"
+              className="shrink-0 border-l border-black px-3 py-2 text-sm font-medium text-[#4A6CF7] disabled:opacity-50"
             >
               {checkingUsername ? "확인중" : usernameAvailable ? "완료" : "중복확인"}
             </button>
@@ -323,7 +323,7 @@ export default function SignupPageClient() {
         </div>
 
         <div>
-          <label className="mb-2 block pl-1 text-[15px]">
+          <label className="mb-2 block pl-1 text-sm font-normal">
             ※ 비밀번호{isEditMode ? " (변경 시에만 입력)" : ""}
           </label>
           <div className="flex items-center rounded-xl border border-black bg-[#f9f9f9]">
@@ -332,7 +332,7 @@ export default function SignupPageClient() {
               placeholder={isEditMode ? "변경하지 않으면 비워두세요" : "비밀번호를 입력해 주세요."}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="flex-1 bg-transparent px-3 py-3 outline-none"
+              className="flex-1 bg-transparent px-3 py-3 text-sm font-normal outline-none"
               autoComplete="new-password"
             />
             <button
@@ -346,14 +346,14 @@ export default function SignupPageClient() {
         </div>
 
         <div>
-          <label className="mb-2 block pl-1 text-[15px]">※ 비밀번호 확인</label>
+          <label className="mb-2 block pl-1 text-sm font-normal">※ 비밀번호 확인</label>
           <div className="flex items-center rounded-xl border border-black bg-[#f9f9f9]">
             <input
               type={showPasswordConfirm ? "text" : "password"}
               placeholder="비밀번호를 한번 더 입력해 주세요."
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
-              className="flex-1 bg-transparent px-3 py-3 outline-none"
+              className="flex-1 bg-transparent px-3 py-3 text-sm font-normal outline-none"
               autoComplete="new-password"
             />
             <button
@@ -367,7 +367,7 @@ export default function SignupPageClient() {
         </div>
 
         <div>
-          <label className="mb-2 block pl-1 text-[15px]">※ 성함</label>
+          <label className="mb-2 block pl-1 text-sm font-normal">※ 성함</label>
           <input
             type="text"
             placeholder="성함을 입력해 주세요."
@@ -378,7 +378,7 @@ export default function SignupPageClient() {
         </div>
 
         <div>
-          <label className="mb-2 block pl-1 text-[15px]">※ 핸드폰</label>
+          <label className="mb-2 block pl-1 text-sm font-normal">※ 핸드폰</label>
           <div className="flex items-center rounded-xl border border-black bg-[#f9f9f9]">
             <input
               type="tel"
@@ -391,14 +391,14 @@ export default function SignupPageClient() {
                 setPhoneSent(false);
                 setPhoneVerified(false);
               }}
-              className="flex-1 bg-transparent px-3 py-3 outline-none"
+              className="flex-1 bg-transparent px-3 py-3 text-sm font-normal outline-none"
             />
             {canPhoneVerify && (
               <button
                 type="button"
                 onClick={sendPhoneCode}
                 disabled={sendingSms || !phoneNumber.trim()}
-                className="border-l border-black px-3 py-2 text-sm font-bold text-[#4A6CF7] disabled:opacity-50"
+                className="border-l border-black px-3 py-2 text-sm font-medium text-[#4A6CF7] disabled:opacity-50"
               >
                 {phoneVerified ? "완료" : phoneSent ? "재전송" : "인증"}
               </button>
@@ -406,9 +406,9 @@ export default function SignupPageClient() {
           </div>
         </div>
 
-        {canPhoneVerify && phoneSent && !phoneVerified && (
+        {canPhoneVerify && (
           <div>
-            <label className="mb-2 block pl-1 text-[15px]">※ 인증번호</label>
+            <label className="mb-2 block pl-1 text-sm font-normal">※ 인증번호</label>
             <div className="flex items-center rounded-xl border border-black bg-[#f9f9f9]">
               <input
                 type="text"
@@ -419,22 +419,22 @@ export default function SignupPageClient() {
                 onChange={(e) =>
                   setPhoneCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))
                 }
-                className="flex-1 bg-transparent px-3 py-3 outline-none"
+                className="flex-1 bg-transparent px-3 py-3 text-sm font-normal outline-none"
               />
               <button
                 type="button"
                 onClick={verifyPhoneCode}
-                disabled={verifyingCode || !phoneCode.trim()}
-                className="border-l border-black px-3 py-2 text-sm font-bold text-[#4A6CF7] disabled:opacity-50"
+                disabled={verifyingCode || phoneVerified || !phoneCode.trim()}
+                className="border-l border-black px-3 py-2 text-sm font-medium text-[#4A6CF7] disabled:opacity-50"
               >
-                확인
+                {phoneVerified ? "완료" : "확인"}
               </button>
             </div>
           </div>
         )}
 
         <div>
-          <label className="mb-2 block pl-1 text-[15px]">※ 지역</label>
+          <label className="mb-2 block pl-1 text-sm font-normal">※ 지역</label>
           <button
             type="button"
             onClick={() => setRegionModalOpen(true)}
@@ -446,7 +446,7 @@ export default function SignupPageClient() {
 
         {!isEditMode && (
           <div>
-            <label className="mb-2 block pl-1 text-[15px]">※ 추천인코드 (선택)</label>
+            <label className="mb-2 block pl-1 text-sm font-normal">※ 추천인코드 (선택)</label>
             <input
               type="text"
               placeholder="코드번호 입력 (5자리)"
@@ -467,7 +467,7 @@ export default function SignupPageClient() {
         <button
           type="submit"
           disabled={submitting}
-          className="mt-2 rounded-2xl bg-[#4A6CF7] py-3 font-bold text-white disabled:opacity-60"
+          className="mt-2 rounded-2xl bg-[#4A6CF7] py-3 text-sm font-semibold text-white disabled:opacity-60"
         >
           {submitting ? (isEditMode ? "저장 중..." : "등록 중...") : isEditMode ? "저장" : "등록"}
         </button>

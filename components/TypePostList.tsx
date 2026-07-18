@@ -97,10 +97,10 @@ export default function TypePostList({
         <p className="py-12 text-center text-gray-500">등록된 글이 없습니다.</p>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-black bg-white">
+      <div className="divide-y divide-[#ddd] overflow-hidden rounded-xl border border-black bg-white">
         {paginatedItems.map((post) => {
           const inner = (
-            <div className="flex items-center gap-2 border-b border-gray-200 px-3 py-2 last:border-b-0 hover:bg-gray-50">
+            <div className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50">
               <span className="h-1 w-1 shrink-0 rounded-full bg-black" />
               <span className="min-w-0 flex-1 truncate text-[15px]">{post.title}</span>
               <span className="shrink-0 text-[11px] text-gray-500">{formatDate(post.created_at)}</span>

@@ -2,6 +2,7 @@
 
 import { Auth, Posts, type Post, type StatusType } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
+import { formatPostDateTime } from "@/lib/dateFormat";
 import { getSession } from "@/lib/session";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -157,7 +158,7 @@ export default function MyTypePostsClient({
               {item.content.replace(/<[^>]+>/g, "")}
             </p>
             <p className="mt-2 text-xs text-gray-500">
-              {item.status === "published" ? "게시중" : "마감"} · {item.created_at?.slice(0, 10)}
+              {formatPostDateTime(item.created_at)}
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               <ActionBtn
