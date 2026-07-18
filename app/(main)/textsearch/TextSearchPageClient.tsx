@@ -132,9 +132,9 @@ export default function TextSearchPageClient() {
           <Image
             src="/icon718.png"
             alt="분양프로"
-            width={120}
-            height={32}
-            className="h-auto w-[100px] sm:w-[120px]"
+            width={1024}
+            height={258}
+            className="h-10 w-auto"
             priority
           />
         </Link>

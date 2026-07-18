@@ -183,9 +183,9 @@ export default function ListHomeSearchRow({ onCustomView }: Props = {}) {
           <Image
             src="/icon718.png"
             alt="분양프로"
-            width={100}
-            height={27}
-            className="h-auto w-[88px] sm:w-[100px]"
+            width={1024}
+            height={258}
+            className="h-10 w-auto"
             priority
           />
         </button>
