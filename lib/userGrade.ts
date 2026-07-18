@@ -10,6 +10,16 @@ export const USER_GRADE_LABEL: Record<UserGrade, string> = {
   5: "레전드",
 };
 
+export const REFERRAL_GRADE_BONUS_ROWS = [
+  { grade: "레전드", count: "500명", bonus: "5,000,000p" },
+  { grade: "챌린저", count: "100명", bonus: "1,000,000p" },
+  { grade: "마스터", count: "50명", bonus: "500,000p" },
+  { grade: "프로", count: "20명", bonus: "200,000p" },
+  { grade: "세미프로", count: "10명", bonus: "100,000p" },
+  { grade: "아마추어", count: "5명", bonus: "50,000p" },
+  { grade: "일반회원", count: "-", bonus: "-" },
+] as const;
+
 export function normalizeUserGrade(value: unknown): UserGrade | null {
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(n)) return null;

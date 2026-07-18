@@ -1,5 +1,6 @@
 "use client";
 
+import ReferralBonusTable from "@/components/ReferralBonusTable";
 import { Auth, Referral } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { formatKstDatetime } from "@/lib/ledgerFormat";
@@ -62,6 +63,16 @@ export default function ReferralsPage() {
           </Link>
         </div>
       </div>
+
+      <div className="rounded-2xl border border-black bg-white p-4">
+        <h2 className="text-lg font-extrabold">※ 추천인 포인트 보너스 지급</h2>
+        <div className="mt-2.5">
+          <ReferralBonusTable />
+        </div>
+      </div>
+      <p className="text-center text-sm font-bold text-[#111]">
+        ※ 포인트는 유료전환 시 캐시처럼 사용됩니다.
+      </p>
 
       {loading && <p className="py-8 text-center text-gray-500">불러오는 중...</p>}
       {error && <p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}

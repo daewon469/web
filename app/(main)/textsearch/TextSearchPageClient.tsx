@@ -130,11 +130,11 @@ export default function TextSearchPageClient() {
       <div className="mx-auto flex w-full max-w-3xl items-center gap-2 py-2">
         <Link href="/list" className="shrink-0 rounded-xl" aria-label="첫화면">
           <Image
-            src="/icon_72.png"
+            src="/icon718.png"
             alt="분양프로"
-            width={48}
-            height={48}
-            className="rounded-xl"
+            width={120}
+            height={32}
+            className="h-auto w-[100px] sm:w-[120px]"
             priority
           />
         </Link>

@@ -181,11 +181,11 @@ export default function ListHomeSearchRow({ onCustomView }: Props = {}) {
           aria-label="첫화면"
         >
           <Image
-            src="/icon_72.png"
+            src="/icon718.png"
             alt="분양프로"
-            width={44}
-            height={44}
-            className="rounded-xl sm:h-12 sm:w-12"
+            width={100}
+            height={27}
+            className="h-auto w-[88px] sm:w-[100px]"
             priority
           />
         </button>

@@ -17,7 +17,7 @@ type Props = {
 };
 
 /** 이 라벨 뒤에 슬래시(/) 구분선 표시 */
-const SLASH_AFTER = new Set<QuickRegionLabel>(["제주", "세종"]);
+const SLASH_AFTER = new Set<QuickRegionLabel>(["인천", "제주", "울산", "세종"]);
 
 export default function RegionCategoryTabs({ selectedRegions, onChangeRegions }: Props) {
   const [modalOpen, setModalOpen] = useState(false);

@@ -26,9 +26,7 @@ type Props = {
 export default function KakaoMapPicker({
   open,
   variant = "write",
-  title,
   initial,
-  hint,
   sameAs,
   onClose,
   onConfirm,
@@ -52,8 +50,6 @@ export default function KakaoMapPicker({
   const [sdkReady, setSdkReady] = useState(false);
   const [mapKey, setMapKey] = useState(0);
   const [query, setQuery] = useState("");
-  const [picked, setPicked] = useState<MapLocation | null>(initial ?? null);
-  const [resolving, setResolving] = useState(false);
   const [searching, setSearching] = useState(false);
 
   const isWrite = variant === "write";
@@ -95,7 +91,6 @@ export default function KakaoMapPicker({
       map.setCenter(pos);
       map.setLevel(levelFromZoom(zoom));
       const loc = toLocation(lat, lng, address);
-      setPicked(loc);
       if (address) setQuery(address);
       return loc;
     },
@@ -110,9 +105,7 @@ export default function KakaoMapPicker({
         commitPick(moveMarker(lat, lng, fallback), autoClose);
         return;
       }
-      setResolving(true);
       geocoder.coord2Address(lng, lat, (result, status) => {
-        setResolving(false);
         if (status !== maps.services.Status.OK || !result?.length) {
           commitPick(moveMarker(lat, lng, fallback), autoClose);
           return;
@@ -128,7 +121,6 @@ export default function KakaoMapPicker({
 
   useEffect(() => {
     if (!open) return;
-    setPicked(initial ?? null);
     setQuery(initial?.address ?? "");
     setMapKey((k) => k + 1);
   }, [open, initial]);
@@ -281,16 +273,6 @@ export default function KakaoMapPicker({
             {searching ? "검색중" : "검색"}
           </button>
         </div>
-
-        {isWrite && (
-          <p className="border-b px-4 py-2 text-sm text-gray-600">
-            {hint ?? title}
-            {resolving && " 주소 조회 중..."}
-          </p>
-        )}
-        {isWrite && picked?.address && (
-          <p className="truncate border-b px-4 py-2 text-sm font-medium">{picked.address}</p>
-        )}
 
         <div key={mapKey} ref={mapRef} className="min-h-0 flex-1" />
       </div>

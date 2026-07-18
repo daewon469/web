@@ -194,11 +194,11 @@ export default function ListHomeHeader() {
               aria-label="첫화면"
             >
               <Image
-                src="/icon_72.png"
+                src="/icon718.png"
                 alt="분양프로"
-                width={48}
-                height={48}
-                className="rounded-xl sm:h-14 sm:w-14"
+                width={120}
+                height={32}
+                className="h-auto w-[100px] sm:w-[120px]"
                 priority
               />
             </button>

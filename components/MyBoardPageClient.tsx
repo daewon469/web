@@ -1,6 +1,7 @@
 "use client";
 
 import ReferralModal from "@/components/ReferralModal";
+import MyBoardRowIcon, { type MyBoardRowIconName } from "@/components/MyBoardRowIcon";
 import UserGradeBadge from "@/components/UserGradeBadge";
 import { API_URL, Auth, Posts, Referral, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
@@ -53,17 +54,27 @@ function SectionCard({
 
 function Row({
   label,
+  icon,
   href,
   onClick,
 }: {
   label: ReactNode;
+  icon: MyBoardRowIconName;
   href?: string;
   onClick?: () => void;
 }) {
   const className =
-    "flex w-full items-start justify-between gap-1 border-t border-[#ddd] py-2 text-left text-[13px] font-medium leading-snug text-[#111] hover:bg-gray-50 sm:text-[14px]";
+    "flex w-full items-center justify-between gap-2 border-t border-[#ddd] py-2 text-left text-[13px] font-medium leading-snug text-[#111] hover:bg-gray-50 sm:text-[14px]";
 
-  const content = <span className="min-w-0">{label}</span>;
+  const content = (
+    <>
+      <span className="flex min-w-0 flex-1 items-center gap-2">
+        <MyBoardRowIcon name={icon} className="shrink-0 text-[#4A6CF7]" />
+        <span className="min-w-0">{label}</span>
+      </span>
+      <MyBoardRowIcon name="chevron" size={18} className="shrink-0 text-[#666]" />
+    </>
+  );
 
   if (onClick) {
     return (
@@ -384,6 +395,7 @@ export default function MyBoardPageClient() {
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
         <SectionCard title="1. 포인트 관리">
           <Row
+            icon="key"
             label={
               <>
                 추천하기{" "}
@@ -392,7 +404,9 @@ export default function MyBoardPageClient() {
             }
             onClick={() => setReferralModalOpen(true)}
           />
+          <Row icon="trophy" label="추천인 랭킹" href="/referralranking" />
           <Row
+            icon="people"
             label={
               <>
                 내가 추천한 회원{" "}
@@ -401,8 +415,8 @@ export default function MyBoardPageClient() {
             }
             href="/referrals"
           />
-          <Row label="추천인 랭킹" href="/referralranking" />
           <Row
+            icon="network"
             label={
               <>
                 나의 추천인 인맥{" "}
@@ -411,16 +425,17 @@ export default function MyBoardPageClient() {
             }
             href="/referralnetwork"
           />
-          <Row label="적립/사용 내역" href="/points" />
+          <Row icon="star" label="적립/사용 내역" href="/points" />
         </SectionCard>
 
         <SectionCard title="2. 캐시 관리">
-          <Row label="캐시 충전" href="/payment/toss" />
-          <Row label="충전/사용 내역" href="/cash" />
+          <Row icon="wallet" label="캐시 충전" href="/payment/toss" />
+          <Row icon="receipt" label="충전/사용 내역" href="/cash" />
         </SectionCard>
 
         <SectionCard title="3. 글 관리">
           <Row
+            icon="work"
             label={
               <>
                 내 구인글 <span className="font-normal text-[#666]">({summary.posts.type1})</span>
@@ -429,6 +444,7 @@ export default function MyBoardPageClient() {
             href="/mypage"
           />
           <Row
+            icon="chats"
             label={
               <>
                 내 수다글 <span className="font-normal text-[#666]">({summary.posts.type3})</span>
@@ -437,6 +453,7 @@ export default function MyBoardPageClient() {
             href="/mypage3"
           />
           <Row
+            icon="campaign"
             label={
               <>
                 내 광고글 <span className="font-normal text-[#666]">({summary.posts.type4})</span>
@@ -445,6 +462,7 @@ export default function MyBoardPageClient() {
             href="/mypage4"
           />
           <Row
+            icon="message"
             label={
               <>
                 내 문의글 <span className="font-normal text-[#666]">({inquiryCount})</span>
@@ -452,25 +470,26 @@ export default function MyBoardPageClient() {
             }
             href="/mypage6"
           />
-          <Row label="내 알림 내역" href="/noti" />
+          <Row icon="list" label="내 알림 내역" href="/noti" />
         </SectionCard>
 
         <SectionCard title="4. 설정">
-          <Row label="내 정보 수정" href="/signup?mode=edit" />
-          <Row label="지역저장 설정" href="/areasite" />
-          <Row label="맞춤저장 설정" href="/customsite" />
-          <Row label="푸시알림 설정" onClick={handlePushSettings} />
+          <Row icon="create" label="내 정보 수정" href="/signup?mode=edit" />
+          <Row icon="location" label="지역저장 설정" href="/areasite" />
+          <Row icon="options" label="맞춤저장 설정" href="/customsite" />
+          <Row icon="notifications" label="푸시알림 설정" onClick={handlePushSettings} />
         </SectionCard>
 
         <SectionCard title="5. 고객센터">
-          <Row label="공지사항" href="/list5" />
-          <Row label="문의 및 건의사항" href="/write6" />
+          <Row icon="help" label="공지사항" href="/list5" />
+          <Row icon="message" label="문의 및 건의사항" href="/write6" />
           <Row
+            icon="business"
             label="분양대행 문의"
             href={`/write7?presetTitle=${encodeURIComponent("(주)대원파트너스 분양대행 문의")}`}
           />
-          <Row label="로그아웃" onClick={handleLogout} />
-          <Row label="회원탈퇴" onClick={handleDeleteAccount} />
+          <Row icon="logout" label="로그아웃" onClick={handleLogout} />
+          <Row icon="person-remove" label="회원탈퇴" onClick={handleDeleteAccount} />
         </SectionCard>
       </div>
 
@@ -480,9 +499,10 @@ export default function MyBoardPageClient() {
           {isAdmin && (
             <div className="flex min-w-0 w-full sm:w-[calc(50%-0.3125rem)] lg:w-[calc((100%-2.5rem)/5)]">
               <SectionCard title="6. 관리자 메뉴" className="h-full w-full">
-                <Row label="공지사항 관리" href="/mypage5" />
-                <Row label="문의 및 건의사항 확인" href="/list6" />
+                <Row icon="notifications" label="공지사항 관리" href="/mypage5" />
+                <Row icon="message" label="문의 및 건의사항 확인" href="/list6" />
                 <Row
+                  icon="people"
                   label={
                     <>
                       회원 관리 <span className="font-normal text-[#666]">(관리자용)</span>
@@ -490,9 +510,9 @@ export default function MyBoardPageClient() {
                   }
                   href="/adminusers"
                 />
-                <Row label="제목검색 추천현장 관리" href="/titlesearchadmin" />
-                <Row label="슬라이드 현장 관리" href="/slidepostsadmin" />
-                <Row label="오늘의 현황" href="/todaystatus" />
+                <Row icon="search" label="제목검색 추천현장 관리" href="/titlesearchadmin" />
+                <Row icon="albums" label="슬라이드 현장 관리" href="/slidepostsadmin" />
+                <Row icon="stats" label="오늘의 현황" href="/todaystatus" />
               </SectionCard>
             </div>
           )}
@@ -501,6 +521,7 @@ export default function MyBoardPageClient() {
             <div className="flex min-w-0 w-full sm:w-[calc(50%-0.3125rem)] lg:w-[calc((100%-2.5rem)/5)]">
               <SectionCard title="7. 오너 메뉴" className="h-full w-full">
                 <Row
+                  icon="people"
                   label={
                     <>
                       회원 관리 <span className="font-normal text-[#666]">(오너용)</span>
@@ -508,13 +529,13 @@ export default function MyBoardPageClient() {
                   }
                   href="/adminusers"
                 />
-                <Row label="분양대행 문의 확인" href="/list7" />
-                <Row label="상단배너 관리 (모바일)" href="/topbanneradmin" />
-                <Row label="하단배너 관리 (모바일)" href="/banneradmin" />
-                <Row label="데스크탑 상단배너 관리" href="/webtopbanneradmin" />
-                <Row label="데스크탑 하단배너 관리" href="/webbanneradmin" />
-                <Row label="팝업창 관리" href="/popupadmin" />
-                <Row label="엑셀 다운로드" onClick={handleExportUsersExcel} />
+                <Row icon="message" label="분양대행 문의 확인" href="/list7" />
+                <Row icon="image" label="상단배너 관리 (모바일)" href="/topbanneradmin" />
+                <Row icon="images" label="하단배너 관리 (모바일)" href="/banneradmin" />
+                <Row icon="image" label="데스크탑 상단배너 관리" href="/webtopbanneradmin" />
+                <Row icon="images" label="데스크탑 하단배너 관리" href="/webbanneradmin" />
+                <Row icon="albums" label="팝업창 관리" href="/popupadmin" />
+                <Row icon="download" label="엑셀 다운로드" onClick={handleExportUsersExcel} />
               </SectionCard>
             </div>
           )}

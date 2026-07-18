@@ -49,6 +49,7 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
   const isMyboardMenuPath = MYBOARD_MENU_PATHS.some(
     (route) => path === route || path.startsWith(`${route}/`),
   );
+  const isMyboardSubPage = isMyboardMenuPath && path !== "/myboard";
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-[#f5f5f5]">
@@ -59,7 +60,9 @@ export default function MainLayoutClient({ children }: { children: React.ReactNo
       )}
 
       <div
-        className={`mx-auto flex w-full max-w-7xl flex-1 px-3 pb-4 lg:px-6 ${
+        className={`mx-auto flex w-full flex-1 px-3 pb-4 lg:px-6 ${
+          isMyboardSubPage ? "max-w-4xl" : "max-w-7xl"
+        } ${
           showChrome ? (isMyboardMenuPath ? "pt-3" : "pt-0") : "pt-4"
         }`}
       >
