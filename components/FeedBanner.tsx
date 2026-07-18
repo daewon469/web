@@ -3,8 +3,7 @@
 import { resolveMediaUrl, type UIConfigBannerItem } from "@/lib/api";
 import { LIST_BANNER_HEIGHT_PX } from "@/lib/listCardLayout";
 import { isBannerReferralTarget } from "@/lib/ui_banner_actions";
-import { chunkBannerRows, type WebBannerRotation } from "@/lib/webBannerUtils";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 
 type BannerProps = {
   item: UIConfigBannerItem;
@@ -108,11 +107,12 @@ function TopBannerItem({
   if (!src) return null;
 
   const resizeMode = resolveResizeMode(item, defaultResizeMode);
+  const itemHeight = Math.max(60, Math.min(260, Number(item.height ?? maxHeight)));
   const shellClass =
     shellClassName ??
     `block overflow-hidden border border-black bg-[#FFF6D2] shadow-md ${INLINE_BANNER_WIDTH}`;
   const inner = (
-    <ResponsiveBannerImage src={src} resizeMode={resizeMode} maxHeight={maxHeight} />
+    <ResponsiveBannerImage src={src} resizeMode={resizeMode} maxHeight={itemHeight} />
   );
 
   if (isBannerReferralTarget(item)) {
@@ -155,108 +155,6 @@ export function WebBannerThreeColRow({
           maxHeight={maxHeight}
         />
       ))}
-    </div>
-  );
-}
-
-/** 웹 홈 상단 배너 — 1행 3개, 회전(3·5행) 캐러셀 */
-export function ListHomeWebTopBannerCarousel({
-  items,
-  rotationCount = 3,
-  colsPerRow = 3,
-  autoPlayMs = 4000,
-  onReferralClick,
-  defaultResizeMode = "contain",
-  maxHeight = TOP_BANNER_MAX_HEIGHT,
-}: {
-  items: UIConfigBannerItem[];
-  rotationCount?: WebBannerRotation;
-  colsPerRow?: number;
-  autoPlayMs?: number;
-  onReferralClick?: () => void;
-  defaultResizeMode?: "contain" | "cover" | "stretch";
-  maxHeight?: number;
-}) {
-  const rows = useMemo(() => {
-    const all = chunkBannerRows(items, colsPerRow);
-    return all.slice(0, rotationCount);
-  }, [colsPerRow, items, rotationCount]);
-
-  const [activeIndex, setActiveIndex] = useState(0);
-  const activeRef = useRef(0);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-
-  const scrollToIndex = useCallback((index: number) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTo({ left: el.clientWidth * index, behavior: "smooth" });
-  }, []);
-
-  useEffect(() => {
-    if (rows.length <= 1 || !autoPlayMs) return;
-    const id = window.setInterval(() => {
-      const next = (activeRef.current + 1) % rows.length;
-      activeRef.current = next;
-      setActiveIndex(next);
-      scrollToIndex(next);
-    }, autoPlayMs);
-    return () => window.clearInterval(id);
-  }, [autoPlayMs, rows.length, scrollToIndex]);
-
-  if (rows.length === 0) return null;
-
-  if (rows.length === 1) {
-    return (
-      <WebBannerThreeColRow
-        items={rows[0]}
-        onReferralClick={onReferralClick}
-        defaultResizeMode={defaultResizeMode}
-        maxHeight={maxHeight}
-      />
-    );
-  }
-
-  return (
-    <div className="relative w-full">
-      <div
-        ref={scrollRef}
-        className="flex snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        onScroll={(e) => {
-          const el = e.currentTarget;
-          const idx = Math.round(el.scrollLeft / Math.max(el.clientWidth, 1));
-          const next = Math.max(0, Math.min(rows.length - 1, idx));
-          activeRef.current = next;
-          if (next !== activeIndex) setActiveIndex(next);
-        }}
-      >
-        {rows.map((row, pageIdx) => (
-          <div key={`web-top-page-${pageIdx}`} className="w-full shrink-0 snap-center">
-            <WebBannerThreeColRow
-              items={row}
-              onReferralClick={onReferralClick}
-              defaultResizeMode={defaultResizeMode}
-              maxHeight={maxHeight}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="mt-1 flex justify-center gap-1.5">
-        {rows.map((_, idx) => (
-          <button
-            key={`web-top-dot-${idx}`}
-            type="button"
-            aria-label={`배너 ${idx + 1}`}
-            onClick={() => {
-              activeRef.current = idx;
-              setActiveIndex(idx);
-              scrollToIndex(idx);
-            }}
-            className={`h-1.5 rounded-full transition-all ${
-              idx === activeIndex ? "w-4 bg-[#4A6CF7]" : "w-1.5 bg-gray-300"
-            }`}
-          />
-        ))}
-      </div>
     </div>
   );
 }
@@ -335,11 +233,12 @@ export function FeedBannerCard({
   if (!src) return null;
 
   const resizeMode = resolveResizeMode(item, defaultResizeMode);
+  const itemHeight = Math.max(60, Math.min(260, Number(item.height ?? maxHeight)));
   const shellClass =
     shellClassName ??
     `block overflow-hidden rounded-xl border border-black bg-white ${INLINE_BANNER_WIDTH}`;
   const inner = (
-    <ResponsiveBannerImage src={src} resizeMode={resizeMode} maxHeight={maxHeight} />
+    <ResponsiveBannerImage src={src} resizeMode={resizeMode} maxHeight={itemHeight} />
   );
 
   if (isBannerReferralTarget(item)) {

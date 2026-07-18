@@ -824,8 +824,10 @@ export type UIConfigWebBannerSection = {
   enabled: boolean;
   items: UIConfigBannerItem[];
   cols_per_row?: number;
-  rotation_count?: 3 | 5;
-  interval_rows?: 3 | 5;
+  /** 구버전 설정 호환용. 신규 하단 배너는 rows_per_interval을 사용한다. */
+  rotation_count?: number;
+  interval_rows?: number;
+  rows_per_interval?: number;
   height?: number;
   resize_mode?: "contain" | "cover" | "stretch";
   auto_play_ms?: number;
@@ -874,10 +876,10 @@ const defaultUIConfig = (): UIConfigResponse["config"] => ({
     enabled: true,
     items: [],
     cols_per_row: 3,
-    rotation_count: 3,
+    rotation_count: 1,
     height: 160,
     resize_mode: "contain",
-    auto_play_ms: 4000,
+    auto_play_ms: 0,
   },
   web_banner: {
     enabled: true,
@@ -885,6 +887,7 @@ const defaultUIConfig = (): UIConfigResponse["config"] => ({
     cols_per_row: 3,
     interval_rows: 3,
     rotation_count: 3,
+    rows_per_interval: 3,
     height: 160,
     resize_mode: "contain",
   },

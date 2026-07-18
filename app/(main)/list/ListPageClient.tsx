@@ -2,7 +2,7 @@
 
 import BlueStrip from "@/components/BlueStrip";
 import CustomFilterModal, { type CustomFilterValue } from "@/components/CustomFilterModal";
-import { ListHomeWebTopBannerCarousel } from "@/components/FeedBanner";
+import { WebBannerThreeColRow } from "@/components/FeedBanner";
 import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
 import ListHomeSearchRow from "@/components/ListHomeSearchRow";
@@ -133,10 +133,10 @@ export default function ListPageClient() {
     enabled: true,
     items: [],
     cols_per_row: 3,
-    rotation_count: 3,
+    rotation_count: 1,
     height: 160,
     resize_mode: "contain",
-    auto_play_ms: 4000,
+    auto_play_ms: 0,
   });
   const [webFeedBanner, setWebFeedBanner] = useState<UIConfigWebBannerSection>({
     enabled: true,
@@ -144,6 +144,7 @@ export default function ListPageClient() {
     cols_per_row: 3,
     interval_rows: 3,
     rotation_count: 3,
+    rows_per_interval: 3,
     height: 160,
     resize_mode: "contain",
   });
@@ -245,15 +246,17 @@ export default function ListPageClient() {
       if (wt) {
         setWebTopBanner({
           enabled: wt.enabled !== false,
-          items: (wt.items ?? []).filter((b) => String(b.image_url ?? "").trim()),
+          items: (wt.items ?? [])
+            .filter((b) => String(b.image_url ?? "").trim())
+            .slice(0, 3),
           cols_per_row: 3,
-          rotation_count: wt.rotation_count === 5 ? 5 : 3,
+          rotation_count: 1,
           height: wt.height ?? 160,
           resize_mode:
             wt.resize_mode === "cover" || wt.resize_mode === "stretch"
               ? wt.resize_mode
               : "contain",
-          auto_play_ms: wt.auto_play_ms ?? 4000,
+          auto_play_ms: 0,
         });
       }
       const wb = res.config.web_banner;
@@ -262,8 +265,15 @@ export default function ListPageClient() {
           enabled: wb.enabled !== false,
           items: (wb.items ?? []).filter((b) => String(b.image_url ?? "").trim()),
           cols_per_row: 3,
-          interval_rows: wb.interval_rows === 5 ? 5 : 3,
-          rotation_count: wb.rotation_count === 5 ? 5 : 3,
+          interval_rows: Math.max(1, Math.min(100, Number(wb.interval_rows) || 3)),
+          rows_per_interval: Math.max(
+            1,
+            Math.min(10, Number(wb.rows_per_interval ?? wb.rotation_count) || 3),
+          ),
+          rotation_count: Math.max(
+            1,
+            Math.min(10, Number(wb.rows_per_interval ?? wb.rotation_count) || 3),
+          ),
           height: wb.height ?? 160,
           resize_mode:
             wb.resize_mode === "cover" || wb.resize_mode === "stretch"
@@ -506,8 +516,11 @@ export default function ListPageClient() {
     return {
       enabled: true,
       items: webFeedBanner.items,
-      intervalRows: webFeedBanner.interval_rows === 5 ? 5 : 3,
-      rotationCount: webFeedBanner.rotation_count === 5 ? 5 : 3,
+      intervalRows: Math.max(1, Number(webFeedBanner.interval_rows) || 3),
+      rowsPerInterval: Math.max(
+        1,
+        Number(webFeedBanner.rows_per_interval ?? webFeedBanner.rotation_count) || 3,
+      ),
       resizeMode: webFeedBanner.resize_mode,
       maxHeight: webFeedBanner.height ?? 160,
       onReferralClick: openReferralModal,
@@ -572,11 +585,8 @@ export default function ListPageClient() {
             )}
 
             {showWebTopBanners && (
-              <ListHomeWebTopBannerCarousel
-                items={webTopBanner.items}
-                rotationCount={webTopBanner.rotation_count === 5 ? 5 : 3}
-                colsPerRow={3}
-                autoPlayMs={webTopBanner.auto_play_ms ?? 4000}
+              <WebBannerThreeColRow
+                items={webTopBanner.items.slice(0, 3)}
                 defaultResizeMode={webTopBanner.resize_mode}
                 maxHeight={webTopBanner.height ?? 160}
                 onReferralClick={openReferralModal}

@@ -6,14 +6,14 @@ import { WebBannerThreeColRow } from "@/components/FeedBanner";
 import type { Post, UIConfigBannerItem } from "@/lib/api";
 import { LIST_CARD_GRID_CLASS } from "@/lib/listCardLayout";
 import { groupFeedByCardType, splitSlideAndFeedPosts } from "@/lib/postCardFormat";
-import { pickWebBannerRow, type WebBannerRotation } from "@/lib/webBannerUtils";
+import { chunkBannerRows } from "@/lib/webBannerUtils";
 import { useMemo, type ReactNode } from "react";
 
 export type WebFeedBannerConfig = {
   enabled: boolean;
   items: UIConfigBannerItem[];
-  intervalRows: WebBannerRotation;
-  rotationCount: WebBannerRotation;
+  intervalRows: number;
+  rowsPerInterval: number;
   resizeMode?: "contain" | "cover" | "stretch";
   maxHeight?: number;
   onReferralClick?: () => void;
@@ -60,11 +60,19 @@ export default function ListPostGrid({
     webFeedBanner?.enabled &&
     webFeedBanner.items.some((it) => String(it.image_url ?? "").trim());
 
-  let bannerSlot = 0;
   let globalRow = 0;
+  const configuredBannerRows = bannerEnabled
+    ? chunkBannerRows(webFeedBanner!.items, 3).slice(
+        0,
+        Math.max(1, webFeedBanner!.rowsPerInterval),
+      )
+    : [];
 
   const renderGroup = (group: Post[]) => {
-    if (!bannerEnabled) {
+    const cardType = Number(group[0]?.card_type);
+    const countsTowardBannerInterval = cardType === 1 || cardType === 2;
+
+    if (!bannerEnabled || !countsTowardBannerInterval) {
       return (
         <div className={LIST_CARD_GRID_CLASS}>
           {group.map((post) => (
@@ -92,20 +100,13 @@ export default function ListPostGrid({
       );
 
       if (
-        globalRow % webFeedBanner!.intervalRows === 0 &&
-        webFeedBanner!.items.length > 0
+        globalRow % Math.max(1, webFeedBanner!.intervalRows) === 0 &&
+        configuredBannerRows.length > 0
       ) {
-        const rowItems = pickWebBannerRow(
-          webFeedBanner!.items,
-          3,
-          webFeedBanner!.rotationCount,
-          bannerSlot,
-        );
-        bannerSlot += 1;
-        if (rowItems.length > 0) {
+        configuredBannerRows.forEach((rowItems, bannerRowIndex) => {
           nodes.push(
             <WebBannerThreeColRow
-              key={`feed-banner-${globalRow}-${bannerSlot}`}
+              key={`feed-banner-${globalRow}-${bannerRowIndex}`}
               items={rowItems}
               onReferralClick={webFeedBanner!.onReferralClick}
               defaultResizeMode={webFeedBanner!.resizeMode}
@@ -113,7 +114,7 @@ export default function ListPostGrid({
               shellClassName="block w-full overflow-hidden rounded-xl border border-black bg-white shadow-sm"
             />,
           );
-        }
+        });
       }
     });
 
