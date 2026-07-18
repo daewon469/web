@@ -37,10 +37,10 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
       )}
 
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] border-b border-black/20 bg-gradient-to-b from-white via-white/95 to-transparent px-2 pb-5 pt-1.5"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-white px-2 py-1.5"
         aria-hidden
       >
-        <div className="flex flex-col gap-0">
+        <div className="flex flex-col gap-0 border-b border-black pb-1">
           <p className="line-clamp-2 text-base font-bold leading-tight text-black">{post.title}</p>
           {post.highlight_content ? (
             <p
@@ -54,10 +54,10 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
       </div>
 
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] border-t border-black/20 bg-gradient-to-t from-white via-white/95 to-transparent px-2 pb-1.5 pt-5"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-white px-2 py-1.5"
         aria-hidden
       >
-        <div className="flex flex-col gap-0">
+        <div className="flex flex-col gap-0 border-t border-black pt-1">
           <p className="truncate text-[15px] font-bold leading-tight text-[#0B57D0]">
             {industryProvinceCity}
           </p>

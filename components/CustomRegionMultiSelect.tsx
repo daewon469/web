@@ -90,13 +90,13 @@ export default function CustomRegionMultiSelect({
 
   return (
     <div className="rounded-2xl border border-black bg-white p-4">
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-3 flex items-start justify-between">
         <div>
           <h2 className="text-lg font-black text-black">{titleText}</h2>
           <span className="text-[11px] font-semibold text-gray-400">{subtitleText}</span>
         </div>
         {onClose && (
-          <button type="button" onClick={onClose} className="text-sm font-bold text-gray-600">
+          <button type="button" onClick={onClose} className="mt-0.5 text-sm font-bold text-gray-600">
             닫기
           </button>
         )}
@@ -161,14 +161,12 @@ export default function CustomRegionMultiSelect({
 
       <p className="mb-2 text-sm font-black text-[#111]">선택지역</p>
       {localSelected.length > 0 ? (
-        <div
-          className="flex flex-wrap gap-2 rounded-xl border border-[#d8e2ff] p-2.5"
-          style={{ backgroundColor: SELECTED_REGION_BG }}
-        >
+        <div className="flex flex-wrap gap-2 rounded-xl border border-[#d8e2ff] p-2.5">
           {localSelected.map((r) => (
             <span
               key={keyOf(r)}
-              className="inline-flex items-center gap-1 rounded-full border border-black bg-white px-2.5 py-1 text-xs font-bold"
+              className="inline-flex items-center gap-1 rounded-full border border-black px-2.5 py-1 text-xs font-bold"
+              style={{ backgroundColor: SELECTED_REGION_BG }}
             >
               {r.province === "전체" ? "전국" : r.city === "전체" ? r.province : `${r.province} ${r.city}`}
               <button
@@ -184,10 +182,7 @@ export default function CustomRegionMultiSelect({
           ))}
         </div>
       ) : (
-        <div
-          className="rounded-xl border border-[#d8e2ff] px-3 py-2.5 text-xs text-gray-500"
-          style={{ backgroundColor: SELECTED_REGION_BG }}
-        >
+        <div className="rounded-xl border border-[#d8e2ff] px-3 py-2.5 text-xs text-gray-500">
           선택된 지역이 없습니다.
         </div>
       )}

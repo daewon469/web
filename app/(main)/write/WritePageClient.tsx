@@ -404,9 +404,9 @@ export default function WritePageClient() {
           />
         </div>
 
-        {/* 업종 · 모집 (7:3) */}
-        <div className={`${formFullClass} grid grid-cols-1 gap-4 md:grid-cols-10`}>
-          <div className="md:col-span-7">
+        {/* 업종 · 모집 (5:5) */}
+        <div className={`${formFullClass} grid grid-cols-1 gap-4 md:grid-cols-2`}>
+          <div>
             <label className="mb-2 block text-[15px] font-bold">업종</label>
             <TableGrid
               items={WRITE_INDUSTRY_OPTIONS}
@@ -417,7 +417,7 @@ export default function WritePageClient() {
               }
             />
           </div>
-          <div className="md:col-span-3">
+          <div>
             <label className="mb-2 block text-[15px] font-bold">모집</label>
             <TableGrid
               items={WRITE_ROLE_OPTIONS}
