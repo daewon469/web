@@ -3,7 +3,6 @@
 import { API_URL, CASH_CHARGE_AMOUNTS, Orders } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -61,10 +60,6 @@ export default function TossPaymentClient() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/myboard" className="text-sm text-[#4A6CF7]">
-        ← 마이메뉴
-      </Link>
-
       <h1 className="text-xl font-bold text-[#0B1B3A]">캐시 충전</h1>
       <p className="text-sm text-gray-600">토스페이먼츠로 안전하게 충전합니다.</p>
 

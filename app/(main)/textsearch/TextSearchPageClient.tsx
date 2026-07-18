@@ -1,6 +1,7 @@
 "use client";
 
 import ListPostGrid from "@/components/ListPostGrid";
+import TitleSearchBar from "@/components/TitleSearchBar";
 import { Posts, UIConfig, type Post } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import {
@@ -11,6 +12,8 @@ import {
 } from "@/lib/postCardFormat";
 import { useSlidePosts } from "@/lib/useSlidePosts";
 import { getSession } from "@/lib/session";
+import Image from "next/image";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -124,7 +127,23 @@ export default function TextSearchPageClient() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold text-[#0B1B3A]">제목 검색</h1>
+      <div className="mx-auto flex w-full max-w-3xl items-center gap-2 py-2">
+        <Link href="/list" className="shrink-0 rounded-xl" aria-label="첫화면">
+          <Image
+            src="/icon_72.png"
+            alt="분양프로"
+            width={48}
+            height={48}
+            className="rounded-xl"
+            priority
+          />
+        </Link>
+        <TitleSearchBar
+          onSearch={runSearch}
+          loading={loading}
+          defaultQuery={initialQuery}
+        />
+      </div>
 
       {!searched && (
         <div className="flex flex-col gap-3">

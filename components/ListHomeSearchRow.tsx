@@ -1,7 +1,7 @@
 "use client";
 
 import TitleSearchBar from "@/components/TitleSearchBar";
-import { Auth, Points } from "@/lib/api";
+import { Points } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import {
   LIST_PAGE_CONTENT_MAX_PX,
@@ -67,7 +67,11 @@ function MobileAttendanceButton({
   );
 }
 
-export default function ListHomeSearchRow() {
+type Props = {
+  onCustomView?: () => void;
+};
+
+export default function ListHomeSearchRow({ onCustomView }: Props = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const [isLogin, setIsLogin] = useState(false);
@@ -130,28 +134,12 @@ export default function ListHomeSearchRow() {
     router.replace(LIST_HOME_PATH);
   };
 
-  const handleCustomView = async () => {
-    if (!isLogin) {
-      alert("로그인이 필요합니다.");
-      router.push("/login");
+  const handleCustomView = () => {
+    if (onCustomView) {
+      onCustomView();
       return;
     }
-    const u = username ?? getSession().username;
-    if (!u) {
-      router.push("/customsite");
-      return;
-    }
-    try {
-      const res = await Auth.getUser(u);
-      const inds = res.user?.custom_industry_codes ?? [];
-      const regs = res.user?.custom_region_codes ?? [];
-      const has =
-        (Array.isArray(inds) && inds.some((s) => String(s ?? "").trim())) ||
-        (Array.isArray(regs) && regs.some((s) => String(s ?? "").trim()));
-      router.push(has ? "/customlike" : "/customsite");
-    } catch {
-      router.push("/customsite");
-    }
+    router.push("/customsite");
   };
 
   const handleAttendance = async () => {
@@ -209,7 +197,7 @@ export default function ListHomeSearchRow() {
           <TitleSearchBar redirectOnSearch />
         </div>
 
-        <MobileCustomButton onClick={() => void handleCustomView()} />
+        <MobileCustomButton onClick={handleCustomView} />
         {showAttendance && (
           <MobileAttendanceButton
             amount={attendanceAmount}

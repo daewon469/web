@@ -61,7 +61,7 @@ function Row({
   onClick?: () => void;
 }) {
   const className =
-    "flex w-full items-start justify-between gap-1 border-t border-[#ddd] py-2 text-left text-[13px] font-bold leading-snug text-[#111] hover:bg-gray-50 sm:text-[14px]";
+    "flex w-full items-start justify-between gap-1 border-t border-[#ddd] py-2 text-left text-[13px] font-medium leading-snug text-[#111] hover:bg-gray-50 sm:text-[14px]";
 
   const content = <span className="min-w-0">{label}</span>;
 
@@ -94,8 +94,8 @@ function BoardPreviewCard({
   resolveHref: (post: Post) => { href: string; external?: boolean };
 }) {
   return (
-    <section className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <div className="mb-1.5 flex items-center justify-between gap-2">
+    <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-black bg-white">
+      <div className="flex items-center justify-between gap-2 border-b border-black px-2.5 py-2">
         <h2 className="text-base font-bold text-black sm:text-lg">{title}</h2>
         <Link
           href={moreHref}
@@ -107,7 +107,7 @@ function BoardPreviewCard({
           </span>
         </Link>
       </div>
-      <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-black bg-white">
+      <div className="min-h-0 flex-1 overflow-hidden">
         {items.length === 0 ? (
           <p className="px-2.5 py-3 text-[12px] text-[#666]">{emptyText}</p>
         ) : (
@@ -159,8 +159,20 @@ function StarIcon({ className = "", color = "currentColor" }: { className?: stri
 
 function WalletIcon({ className = "" }: { className?: string }) {
   return (
-    <svg className={className} width="18" height="18" viewBox="0 0 24 24" fill="#4A6CF7" aria-hidden>
-      <path d="M21 7H3a1 1 0 0 0-1 1v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1zm-1 9h-4a2 2 0 0 1 0-4h4v4zm0-6h-4a4 4 0 0 0 0 8h4v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9h17v1zM3 5h15v1H3V5z" />
+    <svg
+      className={className}
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#4A6CF7"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M20 7V6a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h15v9a1 1 0 0 1-1 1H5a3 3 0 0 1-3-3V7" />
+      <path d="M16 14h4" />
     </svg>
   );
 }
@@ -281,7 +293,7 @@ export default function MyBoardPageClient() {
   const referralCode = summary.referral_code || "없음";
 
   return (
-    <div className="flex flex-col gap-2.5 pb-6">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-2.5 pb-6">
       <ReferralModal
         open={referralModalOpen}
         onClose={() => setReferralModalOpen(false)}

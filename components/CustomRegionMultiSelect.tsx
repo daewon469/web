@@ -5,6 +5,7 @@ import type { RegionObj } from "@/lib/regionUtils";
 import { useEffect, useMemo, useState } from "react";
 
 const keyOf = (r: RegionObj) => `${r.province}__${r.city}`;
+const SELECTED_REGION_BG = "#EEF3FF";
 
 const normalize = (r: RegionObj): RegionObj | null => {
   const p = (r.province || "").trim();
@@ -101,6 +102,7 @@ export default function CustomRegionMultiSelect({
         )}
       </div>
 
+      <p className="mb-2 text-sm font-black text-[#111]">대분류</p>
       <div className="flex flex-wrap gap-1.5">
         {PROVINCES.map((p) => {
           const count = provinceSelectedCount.get(p) || 0;
@@ -129,34 +131,44 @@ export default function CustomRegionMultiSelect({
         })}
       </div>
 
+      <div className="my-3 border-t border-[#d1d5db]" />
+
       {activeProvince !== "전체" && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {cities.map((c) => {
-            const active = isCityActive(activeProvince, c);
-            return (
-              <button
-                key={c}
-                type="button"
-                onClick={() => toggle(activeProvince, c)}
-                className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold ${
-                  active
-                    ? "border-[#4A6CF7] bg-[#4A6CF7] text-white"
-                    : "border-gray-300 text-black"
-                }`}
-              >
-                {c}
-              </button>
-            );
-          })}
-        </div>
+        <>
+          <p className="mb-2 text-sm font-black text-[#111]">세부분류</p>
+          <div className="flex flex-wrap gap-1.5">
+            {cities.map((c) => {
+              const active = isCityActive(activeProvince, c);
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => toggle(activeProvince, c)}
+                  className={`rounded-lg border px-2.5 py-1.5 text-xs font-bold ${
+                    active
+                      ? "border-[#4A6CF7] bg-[#4A6CF7] text-white"
+                      : "border-gray-300 text-black"
+                  }`}
+                >
+                  {c}
+                </button>
+              );
+            })}
+          </div>
+          <div className="my-3 border-t border-[#d1d5db]" />
+        </>
       )}
 
-      {localSelected.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-2">
+      <p className="mb-2 text-sm font-black text-[#111]">선택지역</p>
+      {localSelected.length > 0 ? (
+        <div
+          className="flex flex-wrap gap-2 rounded-xl border border-[#d8e2ff] p-2.5"
+          style={{ backgroundColor: SELECTED_REGION_BG }}
+        >
           {localSelected.map((r) => (
             <span
               key={keyOf(r)}
-              className="inline-flex items-center gap-1 rounded-full border border-black px-2.5 py-1 text-xs font-bold"
+              className="inline-flex items-center gap-1 rounded-full border border-black bg-white px-2.5 py-1 text-xs font-bold"
             >
               {r.province === "전체" ? "전국" : r.city === "전체" ? r.province : `${r.province} ${r.city}`}
               <button
@@ -170,6 +182,13 @@ export default function CustomRegionMultiSelect({
               </button>
             </span>
           ))}
+        </div>
+      ) : (
+        <div
+          className="rounded-xl border border-[#d8e2ff] px-3 py-2.5 text-xs text-gray-500"
+          style={{ backgroundColor: SELECTED_REGION_BG }}
+        >
+          선택된 지역이 없습니다.
         </div>
       )}
 

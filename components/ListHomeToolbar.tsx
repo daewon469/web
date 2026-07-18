@@ -17,7 +17,7 @@ const topTabs = [
   { id: "write", label: "구인등록", icon: "create" as const, href: "/write", requiresLogin: true },
   { id: "partner", label: "협력업체", icon: "people" as const },
   { id: "home", label: "첫화면", icon: "home" as const, href: LIST_HOME_PATH },
-  { id: "ad", label: "광고", icon: "megaphone" as const, href: "/list4", loginOnly: true },
+  { id: "ad", label: "광고프로", icon: "megaphone" as const, href: "/list4", loginOnly: true },
   { id: "myboard", label: "내페이지", icon: "person" as const, href: "/myboard", loginHref: "/check2", loginLabel: "회원가입" },
 ] as const;
 
@@ -36,7 +36,6 @@ function TabButton({
   onClick,
   href,
   color = "#ffffff",
-  mutedOpacity = 0.75,
 }: {
   icon: NavIconName;
   label: string;
@@ -44,42 +43,48 @@ function TabButton({
   onClick?: () => void;
   href?: string;
   color?: string;
-  mutedOpacity?: number;
 }) {
-  const textColor = active ? color : color;
-  const opacity = active ? 1 : mutedOpacity;
+  const [hovered, setHovered] = useState(false);
+  const enlarged = active || hovered;
   const className =
-    "flex w-[68px] shrink-0 flex-col items-center justify-center gap-0 px-0 py-1 transition-opacity hover:opacity-90 sm:w-[76px]";
+    "flex w-[72px] shrink-0 flex-col items-center justify-center gap-0 px-0 py-1 sm:w-[80px]";
   const content = (
     <>
-      <span className="flex h-[26px] items-center justify-center" style={{ color: textColor, opacity }}>
-        <NavIcon name={icon} size={TAB_ICON_SIZE} className="text-current" />
+      <span className="flex h-[28px] items-center justify-center" style={{ color }}>
+        <NavIcon name={icon} size={enlarged ? TAB_ICON_SIZE + 2 : TAB_ICON_SIZE} className="text-current" />
       </span>
       <span
-        className="text-[11px] font-bold leading-none sm:text-[12px]"
-        style={{ color: textColor, opacity }}
+        className={
+          "font-bold leading-none " +
+          (enlarged ? "text-[13px] sm:text-[14px]" : "text-[11px] sm:text-[12px]")
+        }
+        style={{ color }}
       >
         {label}
       </span>
     </>
   );
+  const hoverProps = {
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false),
+  };
 
   if (onClick) {
     return (
-      <button type="button" onClick={onClick} className={className}>
+      <button type="button" onClick={onClick} className={className} {...hoverProps}>
         {content}
       </button>
     );
   }
   if (href) {
     return (
-      <Link href={href} className={className}>
+      <Link href={href} className={className} {...hoverProps}>
         {content}
       </Link>
     );
   }
   return (
-    <button type="button" className={className}>
+    <button type="button" className={className} {...hoverProps}>
       {content}
     </button>
   );
@@ -124,7 +129,7 @@ export default function ListHomeToolbar() {
       return;
     }
     if (tab.id === "home") {
-      if (isListHomePath(pathname)) {
+      if (isListHomePath(pathname) && !mapOpen) {
         window.location.reload();
         return;
       }
@@ -230,7 +235,7 @@ export default function ListHomeToolbar() {
           className="absolute inset-y-0 right-0 w-1/2"
           style={{ backgroundColor: BOTTOM_BG }}
         />
-        <div className="relative z-10 flex h-14 max-w-[780px] items-stretch justify-center">
+        <div className="relative z-10 flex h-14 max-w-[820px] items-stretch justify-center">
           <div className="flex items-stretch" style={{ backgroundColor: TOP_BG }}>
             {topTabs.map((tab) => {
               const label =
@@ -271,7 +276,6 @@ export default function ListHomeToolbar() {
                 icon={tab.icon}
                 label={tab.label}
                 color={BOTTOM_FG}
-                mutedOpacity={0.7}
                 active={isBottomActive(tab)}
                 onClick={() => void handleBottomTab(tab)}
               />

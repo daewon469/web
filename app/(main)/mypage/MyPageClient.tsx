@@ -3,7 +3,6 @@
 import { Auth, Posts, type Post, type StatusType } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -107,9 +106,6 @@ export default function MyPageClient() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/myboard" className="text-sm text-[#4A6CF7]">
-        ← 마이메뉴
-      </Link>
       <h1 className="text-xl font-bold text-[#0B1B3A]">내 구인글</h1>
 
       <div className="flex gap-2">

@@ -2,7 +2,6 @@
 
 import { Posts, UIConfig, type Post } from "@/lib/api";
 import { CARD_TYPE_S } from "@/lib/postCardFormat";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 async function fetchPostsByIds(ids: number[]) {
@@ -170,9 +169,6 @@ export default function SlidePostsAdminClient() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/myboard" className="text-sm text-[#4A6CF7]">
-        ← 마이메뉴
-      </Link>
       <h1 className="text-xl font-bold text-[#0B1B3A]">슬라이드 현장 관리</h1>
       <p className="text-sm text-gray-600">
         선택한 구인글은 첫화면 슬라이드(Postcard_S)에 노출되며, 저장 시 card_type이 5로

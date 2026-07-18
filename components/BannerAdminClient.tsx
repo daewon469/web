@@ -3,7 +3,6 @@
 import { UIConfig, resolveMediaUrl, type UIConfigBannerItem, type UIConfigResponse } from "@/lib/api";
 import { uploadImageFile } from "@/lib/upload";
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type BannerKey = "banner" | "top_banner";
@@ -101,9 +100,6 @@ export default function BannerAdminClient({
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/myboard" className="text-sm text-[#4A6CF7]">
-        ← 마이메뉴
-      </Link>
       <h1 className="text-xl font-bold text-[#0B1B3A]">{title}</h1>
 
       {loading && <p className="py-8 text-center text-gray-500">불러오는 중...</p>}

@@ -4,7 +4,6 @@ import { Points } from "@/lib/api";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { displayPointReason, formatKstDatetime } from "@/lib/ledgerFormat";
 import { getSession } from "@/lib/session";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -62,12 +61,6 @@ export default function PointsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <Link href="/myboard" className="text-sm text-[#4A6CF7]">
-          ← 마이메뉴
-        </Link>
-      </div>
-
       <div className="rounded-2xl border border-black bg-white p-4">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-lg font-bold">포인트 적립/사용 내역</h1>

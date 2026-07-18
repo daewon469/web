@@ -3,7 +3,7 @@
 import RegionSelectModal from "@/components/RegionSelectModal";
 import MapLocationField from "@/components/MapLocationField";
 import TableGrid from "@/components/TableGrid";
-import { Posts, resolveMediaUrl, type Post, type PostInput } from "@/lib/api";
+import { Auth, Posts, resolveMediaUrl, type Post, type PostInput } from "@/lib/api";
 import { WRITE_INDUSTRY_OPTIONS, WRITE_ROLE_OPTIONS } from "@/lib/customSiteOptions";
 import { getApiErrorMessage } from "@/lib/authErrors";
 import { getSession } from "@/lib/session";
@@ -87,6 +87,7 @@ export default function WritePageClient() {
   const isEdit = Number.isFinite(editId) && editId > 0;
 
   const [loadingPost, setLoadingPost] = useState(isEdit);
+  const [editAllowed, setEditAllowed] = useState(!isEdit);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [province, setProvince] = useState("");
@@ -132,7 +133,24 @@ export default function WritePageClient() {
     if (!isEdit) return;
     (async () => {
       try {
+        const session = getSession();
+        if (!session.isLogin || !session.username) {
+          setError("로그인이 필요합니다.");
+          router.replace("/login");
+          return;
+        }
         const post = await Posts.get(editId);
+        let allowed = session.username === post.author?.username;
+        if (!allowed) {
+          const summary = await Auth.getMyPageSummary(session.username);
+          allowed = summary.status === 0 && !!summary.admin_acknowledged;
+        }
+        if (!allowed) {
+          setError("이 글을 수정할 권한이 없습니다.");
+          router.replace(`/${editId}`);
+          return;
+        }
+        setEditAllowed(true);
         setTitle(post.title);
         setContent(post.content.replace(/<[^>]+>/g, "\n").trim());
         setProvince(post.province);
@@ -181,7 +199,7 @@ export default function WritePageClient() {
         setLoadingPost(false);
       }
     })();
-  }, [isEdit, editId]);
+  }, [isEdit, editId, router]);
 
   const buildPayload = (status: "published" | "closed", resolvedImageUrl?: string): PostInput => {
     const resolvedWorkplace = resolveWorkplaceForSubmit(workplace, !isEdit);
@@ -282,13 +300,15 @@ export default function WritePageClient() {
   if (loadingPost) {
     return <p className="py-12 text-center text-gray-500">불러오는 중...</p>;
   }
+  if (isEdit && !editAllowed) {
+    return <p className="py-12 text-center text-red-600">{error ?? "수정 권한을 확인할 수 없습니다."}</p>;
+  }
 
   return (
     <div className="mx-auto max-w-4xl rounded-2xl border border-black bg-white p-4">
-      <h1 className="mb-2 text-xl font-black text-[#0B1B3A]">
+      <h1 className="mb-4 text-xl font-black text-[#0B1B3A]">
         {isEdit ? "구인글 수정" : "구인글 등록"}
       </h1>
-      <p className="mb-4 text-lg font-bold text-[#666]">※ 구인등록은 하루 1회 가능합니다.</p>
 
       <form
         onSubmit={(e) => {
@@ -299,7 +319,6 @@ export default function WritePageClient() {
       >
         {/* 소개 이미지 */}
         <div className={formFullClass}>
-          <label className="mb-3 mt-2 block text-[15px] font-bold">소개 이미지</label>
           <div className="relative mb-2 overflow-hidden rounded-xl bg-[#f2f2f2]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -385,69 +404,70 @@ export default function WritePageClient() {
           />
         </div>
 
-        {/* 업종 */}
-        <div className={formFullClass}>
-          <label className="mb-2 block text-[15px] font-bold">업종</label>
-          <TableGrid
-            items={WRITE_INDUSTRY_OPTIONS}
-            columns={3}
-            isActive={(v) => industries.includes(v)}
-            onToggle={(v) =>
-              setIndustries((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]))
-            }
-          />
+        {/* 업종 · 모집 (7:3) */}
+        <div className={`${formFullClass} grid grid-cols-1 gap-4 md:grid-cols-10`}>
+          <div className="md:col-span-7">
+            <label className="mb-2 block text-[15px] font-bold">업종</label>
+            <TableGrid
+              items={WRITE_INDUSTRY_OPTIONS}
+              columns={3}
+              isActive={(v) => industries.includes(v)}
+              onToggle={(v) =>
+                setIndustries((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]))
+              }
+            />
+          </div>
+          <div className="md:col-span-3">
+            <label className="mb-2 block text-[15px] font-bold">모집</label>
+            <TableGrid
+              items={WRITE_ROLE_OPTIONS}
+              columns={2}
+              isActive={(v) => roles.includes(v)}
+              onToggle={(v) =>
+                setRoles((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]))
+              }
+            />
+          </div>
         </div>
 
-        {/* 모집 */}
-        <div className={formFullClass}>
-          <label className="mb-2 block text-[15px] font-bold">모집</label>
-          <TableGrid
-            items={WRITE_ROLE_OPTIONS}
-            columns={4}
-            isActive={(v) => roles.includes(v)}
-            onToggle={(v) =>
-              setRoles((prev) => (prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v]))
-            }
-          />
-          {roles.length > 0 && (
-            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-              {roles.map((role) =>
-                role === "기타" ? (
-                  <div key={role} className="md:col-span-2">
-                    <label className={blueLabelClass}>직접입력</label>
-                    <input
-                      type="text"
-                      value={otherRoleName}
-                      onChange={(e) => setOtherRoleName(e.target.value)}
-                      placeholder="예) 층별, 기본급"
-                      className={`${inputClass} mb-2`}
-                    />
-                    <label className={blueLabelClass}>수수료</label>
-                    <input
-                      type="text"
-                      value={fees["기타"] ?? ""}
-                      onChange={(e) => setFees((prev) => ({ ...prev, 기타: e.target.value }))}
-                      placeholder="예) 300~500, 3%"
-                      disabled={!otherRoleName.trim()}
-                      className={inputClass}
-                    />
-                  </div>
-                ) : (
-                  <div key={role}>
-                    <label className={blueLabelClass}>{roleFeeLabel(role)}</label>
-                    <input
-                      type="text"
-                      value={fees[role] ?? ""}
-                      onChange={(e) => setFees((prev) => ({ ...prev, [role]: e.target.value }))}
-                      placeholder="예) 300~500, 3%"
-                      className={inputClass}
-                    />
-                  </div>
-                ),
-              )}
-            </div>
-          )}
-        </div>
+        {roles.length > 0 && (
+          <div className={`${formFullClass} grid grid-cols-1 gap-3 md:grid-cols-2`}>
+            {roles.map((role) =>
+              role === "기타" ? (
+                <div key={role} className="md:col-span-2">
+                  <label className={blueLabelClass}>직접입력</label>
+                  <input
+                    type="text"
+                    value={otherRoleName}
+                    onChange={(e) => setOtherRoleName(e.target.value)}
+                    placeholder="예) 층별, 기본급"
+                    className={`${inputClass} mb-2`}
+                  />
+                  <label className={blueLabelClass}>수수료</label>
+                  <input
+                    type="text"
+                    value={fees["기타"] ?? ""}
+                    onChange={(e) => setFees((prev) => ({ ...prev, 기타: e.target.value }))}
+                    placeholder="예) 300~500, 3%"
+                    disabled={!otherRoleName.trim()}
+                    className={inputClass}
+                  />
+                </div>
+              ) : (
+                <div key={role}>
+                  <label className={blueLabelClass}>{roleFeeLabel(role)}</label>
+                  <input
+                    type="text"
+                    value={fees[role] ?? ""}
+                    onChange={(e) => setFees((prev) => ({ ...prev, [role]: e.target.value }))}
+                    placeholder="예) 300~500, 3%"
+                    className={inputClass}
+                  />
+                </div>
+              ),
+            )}
+          </div>
+        )}
 
         {/* 시행사 · 시공사 · 신탁사 · 대행사 */}
         <div>

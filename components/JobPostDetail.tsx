@@ -1,9 +1,11 @@
 "use client";
 
 import AddressMapSection from "@/components/AddressMapSection";
-import { resolveMediaUrl, type Post } from "@/lib/api";
+import { Auth, resolveMediaUrl, type Post } from "@/lib/api";
+import { getSession } from "@/lib/session";
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 
 const sectionClass = "rounded-lg border border-black bg-[#f9f9f9] p-4";
 
@@ -101,6 +103,8 @@ function buildWelfareItems(post: Post) {
 }
 
 export default function JobPostDetail({ post }: { post: Post }) {
+  const router = useRouter();
+  const [canEdit, setCanEdit] = useState(false);
   const imageUri = resolveMediaUrl(post.image_url);
   const highlightColor =
     post.highlight_color === "white" || post.highlight_color === "black"
@@ -109,6 +113,36 @@ export default function JobPostDetail({ post }: { post: Post }) {
 
   const welfareItems = buildWelfareItems(post);
   const roleFees = buildRoleFees(post);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      await Promise.resolve();
+      const { username } = getSession();
+      let allowed = Boolean(username && username === post.author?.username);
+      if (username && !allowed) {
+        try {
+          const res = await Auth.getMyPageSummary(username);
+          allowed = res.status === 0 && !!res.admin_acknowledged;
+        } catch {
+          allowed = false;
+        }
+      }
+      if (!cancelled) setCanEdit(allowed);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [post.author?.username]);
+
+  const copyCurrentUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      alert("현재 글 주소가 복사되었습니다.");
+    } catch {
+      alert("주소를 복사하지 못했습니다.");
+    }
+  };
 
   const roles = [
     post.total_use ? "총괄" : null,
@@ -130,11 +164,29 @@ export default function JobPostDetail({ post }: { post: Post }) {
 
   return (
     <article className="flex flex-col gap-1 bg-[#f5f5f5] lg:gap-4">
-      <div className="flex min-w-0 items-center justify-between rounded-lg border border-black bg-[#f9f9f9] p-4">
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-lg border border-black bg-[#f9f9f9] p-4">
         <span className="font-semibold">{post.author?.username}</span>
-        <span className="text-sm text-gray-600">
-          {new Date(post.created_at).toLocaleString("ko-KR")}
-        </span>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <span className="text-sm text-gray-600">
+            {new Date(post.created_at).toLocaleString("ko-KR")}
+          </span>
+          <button
+            type="button"
+            onClick={() => void copyCurrentUrl()}
+            className="rounded-lg border border-black bg-white px-3 py-1.5 text-sm font-semibold text-[#111] hover:bg-gray-50"
+          >
+            공유
+          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => router.push(`/write?id=${post.id}`)}
+              className="rounded-lg bg-[#4A6CF7] px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90"
+            >
+              수정
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex min-w-0 flex-col gap-1 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-stretch lg:gap-4">

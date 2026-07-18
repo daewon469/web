@@ -1,6 +1,7 @@
 "use client";
 
 import BlueStrip from "@/components/BlueStrip";
+import CustomFilterModal, { type CustomFilterValue } from "@/components/CustomFilterModal";
 import { ListHomeWebTopBannerCarousel } from "@/components/FeedBanner";
 import HomePopup from "@/components/HomePopup";
 import KakaoMapPanel from "@/components/KakaoMapPanel";
@@ -37,6 +38,72 @@ import { usePostLikedSync } from "@/lib/usePostLikedSync";
 import { useSlidePostIds } from "@/lib/useSlidePostIds";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+const EMPTY_CUSTOM_FILTER: CustomFilterValue = {
+  provinces: [],
+  industries: [],
+  roles: [],
+};
+
+function parseRoleFlag(v: unknown) {
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") return v === 1;
+  const s = String(v ?? "").trim().toLowerCase();
+  if (!s) return false;
+  return s === "1" || s === "true" || s === "y" || s === "yes" || s === "on";
+}
+
+function hasRoleData(useValue: unknown, feeValue: unknown) {
+  return parseRoleFlag(useValue) || Boolean(String(feeValue ?? "").trim());
+}
+
+function postMatchesCustomFilter(p: Post, f: CustomFilterValue) {
+  const provs = (f.provinces || []).map((s) => String(s ?? "").trim()).filter(Boolean);
+  const inds = (f.industries || []).map((s) => String(s ?? "").trim()).filter(Boolean);
+  const roles = (f.roles || []).map((s) => String(s ?? "").trim()).filter(Boolean);
+
+  const hasProvFilter = provs.length > 0 && !provs.includes("전체");
+  const hasIndFilter = inds.length > 0;
+  const hasRoleFilter = roles.length > 0;
+
+  if (!hasProvFilter && !hasIndFilter && !hasRoleFilter) return true;
+
+  if (hasProvFilter) {
+    const sp = toProvinceShort((p as Post & { province?: string }).province);
+    if (!sp || !provs.includes(sp)) return false;
+  }
+
+  if (hasIndFilter) {
+    const indRaw = String((p as Post & { job_industry?: string }).job_industry ?? "").trim();
+    if (!indRaw) return false;
+    const indList = indRaw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (indList.length === 0) return false;
+    if (!indList.some((ind) => inds.includes(ind))) return false;
+  }
+
+  if (hasRoleFilter) {
+    const wants = new Set(roles);
+    const row = p as Post & Record<string, unknown>;
+    const hasTotal = hasRoleData(row.total_use, row.total_fee);
+    const hasBranchOnly = parseRoleFlag(row.branch_use);
+    const hasLeaderOrTeam =
+      hasRoleData(row.leader_use, row.leader_fee) || hasRoleData(row.team_use, row.team_fee);
+    const hasMemberOrEach =
+      hasRoleData(row.member_use, row.member_fee) || hasRoleData(row.each_use, row.each_fee);
+    const ok =
+      (wants.has("총괄") && hasTotal) ||
+      (wants.has("본부장") && hasBranchOnly) ||
+      (wants.has("팀장") && hasLeaderOrTeam) ||
+      (wants.has("팀원") && hasMemberOrEach) ||
+      (wants.has("기타") && Boolean(String(row.other_role_name ?? "").trim()));
+    if (!ok) return false;
+  }
+
+  return true;
+}
 
 function hasSamePostOrderAndLikedState(prev: Post[], next: Post[]) {
   return (
@@ -82,6 +149,8 @@ export default function ListPageClient() {
   });
   const [referralModalOpen, setReferralModalOpen] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [customFilterOpen, setCustomFilterOpen] = useState(false);
+  const [customFilter, setCustomFilter] = useState<CustomFilterValue>(EMPTY_CUSTOM_FILTER);
   const [selectedRegions, setSelectedRegions] = useState<RegionObj[]>([
     { province: "전체", city: "전체" },
   ]);
@@ -116,6 +185,23 @@ export default function ListPageClient() {
     () => selectedRegionsToPostListParams(selectedRegions),
     [selectedRegions],
   );
+  const isCustomViewActive = useMemo(() => {
+    const provinces = customFilter.provinces.map((value) => value.trim()).filter(Boolean);
+    const industries = customFilter.industries.map((value) => value.trim()).filter(Boolean);
+    const roles = customFilter.roles.map((value) => value.trim()).filter(Boolean);
+    return (
+      (provinces.length > 0 && !provinces.includes("전체")) ||
+      industries.length > 0 ||
+      roles.length > 0
+    );
+  }, [customFilter]);
+  const effectiveRegionParams = useMemo(
+    () =>
+      isCustomViewActive
+        ? { province: undefined, city: undefined, regions: undefined }
+        : regionParams,
+    [isCustomViewActive, regionParams],
+  );
   const isNationwide = useMemo(
     () => selectedRegions.some((r) => r.province === "전체"),
     [selectedRegions],
@@ -130,6 +216,26 @@ export default function ListPageClient() {
   const resetRegionFilter = useCallback(() => {
     setSelectedRegions([{ province: "전체", city: "전체" }]);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const resetCustomFilter = useCallback(() => {
+    setCustomFilter(EMPTY_CUSTOM_FILTER);
+    setSelectedRegions([{ province: "전체", city: "전체" }]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  const changeRegions = useCallback((regions: RegionObj[]) => {
+    setCustomFilter(EMPTY_CUSTOM_FILTER);
+    setSelectedRegions(regions);
+  }, []);
+
+  const applyCustomFilter = useCallback((value: CustomFilterValue) => {
+    const active =
+      value.provinces.some((item) => item.trim() && item.trim() !== "전체") ||
+      value.industries.some((item) => item.trim()) ||
+      value.roles.some((item) => item.trim());
+    setCustomFilter(value);
+    if (active) setSelectedRegions([{ province: "전체", city: "전체" }]);
   }, []);
 
   useEffect(() => {
@@ -219,14 +325,15 @@ export default function ListPageClient() {
       setError(null);
       try {
         const { username } = getSession();
+        const requestLimit = isCustomViewActive ? 333 : 20;
         const listPromise = Posts.list({
           username: username ?? undefined,
-          limit: 20,
+          limit: requestLimit,
           cursor: reset ? undefined : cursor,
           status: "published",
-          province: regionParams.province,
-          city: regionParams.city,
-          regions: regionParams.regions,
+          province: effectiveRegionParams.province,
+          city: effectiveRegionParams.city,
+          regions: effectiveRegionParams.regions,
         });
         const slidePromise = reset
           ? fetchSlideListPosts({
@@ -247,7 +354,7 @@ export default function ListPageClient() {
         setPosts((prev) =>
           reset ? normalizeItems(items) : [...prev, ...normalizeItems(items)],
         );
-        setCursor(items.length >= 20 ? next_cursor : undefined);
+        setCursor(items.length >= requestLimit ? next_cursor : undefined);
         if (slideItems) setSlidePosts(normalizeItems(slideItems));
       } catch {
         setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
@@ -257,7 +364,7 @@ export default function ListPageClient() {
         setRefreshing(false);
       }
     },
-    [cursor, refreshing, regionParams],
+    [cursor, refreshing, effectiveRegionParams, isCustomViewActive],
   );
 
   const refresh = useCallback(async () => {
@@ -266,14 +373,15 @@ export default function ListPageClient() {
     setError(null);
     try {
       const { username } = getSession();
+      const requestLimit = isCustomViewActive ? 333 : 20;
       const [{ items, next_cursor }, slideItems, likedIds] = await Promise.all([
         Posts.list({
           username: username ?? undefined,
-          limit: 20,
+          limit: requestLimit,
           status: "published",
-          province: regionParams.province,
-          city: regionParams.city,
-          regions: regionParams.regions,
+          province: effectiveRegionParams.province,
+          city: effectiveRegionParams.city,
+          regions: effectiveRegionParams.regions,
         }),
         fetchSlideListPosts({
           username: username ?? undefined,
@@ -284,20 +392,20 @@ export default function ListPageClient() {
       const normalizeItems = (value: Post[]) =>
         likedIds ? overlayLikedPosts(value, likedIds) : value.map(normalizePostLiked);
       setPosts(normalizeItems(items));
-      setCursor(items.length >= 20 ? next_cursor : undefined);
+      setCursor(items.length >= requestLimit ? next_cursor : undefined);
       setSlidePosts(normalizeItems(slideItems));
     } catch {
       setError("목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
       setRefreshing(false);
     }
-  }, [regionParams]);
+  }, [effectiveRegionParams, isCustomViewActive]);
 
   useEffect(() => {
     setCursor(undefined);
     load(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [regionParams]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [effectiveRegionParams, isCustomViewActive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const reoverlayLikedPosts = async () => {
@@ -378,7 +486,10 @@ export default function ListPageClient() {
     setReferralModalOpen(true);
   }, [router]);
 
-  const orderedPosts = useMemo(() => splitSlideAndFeedPosts(posts).feed, [posts]);
+  const orderedPosts = useMemo(() => {
+    const feed = splitSlideAndFeedPosts(posts).feed;
+    return feed.filter((p) => postMatchesCustomFilter(p, customFilter));
+  }, [posts, customFilter]);
 
   const postcardS = useMemo(() => {
     const ordered = orderSlidePosts(slidePosts, slidePostIds);
@@ -423,13 +534,20 @@ export default function ListPageClient() {
         onClose={() => setReferralModalOpen(false)}
         referralCode={referralCode}
       />
+      <CustomFilterModal
+        open={customFilterOpen}
+        value={customFilter}
+        onClose={() => setCustomFilterOpen(false)}
+        onApply={applyCustomFilter}
+      />
 
       <div className="relative -mx-3 flex flex-col lg:mx-0">
         <div className="-mx-3 lg:mx-0">
           <BlueStrip
-            mode={isNationwide ? "nationwide" : "region"}
+            mode={isCustomViewActive ? "custom" : isNationwide ? "nationwide" : "region"}
             regionLabel={regionStripLabel}
             onResetRegion={resetRegionFilter}
+            onResetCustom={isCustomViewActive ? resetCustomFilter : undefined}
           />
         </div>
 
@@ -444,10 +562,10 @@ export default function ListPageClient() {
           <div className="flex min-w-0 flex-col gap-1.5">
             <RegionCategoryTabs
               selectedRegions={selectedRegions}
-              onChangeRegions={setSelectedRegions}
+              onChangeRegions={changeRegions}
             />
 
-            <ListHomeSearchRow />
+            <ListHomeSearchRow onCustomView={() => setCustomFilterOpen(true)} />
 
             {!error && postcardS.length > 0 && (
               <PostcardSSlider posts={postcardS} onPostLikedChange={setSlidePostLiked} />

@@ -91,10 +91,10 @@ export default function RegionCategoryTabs({ selectedRegions, onChangeRegions }:
             {SLASH_AFTER.has(label) ? (
               <div
                 aria-hidden
-                className="relative w-3 shrink-0 self-stretch sm:w-4"
+                className="relative h-5 w-2.5 shrink-0 self-center sm:h-6 sm:w-3"
                 style={{
                   background:
-                    "linear-gradient(to bottom right, #fff 48%, #0B1B3A 48%, #0B1B3A 52%, #fff 52%)",
+                    "linear-gradient(to bottom right, transparent 47%, #9CA3AF 47%, #9CA3AF 53%, transparent 53%)",
                 }}
               />
             ) : null}

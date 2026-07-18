@@ -1,7 +1,6 @@
 "use client";
 
 import { Stats, type TodayStatusResponse } from "@/lib/api";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 function StatCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
@@ -36,9 +35,6 @@ export default function TodayStatusPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/myboard" className="text-sm text-[#4A6CF7]">
-        ← 마이메뉴
-      </Link>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-[#0B1B3A]">오늘의 현황</h1>

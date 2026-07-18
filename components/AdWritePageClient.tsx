@@ -18,6 +18,8 @@ type WorkRole = (typeof WORK_ROLES)[number];
 
 const inputClass =
   "w-full rounded-xl border border-black bg-[#f9f9f9] px-3 py-3 outline-none focus:ring-2 focus:ring-[#4A6CF7]";
+const formGridClass = "grid grid-cols-1 gap-4 md:grid-cols-2";
+const formFullClass = "md:col-span-2";
 
 const labelClass = "mb-2 block text-[15px] font-bold";
 const blueLabelClass = "mb-1.5 block text-[15px] font-bold text-[#4A6CF7]";
@@ -257,14 +259,14 @@ export default function AdWritePageClient() {
   }
 
   return (
-    <div className="rounded-2xl border border-black bg-white p-4">
+    <div className="mx-auto max-w-4xl rounded-2xl border border-black bg-white p-4">
       <h1 className="mb-2 text-xl font-black text-[#0B1B3A]">
         {isEdit ? "광고글 수정" : "광고글 등록"}
       </h1>
       <p className="mb-4 text-lg font-bold text-[#666]">※ 광고글을 등록해주세요</p>
 
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <div>
+      <form onSubmit={onSubmit} className={`${formGridClass} gap-y-4`}>
+        <div className={formFullClass}>
           <label className="mb-3 mt-2 block text-[15px] font-bold">광고 이미지</label>
           <div className="relative mb-2 overflow-hidden rounded-xl bg-[#f2f2f2]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -382,7 +384,7 @@ export default function AdWritePageClient() {
           />
         </div>
 
-        <div>
+        <div className={formFullClass}>
           <label className={labelClass}>업무 상세 (최대 4개)</label>
           <TableGrid
             items={WORK_ROLES}
@@ -411,7 +413,7 @@ export default function AdWritePageClient() {
           )}
         </div>
 
-        <div>
+        <div className={formFullClass}>
           <label className={labelClass} htmlFor="ad-content">
             상세 내용
           </label>
@@ -426,21 +428,27 @@ export default function AdWritePageClient() {
           />
         </div>
 
-        <MapLocationField
-          label="사업지 주소"
-          placeholder="주소 입력 또는 지도를 터치하세요"
-          value={business}
-          onChange={setBusiness}
-          pickerKind="business"
-          showSameAsPeer={false}
-        />
+        <div className={formFullClass}>
+          <MapLocationField
+            label="사업지 주소"
+            placeholder="주소 입력 또는 지도를 터치하세요"
+            value={business}
+            onChange={setBusiness}
+            pickerKind="business"
+            showSameAsPeer={false}
+          />
+        </div>
 
-        {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && (
+          <p className={`rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ${formFullClass}`}>
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-2xl bg-[#4A6CF7] py-3 font-bold text-white disabled:opacity-60"
+          className={`w-full rounded-2xl bg-[#4A6CF7] py-3 font-bold text-white disabled:opacity-60 ${formFullClass}`}
         >
           {submitting ? "저장 중..." : isEdit ? "수정" : "게시"}
         </button>

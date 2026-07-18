@@ -1,8 +1,8 @@
 /** 1유형 목록 카드 높이(px) */
 export const LIST_CARD_HEIGHT_TYPE1 = 250;
 
-/** S유형 목록 카드 높이(px) — 기존 350의 80% */
-export const LIST_CARD_HEIGHT_TYPE_S = 280;
+/** S유형 목록 카드 높이(px) — 280 × 1.3 */
+export const LIST_CARD_HEIGHT_TYPE_S = 364;
 
 /** 1유형 제목 영역 고정 높이(px) — 1줄/2줄 동일 */
 export const TYPE1_TITLE_HEIGHT_PX = 52;

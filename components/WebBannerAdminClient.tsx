@@ -4,7 +4,6 @@ import { UIConfig, resolveMediaUrl, type UIConfigBannerItem, type UIConfigRespon
 import { uploadImageFile } from "@/lib/upload";
 import type { WebBannerRotation } from "@/lib/webBannerUtils";
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 type BannerKey = "web_top_banner" | "web_banner";
@@ -125,9 +124,6 @@ export default function WebBannerAdminClient({
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/myboard" className="text-sm text-[#4A6CF7]">
-        ← 마이메뉴
-      </Link>
       <h1 className="text-xl font-bold text-[#0B1B3A]">{title}</h1>
       <p className="text-sm text-[#666]">
         웹 홈 전용입니다. 1행에 3개씩 표시되며, 회전 수·삽입 간격을 선택할 수 있습니다.

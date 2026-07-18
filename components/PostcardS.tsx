@@ -36,9 +36,8 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
         <div className="absolute inset-0 bg-neutral-800" />
       )}
 
-      {/* 상단: 텍스트 위로 밀착, 메쉬는 얇게 → 중앙 이미지 확보 */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[1] bg-gradient-to-b from-white via-white/90 to-transparent px-2 pb-5 pt-1.5"
+        className="pointer-events-none absolute inset-x-0 top-0 z-[1] border-b border-black/20 bg-gradient-to-b from-white via-white/95 to-transparent px-2 pb-5 pt-1.5"
         aria-hidden
       >
         <div className="flex flex-col gap-0">
@@ -54,9 +53,8 @@ export default function PostcardS({ post, showHeart = true, onLikedChange }: Pro
         </div>
       </div>
 
-      {/* 하단: 텍스트 아래로 밀착, 두 줄 간격 최소 */}
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] bg-gradient-to-t from-white via-white/90 to-transparent px-2 pb-1.5 pt-5"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] border-t border-black/20 bg-gradient-to-t from-white via-white/95 to-transparent px-2 pb-1.5 pt-5"
         aria-hidden
       >
         <div className="flex flex-col gap-0">

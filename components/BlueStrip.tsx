@@ -8,6 +8,7 @@ type Props = {
   mode: "nationwide" | "region" | "custom" | "like";
   regionLabel?: string;
   onResetRegion?: () => void;
+  onResetCustom?: () => void;
 };
 
 const TICKER_LINES = [
@@ -115,7 +116,7 @@ function NationwideTicker() {
   );
 }
 
-export default function BlueStrip({ mode, regionLabel, onResetRegion }: Props) {
+export default function BlueStrip({ mode, regionLabel, onResetRegion, onResetCustom }: Props) {
   if (mode === "like") {
     return (
       <BlueStripShell>
@@ -127,6 +128,20 @@ export default function BlueStrip({ mode, regionLabel, onResetRegion }: Props) {
   }
 
   if (mode === "custom") {
+    if (onResetCustom) {
+      return (
+        <BlueStripShell>
+          <div className="flex h-[18px] items-center justify-between px-4">
+            <span className={`min-w-0 truncate ${TEXT_CLASS}`}>
+              ※ &apos;맞 춤 보 기&apos; 중 입니다.
+            </span>
+            <button type="button" onClick={onResetCustom} className={`shrink-0 ${TEXT_CLASS}`}>
+              첫화면 보기
+            </button>
+          </div>
+        </BlueStripShell>
+      );
+    }
     return (
       <BlueStripShell>
         <div className="flex h-[18px] items-center justify-between px-4">

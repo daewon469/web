@@ -1,7 +1,6 @@
 "use client";
 
 import { Posts, UIConfig, type Post } from "@/lib/api";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 async function fetchPostsByIds(ids: number[]) {
@@ -140,9 +139,6 @@ export default function TitleSearchAdminClient() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/myboard" className="text-sm text-[#4A6CF7]">
-        ← 마이메뉴
-      </Link>
       <h1 className="text-xl font-bold text-[#0B1B3A]">제목검색 추천현장 관리</h1>
 
       <button

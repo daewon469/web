@@ -45,10 +45,6 @@ export default function ReferralsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Link href="/myboard" className="text-sm text-[#4A6CF7]">
-        ← 마이메뉴
-      </Link>
-
       <div className="rounded-2xl border border-black bg-white p-4">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-lg font-bold">내가 추천한 회원</h1>
