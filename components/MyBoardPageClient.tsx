@@ -118,7 +118,7 @@ function BoardPreviewCard({
           </span>
         </Link>
       </div>
-      <div className="mx-[25px] h-px shrink-0 bg-black" aria-hidden />
+      <div className="mx-[18px] h-px shrink-0 bg-black" aria-hidden />
       <div className="min-h-0 flex-1 divide-y divide-[#ddd] overflow-hidden">
         {items.length === 0 ? (
           <p className="px-2.5 py-3 text-[12px] text-[#666]">{emptyText}</p>
