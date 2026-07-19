@@ -106,7 +106,7 @@ function BoardPreviewCard({
 }) {
   return (
     <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-black bg-white">
-      <div className="flex items-center justify-between gap-2 border-b border-black px-2.5 py-2">
+      <div className="flex items-center justify-between gap-2 px-2.5 py-2">
         <h2 className="text-base font-bold text-black sm:text-lg">{title}</h2>
         <Link
           href={moreHref}
@@ -118,6 +118,7 @@ function BoardPreviewCard({
           </span>
         </Link>
       </div>
+      <div className="mx-2.5 h-px shrink-0 bg-black" aria-hidden />
       <div className="min-h-0 flex-1 divide-y divide-[#ddd] overflow-hidden">
         {items.length === 0 ? (
           <p className="px-2.5 py-3 text-[12px] text-[#666]">{emptyText}</p>
